@@ -3,3 +3,6 @@ dist/
 .env.local
 .env
 .DS_Store
+fetch_all_jobs.js
+auto_fetch.sh
+*.backup
