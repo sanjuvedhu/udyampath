@@ -294,6 +294,18 @@ const JobDetail = ({job, onClose, user, onAuthRequired}) => {
     if (!applicantName || !applicantEmail) return;
     setLoading(true);
     try {
+      // 0. Upload resume if provided
+      let resumeUrl = null;
+      if (resumeFile) {
+        const fileExt = resumeFile.name.split(".").pop();
+        const fileName = `${user.id}-${Date.now()}.${fileExt}`;
+        const { error: uploadError } = await supabase.storage
+          .from("resumes").upload(fileName, resumeFile, { contentType: resumeFile.type, upsert: true });
+        if (!uploadError) {
+          const { data: urlData } = supabase.storage.from("resumes").getPublicUrl(fileName);
+          resumeUrl = urlData?.publicUrl;
+        }
+      }
       // 1. Save application to DB
       const { error } = await supabase.from("applications").insert({
         job_id: job.id,
@@ -301,6 +313,7 @@ const JobDetail = ({job, onClose, user, onAuthRequired}) => {
         applicant_name: applicantName,
         applicant_email: applicantEmail,
         cover_note: coverNote,
+        resume_url: resumeUrl,
         status: "submitted",
       });
       if (error) throw error;
@@ -387,6 +400,22 @@ const JobDetail = ({job, onClose, user, onAuthRequired}) => {
                   style={{width:"100%",padding:"12px 16px",borderRadius:12,border:`1.5px solid ${C.border}`,fontSize:14,fontFamily:"'Nunito',sans-serif",background:C.surface,color:"#fff"}}/>
                 <textarea value={coverNote} onChange={e=>setCoverNote(e.target.value)} placeholder="Why are you a good fit? (optional)"
                   style={{width:"100%",padding:"12px 16px",borderRadius:12,border:`1.5px solid ${C.border}`,fontSize:13,fontFamily:"'Nunito',sans-serif",background:C.surface,color:"#fff",height:80,resize:"none"}} className="input-z"/>
+
+                {/* Resume Upload */}
+                <div>
+                  <label style={{fontSize:11,fontWeight:800,color:C.muted,display:"block",marginBottom:6,textTransform:"uppercase",letterSpacing:.6}}>📄 Upload Resume (PDF/DOC)</label>
+                  <div style={{position:"relative"}}>
+                    <input type="file" accept=".pdf,.doc,.docx" onChange={e=>setResumeFile(e.target.files[0])}
+                      style={{position:"absolute",inset:0,opacity:0,cursor:"pointer",zIndex:2,width:"100%"}}/>
+                    <div style={{width:"100%",padding:"12px 16px",borderRadius:12,border:`1.5px dashed ${resumeFile?C.lime:C.border}`,fontSize:13,background:resumeFile?`${C.lime}08`:C.surface,color:resumeFile?C.lime:"rgba(255,255,255,.3)",display:"flex",alignItems:"center",gap:10,transition:"all .2s"}}>
+                      <span style={{fontSize:20}}>{resumeFile?"📄":"📎"}</span>
+                      <span style={{flex:1}}>{resumeFile?resumeFile.name:"Click to upload resume"}</span>
+                      {resumeFile&&<span style={{fontSize:10,color:C.mint,fontWeight:800}}>✓ Ready</span>}
+                    </div>
+                  </div>
+                  <div style={{fontSize:10,color:"rgba(255,255,255,.2)",marginTop:4}}>PDF, DOC, DOCX · Max 5MB · Stored securely in Supabase</div>
+                </div>
+
                 <button onClick={handleApply} disabled={loading} className="btn"
                   style={{width:"100%",padding:16,borderRadius:14,background:loading?"rgba(170,255,0,.3)":`linear-gradient(135deg,${C.lime},#77DD00)`,color:C.bg,border:"none",fontFamily:"'Bebas Neue',cursive",fontSize:20,letterSpacing:1,cursor:loading?"not-allowed":"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:10}}>
                   {loading ? <><Spinner size={20} color={C.bg}/> Submitting...</> : "SUBMIT APPLICATION 🚀"}
@@ -542,41 +571,28 @@ export default function App() {
   const fetchJobs = useCallback(async () => {
     setLoading(true);
     try {
-      // Fetch ALL jobs in batches of 1000 (Supabase limit per request)
-      let allData = [];
-      let from = 0;
-      const batchSize = 1000;
+      let query = supabase.from("jobs")
+        .select("id,title,company_name,salary_range,location,work_type,region,category,experience_level,skills_tags,total_seats,filled_seats,is_hot,is_new,logo_color_1,logo_color_2,posted_ago,created_at")
+        .eq("is_active", true)
+        .order("is_hot", {ascending:false})
+        .order("created_at", {ascending:false})
+        .limit(100);
 
-      while(true) {
-        let query = supabase.from("jobs").select("*")
-          .eq("is_active",true)
-          .order("created_at",{ascending:false})
-          .range(from, from + batchSize - 1);
+      if(region!=="All") query = query.eq("region",region);
+      if(workType!=="All") query = query.eq("work_type",workType);
+      if(category!=="All") query = query.eq("category",category);
+      if(expLevel!=="All") query = query.eq("experience_level",expLevel);
+      if(search) query = query.or(`title.ilike.%${search}%,company_name.ilike.%${search}%`);
 
-        if(region!=="All") query = query.eq("region",region);
-        if(workType!=="All") query = query.eq("work_type",workType);
-        if(category!=="All") query = query.eq("category",category);
-        if(expLevel!=="All") query = query.eq("experience_level",expLevel);
-        if(search) query = query.or(`title.ilike.%${search}%,company_name.ilike.%${search}%`);
+      const {data, error} = await query;
+      if(error) throw error;
 
-        const {data:batch, error} = await query;
-        if(error) throw error;
-        if(!batch || batch.length === 0) break;
-        allData = [...allData, ...batch];
-        if(batch.length < batchSize) break;
-        from += batchSize;
-      }
+      const {count} = await supabase.from("jobs")
+        .select("*",{count:"exact",head:true})
+        .eq("is_active",true);
 
-      if(allData.length > 0) {
-        setJobs(allData);
-        setLiveCount(allData.length);
-      } else {
-        // Fallback to Adzuna API
-        const res = await fetch(`/api/fetch-jobs?q=${encodeURIComponent(search||"software developer")}&country=in&results_per_page=20`);
-        const apiData = await res.json();
-        setJobs(apiData.jobs||[]);
-        setLiveCount(apiData.total||0);
-      }
+      setJobs(data||[]);
+      setLiveCount(count||0);
     } catch (err) {
       console.error("Job fetch error:",err);
       showToast("Couldn't load jobs. Retrying...","error");
