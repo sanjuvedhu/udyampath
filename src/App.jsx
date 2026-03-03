@@ -583,13 +583,31 @@ export default function App() {
 
   // ── Auth listener ─────────────────────────────────
   useEffect(()=>{
+    // Handle OAuth callback from Google
     supabase.auth.getSession().then(({data:{session}})=>{
       setUser(session?.user||null);
-      if(session?.user) loadSavedJobs(session.user.id);
+      if(session?.user) {
+        loadSavedJobs(session.user.id);
+        showToast(`Welcome ${session.user.user_metadata?.full_name||session.user.email}! 🎉`,"success");
+      }
     });
-    const {data:{subscription}} = supabase.auth.onAuthStateChange((_event,session)=>{
-      setUser(session?.user||null);
-      if(session?.user) loadSavedJobs(session.user.id);
+
+    const {data:{subscription}} = supabase.auth.onAuthStateChange((event,session)=>{
+      if(event==="SIGNED_IN") {
+        setUser(session?.user||null);
+        if(session?.user) {
+          loadSavedJobs(session.user.id);
+          setShowAuth(false);
+          showToast(`Welcome ${session.user.user_metadata?.full_name||session.user.email}! 🎉`,"success");
+        }
+      }
+      if(event==="SIGNED_OUT") {
+        setUser(null);
+        setSaved(new Set());
+      }
+      if(event==="TOKEN_REFRESHED") {
+        setUser(session?.user||null);
+      }
     });
     return ()=>subscription.unsubscribe();
   },[]);
