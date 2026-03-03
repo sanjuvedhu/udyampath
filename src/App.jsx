@@ -286,6 +286,10 @@ const JobDetail = ({job, onClose, user, onAuthRequired}) => {
   const [loading, setLoading] = useState(false);
   const [applicantName, setApplicantName] = useState(user?.user_metadata?.full_name||"");
   const [applicantEmail, setApplicantEmail] = useState(user?.email||"");
+  const [phone, setPhone] = useState("");
+  const [linkedin, setLinkedin] = useState("");
+  const [experience, setExperience] = useState("");
+  const [currentLocation, setCurrentLocation] = useState("");
   const [coverNote, setCoverNote] = useState("");
   const [resumeFile, setResumeFile] = useState(null);
 
@@ -312,7 +316,7 @@ const JobDetail = ({job, onClose, user, onAuthRequired}) => {
         user_id: user.id,
         applicant_name: applicantName,
         applicant_email: applicantEmail,
-        cover_note: coverNote,
+        cover_note: `Phone: ${phone} | LinkedIn: ${linkedin} | Experience: ${experience} | Location: ${currentLocation} | Note: ${coverNote}`,
         resume_url: resumeUrl,
         status: "submitted",
       });
@@ -394,11 +398,40 @@ const JobDetail = ({job, onClose, user, onAuthRequired}) => {
             <div style={{background:C.card,borderRadius:20,padding:20,border:`1px solid ${C.border}`}}>
               <div style={{fontFamily:"'Bebas Neue',cursive",fontSize:18,color:"#fff",letterSpacing:.5,marginBottom:16}}>APPLY NOW — FREE</div>
               <div style={{display:"flex",flexDirection:"column",gap:12}}>
-                <input value={applicantName} onChange={e=>setApplicantName(e.target.value)} placeholder="Your full name *" className="input-z"
-                  style={{width:"100%",padding:"12px 16px",borderRadius:12,border:`1.5px solid ${C.border}`,fontSize:14,fontFamily:"'Nunito',sans-serif",background:C.surface,color:"#fff"}}/>
-                <input value={applicantEmail} onChange={e=>setApplicantEmail(e.target.value)} placeholder="your@email.com *" type="email" className="input-z"
-                  style={{width:"100%",padding:"12px 16px",borderRadius:12,border:`1.5px solid ${C.border}`,fontSize:14,fontFamily:"'Nunito',sans-serif",background:C.surface,color:"#fff"}}/>
-                <textarea value={coverNote} onChange={e=>setCoverNote(e.target.value)} placeholder="Why are you a good fit? (optional)"
+                {/* Row 1 - Name + Email */}
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+                  <input value={applicantName} onChange={e=>setApplicantName(e.target.value)} placeholder="Full name *" className="input-z"
+                    style={{width:"100%",padding:"12px 16px",borderRadius:12,border:`1.5px solid ${C.border}`,fontSize:13,fontFamily:"'Nunito',sans-serif",background:C.surface,color:"#fff"}}/>
+                  <input value={applicantEmail} onChange={e=>setApplicantEmail(e.target.value)} placeholder="Email *" type="email" className="input-z"
+                    style={{width:"100%",padding:"12px 16px",borderRadius:12,border:`1.5px solid ${C.border}`,fontSize:13,fontFamily:"'Nunito',sans-serif",background:C.surface,color:"#fff"}}/>
+                </div>
+
+                {/* Row 2 - Phone + Location */}
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+                  <input value={phone} onChange={e=>setPhone(e.target.value)} placeholder="📱 Phone number" className="input-z"
+                    style={{width:"100%",padding:"12px 16px",borderRadius:12,border:`1.5px solid ${C.border}`,fontSize:13,fontFamily:"'Nunito',sans-serif",background:C.surface,color:"#fff"}}/>
+                  <input value={currentLocation} onChange={e=>setCurrentLocation(e.target.value)} placeholder="📍 Current city" className="input-z"
+                    style={{width:"100%",padding:"12px 16px",borderRadius:12,border:`1.5px solid ${C.border}`,fontSize:13,fontFamily:"'Nunito',sans-serif",background:C.surface,color:"#fff"}}/>
+                </div>
+
+                {/* Row 3 - Experience + LinkedIn */}
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+                  <select value={experience} onChange={e=>setExperience(e.target.value)} className="input-z"
+                    style={{width:"100%",padding:"12px 16px",borderRadius:12,border:`1.5px solid ${C.border}`,fontSize:13,fontFamily:"'Nunito',sans-serif",background:C.surface,color:experience?"#fff":"rgba(255,255,255,.3)",cursor:"pointer"}}>
+                    <option value="">🎓 Experience level</option>
+                    <option>Fresher (0 years)</option>
+                    <option>0–1 year</option>
+                    <option>1–2 years</option>
+                    <option>2–5 years</option>
+                    <option>5–10 years</option>
+                    <option>10+ years</option>
+                  </select>
+                  <input value={linkedin} onChange={e=>setLinkedin(e.target.value)} placeholder="💼 LinkedIn URL (optional)" className="input-z"
+                    style={{width:"100%",padding:"12px 16px",borderRadius:12,border:`1.5px solid ${C.border}`,fontSize:13,fontFamily:"'Nunito',sans-serif",background:C.surface,color:"#fff"}}/>
+                </div>
+
+                {/* Cover Note */}
+                <textarea value={coverNote} onChange={e=>setCoverNote(e.target.value)} placeholder="✍️ Why are you a good fit for this role? (optional)"
                   style={{width:"100%",padding:"12px 16px",borderRadius:12,border:`1.5px solid ${C.border}`,fontSize:13,fontFamily:"'Nunito',sans-serif",background:C.surface,color:"#fff",height:80,resize:"none"}} className="input-z"/>
 
                 {/* Resume Upload */}
@@ -571,28 +604,41 @@ export default function App() {
   const fetchJobs = useCallback(async () => {
     setLoading(true);
     try {
-      let query = supabase.from("jobs")
-        .select("id,title,company_name,salary_range,location,work_type,region,category,experience_level,skills_tags,total_seats,filled_seats,is_hot,is_new,logo_color_1,logo_color_2,posted_ago,created_at")
-        .eq("is_active", true)
-        .order("is_hot", {ascending:false})
-        .order("created_at", {ascending:false})
-        .limit(100);
+      // Fetch ALL jobs in batches of 1000 (Supabase limit per request)
+      let allData = [];
+      let from = 0;
+      const batchSize = 1000;
 
-      if(region!=="All") query = query.eq("region",region);
-      if(workType!=="All") query = query.eq("work_type",workType);
-      if(category!=="All") query = query.eq("category",category);
-      if(expLevel!=="All") query = query.eq("experience_level",expLevel);
-      if(search) query = query.or(`title.ilike.%${search}%,company_name.ilike.%${search}%`);
+      while(true) {
+        let query = supabase.from("jobs").select("*")
+          .eq("is_active",true)
+          .order("created_at",{ascending:false})
+          .range(from, from + batchSize - 1);
 
-      const {data, error} = await query;
-      if(error) throw error;
+        if(region!=="All") query = query.eq("region",region);
+        if(workType!=="All") query = query.eq("work_type",workType);
+        if(category!=="All") query = query.eq("category",category);
+        if(expLevel!=="All") query = query.eq("experience_level",expLevel);
+        if(search) query = query.or(`title.ilike.%${search}%,company_name.ilike.%${search}%`);
 
-      const {count} = await supabase.from("jobs")
-        .select("*",{count:"exact",head:true})
-        .eq("is_active",true);
+        const {data:batch, error} = await query;
+        if(error) throw error;
+        if(!batch || batch.length === 0) break;
+        allData = [...allData, ...batch];
+        if(batch.length < batchSize) break;
+        from += batchSize;
+      }
 
-      setJobs(data||[]);
-      setLiveCount(count||0);
+      if(allData.length > 0) {
+        setJobs(allData);
+        setLiveCount(allData.length);
+      } else {
+        // Fallback to Adzuna API
+        const res = await fetch(`/api/fetch-jobs?q=${encodeURIComponent(search||"software developer")}&country=in&results_per_page=20`);
+        const apiData = await res.json();
+        setJobs(apiData.jobs||[]);
+        setLiveCount(apiData.total||0);
+      }
     } catch (err) {
       console.error("Job fetch error:",err);
       showToast("Couldn't load jobs. Retrying...","error");
