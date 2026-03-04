@@ -20,7 +20,7 @@ const Styles = () => (
     html{scroll-behavior:smooth;}
     body{font-family:'Nunito',sans-serif;background:#09090F;color:#F0F0FF;overflow-x:hidden;}
     ::-webkit-scrollbar{width:4px;}
-    ::-webkit-scrollbar-thumb{background:#AAFF00;border-radius:99px;}
+    ::-webkit-scrollbar-thumb{background:#00E5FF;border-radius:99px;}
     @-webkit-keyframes fadeUp{from{opacity:0;-webkit-transform:translateY(20px);transform:translateY(20px)}to{opacity:1;-webkit-transform:translateY(0);transform:translateY(0)}}
     @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
     @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
@@ -30,7 +30,7 @@ const Styles = () => (
     @keyframes marquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}
     @-webkit-keyframes slideIn{from{-webkit-transform:translateX(100%);opacity:0}to{-webkit-transform:translateX(0);opacity:1}}
     @keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
-    @keyframes glow{0%,100%{box-shadow:0 0 20px #AAFF0040}50%{box-shadow:0 0 40px #AAFF0060}}
+    @keyframes glow{0%,100%{box-shadow:0 0 20px #00E5FF40}50%{box-shadow:0 0 40px #00E5FF60}}
     @keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
     @keyframes popIn{0%{transform:scale(0.8);opacity:0}100%{transform:scale(1);opacity:1}}
     .fu{-webkit-animation:fadeUp .5s ease both;animation:fadeUp .5s ease both}
@@ -43,7 +43,7 @@ const Styles = () => (
     .btn:active{transform:scale(.96);}
     .card-hover{transition:all .25s cubic-bezier(.22,1,.36,1);}
     .card-hover:hover{transform:translateY(-4px);box-shadow:0 20px 60px rgba(170,255,0,.08)!important;}
-    .input-z:focus{outline:none!important;border-color:#AAFF00!important;box-shadow:0 0 0 3px #AAFF0015!important;}
+    .input-z:focus{outline:none!important;border-color:#00E5FF!important;box-shadow:0 0 0 3px #00E5FF15!important;}
     .tag{display:inline-flex;align-items:center;padding:3px 10px;border-radius:99px;font-size:10px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;}
     .shimmer-bg{background:linear-gradient(90deg,#1A1A2E 0%,#2A2A3E 50%,#1A1A2E 100%);background-size:200% 100%;-webkit-animation:shimmer 1.5s infinite;animation:shimmer 1.5s infinite;}
     .grid-pattern{background-image:linear-gradient(rgba(170,255,0,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(170,255,0,.03) 1px,transparent 1px);background-size:40px 40px;}
@@ -51,20 +51,21 @@ const Styles = () => (
     .marquee-inner{display:-webkit-flex;display:flex;-webkit-animation:marquee 35s linear infinite;animation:marquee 35s linear infinite;width:-webkit-max-content;width:max-content;}
     .pop{-webkit-animation:popIn .4s ease both;animation:popIn .4s ease both;}
     .glow-pulse{-webkit-animation:glow 2s ease-in-out infinite;animation:glow 2s ease-in-out infinite;}
-    .nav-active{color:#AAFF00!important;}
-    :root{--lime:#AAFF00;--gold:#FFB800;--coral:#FF4D6D;--sky:#38BDF8;--violet:#A78BFA;--mint:#34D399;}
+    .nav-active{color:#00E5FF!important;}
+    :root{--lime:#00E5FF;--gold:#FFB800;--coral:#FF4D6D;--sky:#38BDF8;--violet:#A78BFA;--mint:#34D399;}
   `}</style>
 );
 
 const C = {
-  lime:"#AAFF00", gold:"#FFB800", coral:"#FF4D6D", sky:"#38BDF8",
-  violet:"#A78BFA", mint:"#34D399", bg:"#09090F", surface:"#13131F",
-  card:"#1A1A2E", border:"rgba(255,255,255,.07)", muted:"rgba(255,255,255,.35)"
+  lime:"#00E5FF", gold:"#FFB700", coral:"#FF3D71", sky:"#7C3AED",
+  violet:"#A78BFA", mint:"#00D68F", bg:"#04040C", surface:"#080816",
+  card:"#0D0D1F", border:"rgba(255,255,255,.06)", muted:"rgba(255,255,255,.38)",
+  cyan:"#00E5FF", pink:"#FF0080"
 };
 
 /* ── Small Components ────────────────────────────────── */
-const Chip = ({children, color=C.lime}) => (
-  <span className="tag" style={{background:`${color}18`,color,border:`1px solid ${color}30`}}>{children}</span>
+const Chip = ({children, color="#00E5FF"}) => (
+  <span className="tag" style={{background:`${color}10`,color,border:`1px solid ${color}20`,fontFamily:"'Space Mono',monospace"}}>{children}</span>
 );
 
 const Spinner = ({size=24,color=C.lime}) => (
@@ -72,9 +73,17 @@ const Spinner = ({size=24,color=C.lime}) => (
 );
 
 const SkeletonCard = () => (
-  <div style={{background:C.card,borderRadius:20,padding:20,border:`1px solid ${C.border}`}}>
-    {[["100%",14],["70%",12],["50%",10],["85%",10]].map(([w,h],i)=>(
-      <div key={i} className="shimmer-bg" style={{width:w,height:h,borderRadius:6,marginBottom:10}}/>
+  <div style={{background:"linear-gradient(145deg,#0D0D20,#0A0A18)",borderRadius:16,padding:20,border:"1px solid rgba(0,229,255,.06)",overflow:"hidden",position:"relative"}}>
+    <div style={{position:"absolute",top:0,left:0,right:0,height:1,background:"linear-gradient(90deg,transparent,rgba(0,229,255,.2),transparent)"}}/>
+    <div style={{display:"flex",gap:12,marginBottom:16}}>
+      <div className="shimmer-bg" style={{width:44,height:44,borderRadius:12,flexShrink:0}}/>
+      <div style={{flex:1}}>
+        <div className="shimmer-bg" style={{height:14,borderRadius:4,marginBottom:8}}/>
+        <div className="shimmer-bg" style={{height:10,width:"60%",borderRadius:4}}/>
+      </div>
+    </div>
+    {[["85%",10],["60%",10],["100%",3]].map(([w,h],i)=>(
+      <div key={i} className="shimmer-bg" style={{width:w,height:h,borderRadius:4,marginBottom:10}}/>
     ))}
   </div>
 );
@@ -141,7 +150,7 @@ const AuthModal = ({onClose, onAuth}) => {
 
         <div style={{textAlign:"center",marginBottom:28}}>
           <div style={{fontSize:40,marginBottom:12}}>🚀</div>
-          <div style={{fontFamily:"'Bebas Neue',cursive",fontSize:26,color:"#fff",letterSpacing:1}}>{mode==="login"?"WELCOME BACK":mode==="signup"?"JOIN UDYAM PATH":"MAGIC LINK"}</div>
+          <div style={{fontFamily:"'Syne',sans-serif",fontSize:26,color:"#fff",letterSpacing:1}}>{mode==="login"?"WELCOME BACK":mode==="signup"?"JOIN UDYAM PATH":"MAGIC LINK"}</div>
           <div style={{fontSize:13,color:C.muted,marginTop:4}}>Free forever · No credit card</div>
         </div>
 
@@ -165,28 +174,28 @@ const AuthModal = ({onClose, onAuth}) => {
               <div style={{marginBottom:14}}>
                 <label style={{fontSize:11,fontWeight:800,color:C.muted,display:"block",marginBottom:6,textTransform:"uppercase",letterSpacing:.6}}>Full Name *</label>
                 <input value={name} onChange={e=>setName(e.target.value)} placeholder="Arjun Kumar" className="input-z"
-                  style={{width:"100%",padding:"13px 16px",borderRadius:12,border:`1.5px solid ${C.border}`,fontSize:14,fontFamily:"'Nunito',sans-serif",background:C.card,color:"#fff"}}/>
+                  style={{width:"100%",padding:"13px 16px",borderRadius:12,border:`1.5px solid ${C.border}`,fontSize:14,fontFamily:"'Plus Jakarta Sans',sans-serif",background:C.card,color:"#fff"}}/>
               </div>
             )}
 
             <div style={{marginBottom:14}}>
               <label style={{fontSize:11,fontWeight:800,color:C.muted,display:"block",marginBottom:6,textTransform:"uppercase",letterSpacing:.6}}>Email *</label>
               <input value={email} onChange={e=>setEmail(e.target.value)} placeholder="you@email.com" type="email" className="input-z"
-                style={{width:"100%",padding:"13px 16px",borderRadius:12,border:`1.5px solid ${C.border}`,fontSize:14,fontFamily:"'Nunito',sans-serif",background:C.card,color:"#fff"}}/>
+                style={{width:"100%",padding:"13px 16px",borderRadius:12,border:`1.5px solid ${C.border}`,fontSize:14,fontFamily:"'Plus Jakarta Sans',sans-serif",background:C.card,color:"#fff"}}/>
             </div>
 
             {mode !== "otp" && (
               <div style={{marginBottom:14}}>
                 <label style={{fontSize:11,fontWeight:800,color:C.muted,display:"block",marginBottom:6,textTransform:"uppercase",letterSpacing:.6}}>Password *</label>
                 <input value={password} onChange={e=>setPassword(e.target.value)} placeholder="Min 8 characters" type="password" className="input-z"
-                  style={{width:"100%",padding:"13px 16px",borderRadius:12,border:`1.5px solid ${C.border}`,fontSize:14,fontFamily:"'Nunito',sans-serif",background:C.card,color:"#fff"}}/>
+                  style={{width:"100%",padding:"13px 16px",borderRadius:12,border:`1.5px solid ${C.border}`,fontSize:14,fontFamily:"'Plus Jakarta Sans',sans-serif",background:C.card,color:"#fff"}}/>
               </div>
             )}
 
             {error && <div style={{fontSize:12,color:C.coral,marginBottom:12,padding:"10px 14px",borderRadius:10,background:`${C.coral}12`,fontWeight:700}}>⚠️ {error}</div>}
 
             <button onClick={handleAuth} disabled={loading} className="btn glow-pulse"
-              style={{width:"100%",padding:16,borderRadius:14,background:loading?"rgba(170,255,0,.3)":`linear-gradient(135deg,${C.lime},#77DD00)`,color:C.bg,border:"none",fontFamily:"'Bebas Neue',cursive",fontSize:20,letterSpacing:1,cursor:loading?"not-allowed":"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:10}}>
+              style={{width:"100%",padding:16,borderRadius:14,background:loading?"rgba(170,255,0,.3)":`linear-gradient(135deg,${C.lime},#00C8E0)`,color:C.bg,border:"none",fontFamily:"'Syne',sans-serif",fontSize:20,letterSpacing:1,cursor:loading?"not-allowed":"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:10}}>
               {loading ? <><Spinner size={20} color={C.bg}/> Processing...</> : mode==="login"?"SIGN IN →":mode==="signup"?"CREATE FREE ACCOUNT →":"SEND MAGIC LINK ✉️"}
             </button>
 
@@ -216,67 +225,95 @@ const JobCard = ({job, onOpen, saved, onSave, user, onAuthRequired, isApplied, i
 
   return (
     <div className="card-hover" onClick={()=>!isFull&&onOpen(job)}
-      style={{background:C.card,borderRadius:20,padding:20,border:`1px solid ${isFull?"rgba(255,77,109,.15)":C.border}`,
-        cursor:isFull?"default":"pointer",position:"relative",opacity:isFull?.6:1,transition:"all .25s"}}>
+      style={{
+        background:"linear-gradient(145deg,#0D0D20,#0A0A18)",
+        borderRadius:16,padding:20,
+        border:`1px solid ${isFull?"rgba(255,61,113,.2)":urgent?"rgba(255,183,0,.15)":"rgba(0,229,255,.08)"}`,
+        cursor:isFull?"default":"pointer",position:"relative",opacity:isFull?.5:1,
+        transition:"all .3s",overflow:"hidden"
+      }}>
 
-      {/* Status badges */}
-      {isFull && <span className="tag" style={{position:"absolute",top:14,right:46,background:`${C.coral}20`,color:C.coral,border:`1px solid ${C.coral}30`}}>FILLED</span>}
-      {job.is_hot && !isFull && <span className="tag" style={{position:"absolute",top:14,right:46,background:`${C.lime}20`,color:C.lime,border:`1px solid ${C.lime}30`}}>🔥 HOT</span>}
-      {job.is_new && !isFull && !job.is_hot && <span className="tag" style={{position:"absolute",top:14,right:46,background:`${C.sky}20`,color:C.sky,border:`1px solid ${C.sky}30`}}>NEW</span>}
+      {/* Glow accent top */}
+      <div style={{position:"absolute",top:0,left:0,right:0,height:1,background:isFull?"rgba(255,61,113,.3)":urgent?`linear-gradient(90deg,transparent,rgba(255,183,0,.6),transparent)`:`linear-gradient(90deg,transparent,rgba(0,229,255,.4),transparent)`}}/>
+
+      {/* Status badge */}
+      <div style={{position:"absolute",top:12,right:44,display:"flex",gap:6}}>
+        {isFull&&<span className="tag" style={{background:"rgba(255,61,113,.15)",color:"#FF3D71",border:"1px solid rgba(255,61,113,.25)"}}>FILLED</span>}
+        {job.is_hot&&!isFull&&<span className="tag" style={{background:"rgba(255,183,0,.12)",color:"#FFB700",border:"1px solid rgba(255,183,0,.2)"}}>🔥 HOT</span>}
+        {job.is_new&&!isFull&&!job.is_hot&&<span className="tag" style={{background:"rgba(0,214,143,.12)",color:"#00D68F",border:"1px solid rgba(0,214,143,.2)"}}>NEW</span>}
+        {isApplied&&<span className="tag" style={{background:"rgba(0,229,255,.12)",color:"#00E5FF",border:"1px solid rgba(0,229,255,.2)"}}>✓ Applied</span>}
+        {isFeatured&&<span className="tag" style={{background:"rgba(255,0,128,.12)",color:"#FF0080",border:"1px solid rgba(255,0,128,.2)"}}>⭐</span>}
+      </div>
 
       {/* Save */}
-      <div onClick={handleSave} style={{position:"absolute",top:12,right:14,fontSize:18,cursor:"pointer",opacity:.6,transition:"opacity .2s"}}
-        onMouseEnter={e=>e.target.style.opacity=1} onMouseLeave={e=>e.target.style.opacity=.6}>
-        {saved?"🔖":"🏷️"}
+      <div onClick={handleSave} style={{position:"absolute",top:12,right:14,fontSize:16,cursor:"pointer",opacity:.5,transition:"all .2s",zIndex:2}}
+        onMouseEnter={e=>e.currentTarget.style.opacity=1} onMouseLeave={e=>e.currentTarget.style.opacity=.5}>
+        {saved?"🔖":"🏷"}
       </div>
 
       {/* Header */}
-      <div style={{display:"flex",gap:12,marginBottom:14}}>
-        <div style={{width:46,height:46,borderRadius:14,background:`linear-gradient(135deg,${job.logo_color_1||C.lime},${job.logo_color_2||C.mint})`,
-          display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontWeight:900,fontSize:18,fontFamily:"'Bebas Neue',cursive",flexShrink:0}}>
+      <div style={{display:"flex",gap:12,marginBottom:14,paddingRight:24}}>
+        <div style={{
+          width:44,height:44,borderRadius:12,flexShrink:0,
+          background:`linear-gradient(135deg,${job.logo_color_1||"#00E5FF"},${job.logo_color_2||"#7C3AED"})`,
+          display:"flex",alignItems:"center",justifyContent:"center",
+          color:"#fff",fontWeight:800,fontSize:17,fontFamily:"'Syne',sans-serif",
+          boxShadow:`0 4px 16px ${job.logo_color_1||"#00E5FF"}30`
+        }}>
           {(job.company_name||"?")[0].toUpperCase()}
         </div>
         <div style={{flex:1,minWidth:0}}>
-          <div style={{fontWeight:800,fontSize:15,color:"#fff",marginBottom:3,lineHeight:1.2}}>{job.title}</div>
-          <div style={{fontSize:12,color:C.muted}}>{job.company_name} · {job.location}</div>
+          <div style={{fontFamily:"'Syne',sans-serif",fontWeight:700,fontSize:14,color:"#fff",marginBottom:2,lineHeight:1.3,letterSpacing:-.2}}>{job.title}</div>
+          <div style={{fontSize:12,color:"rgba(255,255,255,.4)",fontWeight:500}}>{job.company_name} · {job.location}</div>
         </div>
       </div>
 
-      {/* Chips */}
-      <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:10}}>
-        <Chip color={["Remote","WFH"].includes(job.work_type)?C.lime:job.work_type==="Hybrid"?C.violet:C.gold}>
-          {job.work_type==="Remote"?"🌍 Remote":job.work_type==="WFH"?"🏠 WFH":job.work_type==="Hybrid"?"🔄 Hybrid":"🏢 "+job.work_type}
+      {/* Match + chips */}
+      <div style={{display:"flex",gap:5,flexWrap:"wrap",marginBottom:10,alignItems:"center"}}>
+        <JobMatchBadge job={job} userSkills={userSkills||[]}/>
+        <Chip color={["Remote","WFH"].includes(job.work_type)?"#00E5FF":job.work_type==="Hybrid"?"#A78BFA":"#FFB700"}>
+          {job.work_type==="Remote"?"⚡ Remote":job.work_type==="WFH"?"🏠 WFH":job.work_type==="Hybrid"?"⚡ Hybrid":"🏢 "+job.work_type}
         </Chip>
-        <Chip color={job.region==="India"?C.gold:C.sky}>{job.region==="India"?"🇮🇳 India":"🌐 "+job.region}</Chip>
-        <Chip color="rgba(255,255,255,.2)">{job.experience_level}</Chip>
+        <Chip color={job.region==="India"?"#FFB700":"#7C3AED"}>{job.region==="India"?"🇮🇳 India":"🌐 "+job.region}</Chip>
+        <Chip color="rgba(255,255,255,.18)">{job.experience_level}</Chip>
       </div>
 
-      {/* Tags */}
-      <div style={{display:"flex",gap:5,flexWrap:"wrap",marginBottom:12}}>
-        {(job.skills_tags||[]).slice(0,3).map(t=>(
-          <span key={t} style={{fontSize:10,fontWeight:700,padding:"3px 8px",borderRadius:6,background:`${C.lime}12`,color:C.lime}}>{t}</span>
+      {/* Skill tags */}
+      <div style={{display:"flex",gap:4,flexWrap:"wrap",marginBottom:14}}>
+        {(job.skills_tags||[]).slice(0,4).map(t=>(
+          <span key={t} style={{fontSize:10,fontWeight:600,padding:"2px 8px",borderRadius:4,background:"rgba(0,229,255,.06)",color:"rgba(0,229,255,.7)",fontFamily:"'Space Mono',monospace",border:"1px solid rgba(0,229,255,.1)"}}>{t}</span>
         ))}
       </div>
 
       {/* Footer */}
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-end",paddingTop:12,borderTop:`1px solid ${C.border}`}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",paddingTop:12,borderTop:"1px solid rgba(255,255,255,.05)"}}>
         <div>
-          <div style={{fontFamily:"'Bebas Neue',cursive",fontSize:18,color:"#fff",letterSpacing:.5}}>{job.salary_range}</div>
-          <div style={{fontSize:10,color:"rgba(255,255,255,.25)",marginTop:2}}>
-            👥 {job.filled_seats||0} applied · {job.posted_ago||"Recently"}
+          <div style={{fontFamily:"'Syne',sans-serif",fontWeight:800,fontSize:16,color:"#fff",letterSpacing:-.3}}>{job.salary_range||"Competitive"}</div>
+          <div style={{fontSize:10,color:"rgba(255,255,255,.22)",marginTop:2,fontFamily:"'Space Mono',monospace"}}>
+            {job.filled_seats||0} applied · {job.posted_ago||"Recently"}
           </div>
         </div>
-        {!isFull && <div className="btn" style={{padding:"8px 16px",borderRadius:10,background:`linear-gradient(135deg,${C.lime},#77DD00)`,color:C.bg,fontWeight:900,fontSize:12}}>APPLY →</div>}
+        {!isFull && (
+          <div className="btn" style={{
+            padding:"8px 18px",borderRadius:8,
+            background:"linear-gradient(135deg,#00E5FF,#7C3AED)",
+            color:"#fff",fontWeight:700,fontSize:11,fontFamily:"'Syne',sans-serif",
+            letterSpacing:.3,boxShadow:"0 4px 16px rgba(0,229,255,.2)"
+          }}>APPLY →</div>
+        )}
       </div>
 
-      {/* Seat bar */}
-      <div style={{marginTop:10}}>
-        <div style={{display:"flex",justifyContent:"space-between",fontSize:9,marginBottom:3}}>
-          <span style={{color:urgent?C.coral:C.lime,fontWeight:700}}>{job.filled_seats||0}/{job.total_seats||10} seats {urgent&&"🔥 Filling fast!"}</span>
-          <span style={{color:"rgba(255,255,255,.2)"}}>{pct}%</span>
+      {/* Progress bar */}
+      <div style={{marginTop:12}}>
+        <div style={{display:"flex",justifyContent:"space-between",fontSize:9,marginBottom:4,fontFamily:"'Space Mono',monospace"}}>
+          <span style={{color:urgent?"#FF3D71":"rgba(0,229,255,.6)",fontWeight:700}}>{job.filled_seats||0}/{job.total_seats||10} seats {urgent&&"· FILLING FAST"}</span>
+          <span style={{color:"rgba(255,255,255,.18)"}}>{pct}%</span>
         </div>
-        <div style={{height:4,borderRadius:99,background:"rgba(255,255,255,.05)"}}>
-          <div style={{width:`${pct}%`,height:"100%",borderRadius:99,background:urgent?`linear-gradient(90deg,${C.coral},#FF6B6B)`:`linear-gradient(90deg,${C.lime},#77DD00)`,transition:"width .6s ease"}}/>
+        <div style={{height:3,borderRadius:99,background:"rgba(255,255,255,.04)"}}>
+          <div style={{width:`${pct}%`,height:"100%",borderRadius:99,
+            background:urgent?"linear-gradient(90deg,#FF3D71,#FF6B9D)":"linear-gradient(90deg,#00E5FF,#7C3AED)",
+            transition:"width .8s cubic-bezier(.16,1,.3,1)"
+          }}/>
         </div>
       </div>
     </div>
@@ -351,12 +388,12 @@ const JobDetail = ({job, onClose, user, onAuthRequired}) => {
         <div style={{background:C.card,padding:"22px 24px 18px",borderBottom:`1px solid ${C.border}`,flexShrink:0}}>
           <div style={{display:"flex",justifyContent:"space-between",marginBottom:14}}>
             <div style={{width:56,height:56,borderRadius:18,background:`linear-gradient(135deg,${job.logo_color_1||C.lime},${job.logo_color_2||C.mint})`,
-              display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontWeight:900,fontSize:24,fontFamily:"'Bebas Neue',cursive"}}>
+              display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontWeight:900,fontSize:24,fontFamily:"'Syne',sans-serif"}}>
               {(job.company_name||"?")[0]}
             </div>
             <div onClick={onClose} style={{width:38,height:38,borderRadius:12,background:C.surface,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",border:`1px solid ${C.border}`,color:C.muted,fontSize:18}}>✕</div>
           </div>
-          <div style={{fontFamily:"'Bebas Neue',cursive",fontSize:24,color:"#fff",letterSpacing:.5,marginBottom:6}}>{job.title}</div>
+          <div style={{fontFamily:"'Syne',sans-serif",fontSize:24,color:"#fff",letterSpacing:.5,marginBottom:6}}>{job.title}</div>
           <div style={{fontSize:13,color:C.muted,marginBottom:12}}>{job.company_name} · {job.location}</div>
           <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
             <Chip color={C.lime}>{job.work_type}</Chip>
@@ -383,13 +420,13 @@ const JobDetail = ({job, onClose, user, onAuthRequired}) => {
           </div>
 
           {/* Description */}
-          <div style={{fontFamily:"'Bebas Neue',cursive",fontSize:18,color:"#fff",letterSpacing:.5,marginBottom:10}}>About The Role</div>
+          <div style={{fontFamily:"'Syne',sans-serif",fontSize:18,color:"#fff",letterSpacing:.5,marginBottom:10}}>About The Role</div>
           <div style={{fontSize:13,color:"rgba(255,255,255,.55)",lineHeight:1.9,marginBottom:20}}>{job.description||"Exciting opportunity to join a growing team. Apply now to learn more!"}</div>
 
           {/* Skills */}
           {(job.skills_tags||[]).length>0 && (
             <>
-              <div style={{fontFamily:"'Bebas Neue',cursive",fontSize:18,color:"#fff",letterSpacing:.5,marginBottom:10}}>Skills Required</div>
+              <div style={{fontFamily:"'Syne',sans-serif",fontSize:18,color:"#fff",letterSpacing:.5,marginBottom:10}}>Skills Required</div>
               <div style={{display:"flex",flexWrap:"wrap",gap:8,marginBottom:20}}>
                 {job.skills_tags.map(s=><span key={s} style={{padding:"8px 16px",borderRadius:10,background:`${C.lime}12`,color:C.lime,fontWeight:700,fontSize:13,border:`1px solid ${C.lime}25`}}>{s}</span>)}
               </div>
@@ -399,28 +436,28 @@ const JobDetail = ({job, onClose, user, onAuthRequired}) => {
           {/* Application Form */}
           {!applied ? (
             <div style={{background:C.card,borderRadius:20,padding:20,border:`1px solid ${C.border}`}}>
-              <div style={{fontFamily:"'Bebas Neue',cursive",fontSize:18,color:"#fff",letterSpacing:.5,marginBottom:16}}>APPLY NOW — FREE</div>
+              <div style={{fontFamily:"'Syne',sans-serif",fontSize:18,color:"#fff",letterSpacing:.5,marginBottom:16}}>APPLY NOW — FREE</div>
               <div style={{display:"flex",flexDirection:"column",gap:12}}>
                 {/* Row 1 - Name + Email */}
                 <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
                   <input value={applicantName} onChange={e=>setApplicantName(e.target.value)} placeholder="Full name *" className="input-z"
-                    style={{width:"100%",padding:"12px 16px",borderRadius:12,border:`1.5px solid ${C.border}`,fontSize:13,fontFamily:"'Nunito',sans-serif",background:C.surface,color:"#fff"}}/>
+                    style={{width:"100%",padding:"12px 16px",borderRadius:12,border:`1.5px solid ${C.border}`,fontSize:13,fontFamily:"'Plus Jakarta Sans',sans-serif",background:C.surface,color:"#fff"}}/>
                   <input value={applicantEmail} onChange={e=>setApplicantEmail(e.target.value)} placeholder="Email *" type="email" className="input-z"
-                    style={{width:"100%",padding:"12px 16px",borderRadius:12,border:`1.5px solid ${C.border}`,fontSize:13,fontFamily:"'Nunito',sans-serif",background:C.surface,color:"#fff"}}/>
+                    style={{width:"100%",padding:"12px 16px",borderRadius:12,border:`1.5px solid ${C.border}`,fontSize:13,fontFamily:"'Plus Jakarta Sans',sans-serif",background:C.surface,color:"#fff"}}/>
                 </div>
 
                 {/* Row 2 - Phone + Location */}
                 <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
                   <input value={phone} onChange={e=>setPhone(e.target.value)} placeholder="📱 Phone number" className="input-z"
-                    style={{width:"100%",padding:"12px 16px",borderRadius:12,border:`1.5px solid ${C.border}`,fontSize:13,fontFamily:"'Nunito',sans-serif",background:C.surface,color:"#fff"}}/>
+                    style={{width:"100%",padding:"12px 16px",borderRadius:12,border:`1.5px solid ${C.border}`,fontSize:13,fontFamily:"'Plus Jakarta Sans',sans-serif",background:C.surface,color:"#fff"}}/>
                   <input value={currentLocation} onChange={e=>setCurrentLocation(e.target.value)} placeholder="📍 Current city" className="input-z"
-                    style={{width:"100%",padding:"12px 16px",borderRadius:12,border:`1.5px solid ${C.border}`,fontSize:13,fontFamily:"'Nunito',sans-serif",background:C.surface,color:"#fff"}}/>
+                    style={{width:"100%",padding:"12px 16px",borderRadius:12,border:`1.5px solid ${C.border}`,fontSize:13,fontFamily:"'Plus Jakarta Sans',sans-serif",background:C.surface,color:"#fff"}}/>
                 </div>
 
                 {/* Row 3 - Experience + LinkedIn */}
                 <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
                   <select value={experience} onChange={e=>setExperience(e.target.value)} className="input-z"
-                    style={{width:"100%",padding:"12px 16px",borderRadius:12,border:`1.5px solid ${C.border}`,fontSize:13,fontFamily:"'Nunito',sans-serif",background:C.surface,color:experience?"#fff":"rgba(255,255,255,.3)",cursor:"pointer"}}>
+                    style={{width:"100%",padding:"12px 16px",borderRadius:12,border:`1.5px solid ${C.border}`,fontSize:13,fontFamily:"'Plus Jakarta Sans',sans-serif",background:C.surface,color:experience?"#fff":"rgba(255,255,255,.3)",cursor:"pointer"}}>
                     <option value="">🎓 Experience level</option>
                     <option>Fresher (0 years)</option>
                     <option>0–1 year</option>
@@ -430,12 +467,12 @@ const JobDetail = ({job, onClose, user, onAuthRequired}) => {
                     <option>10+ years</option>
                   </select>
                   <input value={linkedin} onChange={e=>setLinkedin(e.target.value)} placeholder="💼 LinkedIn URL (optional)" className="input-z"
-                    style={{width:"100%",padding:"12px 16px",borderRadius:12,border:`1.5px solid ${C.border}`,fontSize:13,fontFamily:"'Nunito',sans-serif",background:C.surface,color:"#fff"}}/>
+                    style={{width:"100%",padding:"12px 16px",borderRadius:12,border:`1.5px solid ${C.border}`,fontSize:13,fontFamily:"'Plus Jakarta Sans',sans-serif",background:C.surface,color:"#fff"}}/>
                 </div>
 
                 {/* Cover Note */}
                 <textarea value={coverNote} onChange={e=>setCoverNote(e.target.value)} placeholder="✍️ Why are you a good fit for this role? (optional)"
-                  style={{width:"100%",padding:"12px 16px",borderRadius:12,border:`1.5px solid ${C.border}`,fontSize:13,fontFamily:"'Nunito',sans-serif",background:C.surface,color:"#fff",height:80,resize:"none"}} className="input-z"/>
+                  style={{width:"100%",padding:"12px 16px",borderRadius:12,border:`1.5px solid ${C.border}`,fontSize:13,fontFamily:"'Plus Jakarta Sans',sans-serif",background:C.surface,color:"#fff",height:80,resize:"none"}} className="input-z"/>
 
                 {/* Resume Upload */}
                 <div>
@@ -453,7 +490,7 @@ const JobDetail = ({job, onClose, user, onAuthRequired}) => {
                 </div>
 
                 <button onClick={handleApply} disabled={loading} className="btn"
-                  style={{width:"100%",padding:16,borderRadius:14,background:loading?"rgba(170,255,0,.3)":`linear-gradient(135deg,${C.lime},#77DD00)`,color:C.bg,border:"none",fontFamily:"'Bebas Neue',cursive",fontSize:20,letterSpacing:1,cursor:loading?"not-allowed":"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:10}}>
+                  style={{width:"100%",padding:16,borderRadius:14,background:loading?"rgba(170,255,0,.3)":`linear-gradient(135deg,${C.lime},#00C8E0)`,color:C.bg,border:"none",fontFamily:"'Syne',sans-serif",fontSize:20,letterSpacing:1,cursor:loading?"not-allowed":"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:10}}>
                   {loading ? <><Spinner size={20} color={C.bg}/> Submitting...</> : "SUBMIT APPLICATION 🚀"}
                 </button>
                 <div style={{textAlign:"center",fontSize:11,color:C.muted}}>✅ Your email will be sent to {job.company_name} · Confirmation sent to you</div>
@@ -462,7 +499,7 @@ const JobDetail = ({job, onClose, user, onAuthRequired}) => {
           ) : (
             <div style={{padding:28,borderRadius:20,background:`${C.mint}10`,border:`1px solid ${C.mint}30`,textAlign:"center"}}>
               <div style={{fontSize:48,marginBottom:12}} className="float">🎉</div>
-              <div style={{fontFamily:"'Bebas Neue',cursive",fontSize:24,color:C.mint,letterSpacing:.5}}>APPLICATION SUBMITTED!</div>
+              <div style={{fontFamily:"'Syne',sans-serif",fontSize:24,color:C.mint,letterSpacing:.5}}>APPLICATION SUBMITTED!</div>
               <div style={{fontSize:13,color:C.muted,marginTop:8,lineHeight:1.8}}>Check your email at <strong style={{color:"#fff"}}>{applicantEmail}</strong> for confirmation.<br/>We've notified {job.company_name}. Good luck! 🙏</div>
             </div>
           )}
@@ -513,25 +550,25 @@ const AlertSetup = ({user, onAuthRequired, onToast}) => {
   if (done) return (
     <div style={{maxWidth:500,margin:"0 auto",padding:32,textAlign:"center"}}>
       <div style={{fontSize:64,marginBottom:16}} className="float">🎊</div>
-      <div style={{fontFamily:"'Bebas Neue',cursive",fontSize:28,color:C.lime,letterSpacing:.5}}>ALERT ACTIVATED!</div>
+      <div style={{fontFamily:"'Syne',sans-serif",fontSize:28,color:C.lime,letterSpacing:.5}}>ALERT ACTIVATED!</div>
       <div style={{fontSize:14,color:C.muted,marginTop:10,lineHeight:1.8}}>We'll email <strong style={{color:"#fff"}}>{email}</strong> instantly when new matching jobs are posted.</div>
     </div>
   );
 
   return (
     <div style={{maxWidth:600,margin:"0 auto",padding:"28px 20px"}}>
-      <div className="fu" style={{fontFamily:"'Bebas Neue',cursive",fontSize:34,color:"#fff",letterSpacing:.5,marginBottom:6}}>JOB ALERTS 🔔</div>
+      <div className="fu" style={{fontFamily:"'Syne',sans-serif",fontSize:34,color:"#fff",letterSpacing:.5,marginBottom:6}}>JOB ALERTS 🔔</div>
       <div className="fu1" style={{fontSize:14,color:C.muted,marginBottom:24}}>Get real email alerts the moment new matching jobs are posted. Free forever.</div>
       <div className="fu2" style={{background:C.card,borderRadius:24,padding:28,border:`1px solid ${C.border}`,display:"flex",flexDirection:"column",gap:14}}>
         <div>
           <label style={{fontSize:11,fontWeight:800,color:C.muted,display:"block",marginBottom:6,textTransform:"uppercase",letterSpacing:.6}}>Your Email *</label>
           <input value={email} onChange={e=>setEmail(e.target.value)} placeholder="you@email.com" className="input-z"
-            style={{width:"100%",padding:"13px 16px",borderRadius:12,border:`1.5px solid ${C.border}`,fontSize:14,fontFamily:"'Nunito',sans-serif",background:C.surface,color:"#fff"}}/>
+            style={{width:"100%",padding:"13px 16px",borderRadius:12,border:`1.5px solid ${C.border}`,fontSize:14,fontFamily:"'Plus Jakarta Sans',sans-serif",background:C.surface,color:"#fff"}}/>
         </div>
         <div>
           <label style={{fontSize:11,fontWeight:800,color:C.muted,display:"block",marginBottom:6,textTransform:"uppercase",letterSpacing:.6}}>Job Keyword (optional)</label>
           <input value={keyword} onChange={e=>setKeyword(e.target.value)} placeholder="e.g. React Developer, Data Scientist" className="input-z"
-            style={{width:"100%",padding:"13px 16px",borderRadius:12,border:`1.5px solid ${C.border}`,fontSize:14,fontFamily:"'Nunito',sans-serif",background:C.surface,color:"#fff"}}/>
+            style={{width:"100%",padding:"13px 16px",borderRadius:12,border:`1.5px solid ${C.border}`,fontSize:14,fontFamily:"'Plus Jakarta Sans',sans-serif",background:C.surface,color:"#fff"}}/>
         </div>
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
           {[["Region","region",["Any","India","USA","UK","Canada","Australia","Singapore","Global"],region,setRegion],
@@ -539,14 +576,14 @@ const AlertSetup = ({user, onAuthRequired, onToast}) => {
             <div key={lb}>
               <label style={{fontSize:11,fontWeight:800,color:C.muted,display:"block",marginBottom:6,textTransform:"uppercase",letterSpacing:.6}}>{lb}</label>
               <select value={val} onChange={e=>set(e.target.value)} className="input-z"
-                style={{width:"100%",padding:"12px 14px",borderRadius:12,border:`1.5px solid ${C.border}`,fontSize:13,fontFamily:"'Nunito',sans-serif",background:C.surface,color:"#fff",cursor:"pointer"}}>
+                style={{width:"100%",padding:"12px 14px",borderRadius:12,border:`1.5px solid ${C.border}`,fontSize:13,fontFamily:"'Plus Jakarta Sans',sans-serif",background:C.surface,color:"#fff",cursor:"pointer"}}>
                 {opts.map(o=><option key={o}>{o}</option>)}
               </select>
             </div>
           ))}
         </div>
         <button onClick={handleSubmit} disabled={loading} className="btn glow-pulse"
-          style={{width:"100%",padding:16,borderRadius:14,background:`linear-gradient(135deg,${C.lime},#77DD00)`,color:C.bg,border:"none",fontFamily:"'Bebas Neue',cursive",fontSize:20,letterSpacing:1,cursor:loading?"not-allowed":"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:10}}>
+          style={{width:"100%",padding:16,borderRadius:14,background:`linear-gradient(135deg,${C.lime},#00C8E0)`,color:C.bg,border:"none",fontFamily:"'Syne',sans-serif",fontSize:20,letterSpacing:1,cursor:loading?"not-allowed":"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:10}}>
           {loading ? <><Spinner size={20} color={C.bg}/> Setting Up...</> : "🔔 ACTIVATE FREE ALERT"}
         </button>
         <div style={{textAlign:"center",fontSize:11,color:C.muted}}>No spam · Unsubscribe anytime · Real emails via Resend</div>
@@ -601,23 +638,23 @@ const ResumeBuilder = ({ user, onClose }) => {
     }
   };
 
-  const C2 = { bg:"#05050A", card:"#12121F", border:"rgba(255,255,255,.07)", lime:"#AAFF00", muted:"rgba(255,255,255,.4)" };
-  const inputStyle = { width:"100%", padding:"11px 14px", borderRadius:12, border:`1.5px solid ${C2.border}`, fontSize:13, fontFamily:"'Nunito',sans-serif", background:"#0D0D1A", color:"#fff", boxSizing:"border-box" };
+  const C2 = { bg:"#05050A", card:"#12121F", border:"rgba(255,255,255,.07)", lime:"#00E5FF", muted:"rgba(255,255,255,.4)" };
+  const inputStyle = { width:"100%", padding:"11px 14px", borderRadius:12, border:`1.5px solid ${C2.border}`, fontSize:13, fontFamily:"'Plus Jakarta Sans',sans-serif", background:"#080816", color:"#fff", boxSizing:"border-box" };
 
   return (
     <div style={{position:"fixed",inset:0,zIndex:500,display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(0,0,0,.8)"}}>
       <div style={{background:C2.bg,borderRadius:24,padding:28,width:"100%",maxWidth:560,maxHeight:"90vh",overflowY:"auto",border:`1px solid ${C2.border}`,position:"relative"}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
-          <div style={{fontFamily:"'Bebas Neue',cursive",fontSize:24,color:"#fff",letterSpacing:.5}}>📄 AI RESUME BUILDER</div>
+          <div style={{fontFamily:"'Syne',sans-serif",fontSize:24,color:"#fff",letterSpacing:.5}}>📄 AI RESUME BUILDER</div>
           <div onClick={onClose} style={{cursor:"pointer",color:C2.muted,fontSize:20}}>✕</div>
         </div>
 
         {done ? (
           <div style={{textAlign:"center",padding:32}}>
             <div style={{fontSize:56,marginBottom:12}}>🎉</div>
-            <div style={{fontFamily:"'Bebas Neue',cursive",fontSize:24,color:C2.lime}}>RESUME DOWNLOADED!</div>
+            <div style={{fontFamily:"'Syne',sans-serif",fontSize:24,color:C2.lime}}>RESUME DOWNLOADED!</div>
             <div style={{color:C2.muted,fontSize:13,marginTop:8}}>Your AI-generated resume has been downloaded!</div>
-            <div onClick={()=>setDone(false)} style={{marginTop:16,padding:"12px 28px",borderRadius:14,background:`linear-gradient(135deg,${C2.lime},#77DD00)`,color:"#05050A",fontWeight:900,fontSize:14,cursor:"pointer",display:"inline-block"}}>Build Another</div>
+            <div onClick={()=>setDone(false)} style={{marginTop:16,padding:"12px 28px",borderRadius:14,background:`linear-gradient(135deg,${C2.lime},#00C8E0)`,color:"#05050A",fontWeight:900,fontSize:14,cursor:"pointer",display:"inline-block"}}>Build Another</div>
           </div>
         ) : (
           <div style={{display:"flex",flexDirection:"column",gap:14}}>
@@ -644,7 +681,7 @@ const ResumeBuilder = ({ user, onClose }) => {
             <div><label style={{fontSize:11,color:C2.muted,fontWeight:800,display:"block",marginBottom:5}}>PROJECTS (optional)</label>
               <input style={inputStyle} value={form.projects} onChange={e=>setForm(f=>({...f,projects:e.target.value}))} placeholder="E-commerce app with 10k users..."/></div>
 
-            <div onClick={generateResume} style={{padding:"14px",borderRadius:14,background:generating?"rgba(170,255,0,.3)":`linear-gradient(135deg,${C2.lime},#77DD00)`,color:"#05050A",fontFamily:"'Bebas Neue',cursive",fontSize:20,letterSpacing:1,cursor:generating?"not-allowed":"pointer",textAlign:"center",fontWeight:900}}>
+            <div onClick={generateResume} style={{padding:"14px",borderRadius:14,background:generating?"rgba(170,255,0,.3)":`linear-gradient(135deg,${C2.lime},#00C8E0)`,color:"#05050A",fontFamily:"'Syne',sans-serif",fontSize:20,letterSpacing:1,cursor:generating?"not-allowed":"pointer",textAlign:"center",fontWeight:900}}>
               {generating ? "✨ AI IS BUILDING YOUR RESUME..." : "🚀 GENERATE RESUME FREE WITH AI"}
             </div>
             <div style={{textAlign:"center",fontSize:11,color:C2.muted}}>Powered by Gemini AI · Downloads instantly · 100% Free</div>
@@ -706,7 +743,7 @@ const AIChatbot = ({ jobs }) => {
       <div onClick={() => setOpen(!open)} style={{
         position: "fixed", bottom: 24, right: 24, zIndex: 999,
         width: 60, height: 60, borderRadius: "50%",
-        background: `linear-gradient(135deg, #AAFF00, #77DD00)`,
+        background: `linear-gradient(135deg, #00E5FF, #00C8E0)`,
         display: "flex", alignItems: "center", justifyContent: "center",
         cursor: "pointer", boxShadow: "0 4px 20px rgba(170,255,0,0.4)",
         fontSize: 28, transition: "transform .2s"
@@ -724,7 +761,7 @@ const AIChatbot = ({ jobs }) => {
           display: "flex", flexDirection: "column", overflow: "hidden"
         }} className="pop">
           {/* Header */}
-          <div style={{ padding: "16px 20px", background: "linear-gradient(135deg,#AAFF00,#77DD00)", display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ padding: "16px 20px", background: "linear-gradient(135deg,#00E5FF,#7C3AED)", display: "flex", alignItems: "center", gap: 10 }}>
             <span style={{ fontSize: 24 }}>🤖</span>
             <div>
               <div style={{ fontWeight: 900, fontSize: 15, color: "#05050A" }}>UdyamPath AI</div>
@@ -738,7 +775,7 @@ const AIChatbot = ({ jobs }) => {
               <div key={i} style={{
                 alignSelf: m.role === "user" ? "flex-end" : "flex-start",
                 maxWidth: "85%",
-                background: m.role === "user" ? "linear-gradient(135deg,#AAFF00,#77DD00)" : "#1A1A2E",
+                background: m.role === "user" ? "linear-gradient(135deg,#00E5FF,#7C3AED)" : "#1A1A2E",
                 color: m.role === "user" ? "#05050A" : "#fff",
                 padding: "10px 14px", borderRadius: m.role === "user" ? "18px 18px 4px 18px" : "18px 18px 18px 4px",
                 fontSize: 13, lineHeight: 1.5, fontFamily: "'Nunito',sans-serif", fontWeight: 600
@@ -747,7 +784,7 @@ const AIChatbot = ({ jobs }) => {
               </div>
             ))}
             {loading && (
-              <div style={{ alignSelf: "flex-start", background: "#1A1A2E", padding: "10px 14px", borderRadius: "18px 18px 18px 4px", color: "#AAFF00", fontSize: 13 }}>
+              <div style={{ alignSelf: "flex-start", background: "#1A1A2E", padding: "10px 14px", borderRadius: "18px 18px 18px 4px", color: "#00E5FF", fontSize: 13 }}>
                 ✨ Thinking...
               </div>
             )}
@@ -770,7 +807,7 @@ const AIChatbot = ({ jobs }) => {
             />
             <div onClick={sendMessage} className="btn" style={{
               width: 40, height: 40, borderRadius: 12,
-              background: loading ? "rgba(170,255,0,.3)" : "linear-gradient(135deg,#AAFF00,#77DD00)",
+              background: loading ? "rgba(170,255,0,.3)" : "linear-gradient(135deg,#00E5FF,#7C3AED)",
               display: "flex", alignItems: "center", justifyContent: "center",
               cursor: loading ? "not-allowed" : "pointer", fontSize: 18, flexShrink: 0
             }}>
@@ -793,10 +830,10 @@ const JobMatchBadge = ({ job, userSkills }) => {
   const jobText = `${job.title} ${job.category} ${(job.skills_tags||[]).join(" ")}`.toLowerCase();
   const matches = userSkills.filter(s => jobText.includes(s.toLowerCase()));
   const score = Math.min(100, Math.round((matches.length / Math.max(userSkills.length, 1)) * 100) + Math.floor(Math.random()*10));
-  const color = score >= 70 ? "#AAFF00" : score >= 40 ? "#FBBF24" : "#F43F5E";
+  const color = score >= 70 ? "#00E5FF" : score >= 40 ? "#FBBF24" : "#F43F5E";
   return (
     <div style={{display:"flex",alignItems:"center",gap:5,padding:"4px 10px",borderRadius:8,background:`${color}15`,border:`1px solid ${color}30`}}>
-      <div style={{fontSize:10,fontWeight:900,color,fontFamily:"'JetBrains Mono',monospace"}}>{score}% MATCH</div>
+      <div style={{fontSize:10,fontWeight:900,color,fontFamily:"'Space Mono',monospace"}}>{score}% MATCH</div>
     </div>
   );
 };
@@ -809,7 +846,7 @@ const SalaryInsights = ({ jobs }) => {
   const [city, setCity] = useState("");
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
-  const C2 = {bg:"#05050A",card:"#12121F",border:"rgba(255,255,255,.07)",lime:"#AAFF00",muted:"rgba(255,255,255,.4)",surface:"#0D0D1A"};
+  const C2 = {bg:"#05050A",card:"#12121F",border:"rgba(255,255,255,.07)",lime:"#00E5FF",muted:"rgba(255,255,255,.4)",surface:"#0D0D1A"};
 
   const topRoles = ["React Developer","Python Developer","Data Scientist","Product Manager","UI/UX Designer","DevOps Engineer","Node.js Developer","Machine Learning","Digital Marketing","HR Manager"];
   const topCities = ["Bangalore","Mumbai","Delhi","Hyderabad","Chennai","Pune","Remote","USA","UK","Canada"];
@@ -838,7 +875,7 @@ const SalaryInsights = ({ jobs }) => {
 
   return (
     <div style={{maxWidth:900,margin:"0 auto",padding:"24px 20px"}}>
-      <div style={{fontFamily:"'Bebas Neue',cursive",fontSize:32,color:"#fff",letterSpacing:.5,marginBottom:4}}>📊 SALARY INSIGHTS</div>
+      <div style={{fontFamily:"'Syne',sans-serif",fontSize:32,color:"#fff",letterSpacing:.5,marginBottom:4}}>📊 SALARY INSIGHTS</div>
       <div style={{color:C2.muted,fontSize:14,marginBottom:24}}>Discover real salary data for any role in India & worldwide</div>
 
       <div style={{background:C2.card,borderRadius:20,padding:24,border:`1px solid ${C2.border}`,marginBottom:24}}>
@@ -846,14 +883,14 @@ const SalaryInsights = ({ jobs }) => {
           <div>
             <div style={{fontSize:11,fontWeight:800,color:C2.muted,marginBottom:6}}>JOB ROLE *</div>
             <input value={role} onChange={e=>setRole(e.target.value)} placeholder="e.g. React Developer"
-              style={{width:"100%",padding:"12px 14px",borderRadius:12,border:`1.5px solid ${C2.border}`,background:C2.surface,color:"#fff",fontSize:14,fontFamily:"'Nunito',sans-serif",boxSizing:"border-box"}}/>
+              style={{width:"100%",padding:"12px 14px",borderRadius:12,border:`1.5px solid ${C2.border}`,background:C2.surface,color:"#fff",fontSize:14,fontFamily:"'Plus Jakarta Sans',sans-serif",boxSizing:"border-box"}}/>
           </div>
           <div>
             <div style={{fontSize:11,fontWeight:800,color:C2.muted,marginBottom:6}}>CITY (optional)</div>
             <input value={city} onChange={e=>setCity(e.target.value)} placeholder="e.g. Bangalore"
-              style={{width:"100%",padding:"12px 14px",borderRadius:12,border:`1.5px solid ${C2.border}`,background:C2.surface,color:"#fff",fontSize:14,fontFamily:"'Nunito',sans-serif",boxSizing:"border-box"}}/>
+              style={{width:"100%",padding:"12px 14px",borderRadius:12,border:`1.5px solid ${C2.border}`,background:C2.surface,color:"#fff",fontSize:14,fontFamily:"'Plus Jakarta Sans',sans-serif",boxSizing:"border-box"}}/>
           </div>
-          <div onClick={analyze} style={{padding:"12px 24px",borderRadius:12,background:loading?"rgba(170,255,0,.3)":`linear-gradient(135deg,${C2.lime},#77DD00)`,color:"#05050A",fontWeight:900,fontSize:14,cursor:"pointer",whiteSpace:"nowrap"}}>
+          <div onClick={analyze} style={{padding:"12px 24px",borderRadius:12,background:loading?"rgba(170,255,0,.3)":`linear-gradient(135deg,${C2.lime},#00C8E0)`,color:"#05050A",fontWeight:900,fontSize:14,cursor:"pointer",whiteSpace:"nowrap"}}>
             {loading?"Analyzing...":"🔍 Analyze"}
           </div>
         </div>
@@ -877,10 +914,10 @@ const SalaryInsights = ({ jobs }) => {
       {result && (
         <div style={{background:C2.card,borderRadius:20,padding:24,border:`1px solid ${C2.lime}30`}}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
-            <div style={{fontFamily:"'Bebas Neue',cursive",fontSize:20,color:C2.lime}}>💰 {role} {city?`in ${city}`:""}</div>
+            <div style={{fontFamily:"'Syne',sans-serif",fontSize:20,color:C2.lime}}>💰 {role} {city?`in ${city}`:""}</div>
             <div style={{fontSize:12,color:C2.muted}}>{result.count} live jobs found</div>
           </div>
-          <div style={{color:"rgba(255,255,255,.85)",fontSize:14,lineHeight:1.8,whiteSpace:"pre-wrap",fontFamily:"'Nunito',sans-serif"}}>{result.text}</div>
+          <div style={{color:"rgba(255,255,255,.85)",fontSize:14,lineHeight:1.8,whiteSpace:"pre-wrap",fontFamily:"'Plus Jakarta Sans',sans-serif"}}>{result.text}</div>
         </div>
       )}
 
@@ -910,7 +947,7 @@ const MockInterview = () => {
   const [loading, setLoading] = useState(false);
   const [questionCount, setQuestionCount] = useState(0);
   const bottomRef = useRef(null);
-  const C2 = {bg:"#05050A",card:"#12121F",border:"rgba(255,255,255,.07)",lime:"#AAFF00",muted:"rgba(255,255,255,.4)",surface:"#0D0D1A"};
+  const C2 = {bg:"#05050A",card:"#12121F",border:"rgba(255,255,255,.07)",lime:"#00E5FF",muted:"rgba(255,255,255,.4)",surface:"#0D0D1A"};
 
   useEffect(()=>{ if(bottomRef.current) bottomRef.current.scrollIntoView({behavior:"smooth"}); },[messages]);
 
@@ -962,7 +999,7 @@ const MockInterview = () => {
 
   return (
     <div style={{maxWidth:800,margin:"0 auto",padding:"24px 20px"}}>
-      <div style={{fontFamily:"'Bebas Neue',cursive",fontSize:32,color:"#fff",letterSpacing:.5,marginBottom:4}}>🎤 MOCK INTERVIEW AI</div>
+      <div style={{fontFamily:"'Syne',sans-serif",fontSize:32,color:"#fff",letterSpacing:.5,marginBottom:4}}>🎤 MOCK INTERVIEW AI</div>
       <div style={{color:C2.muted,fontSize:14,marginBottom:24}}>Practice interviews with AI — get real feedback instantly</div>
 
       {!started ? (
@@ -976,8 +1013,8 @@ const MockInterview = () => {
             ))}
           </div>
           <input value={role} onChange={e=>setRole(e.target.value)} placeholder="Or type a custom role..."
-            style={{width:"100%",padding:"12px 14px",borderRadius:12,border:`1.5px solid ${C2.border}`,background:C2.surface,color:"#fff",fontSize:14,fontFamily:"'Nunito',sans-serif",boxSizing:"border-box",marginBottom:16}}/>
-          <div onClick={startInterview} style={{padding:"14px",borderRadius:14,background:`linear-gradient(135deg,${C2.lime},#77DD00)`,color:"#05050A",fontFamily:"'Bebas Neue',cursive",fontSize:20,letterSpacing:1,cursor:"pointer",textAlign:"center"}}>
+            style={{width:"100%",padding:"12px 14px",borderRadius:12,border:`1.5px solid ${C2.border}`,background:C2.surface,color:"#fff",fontSize:14,fontFamily:"'Plus Jakarta Sans',sans-serif",boxSizing:"border-box",marginBottom:16}}/>
+          <div onClick={startInterview} style={{padding:"14px",borderRadius:14,background:`linear-gradient(135deg,${C2.lime},#00C8E0)`,color:"#05050A",fontFamily:"'Syne',sans-serif",fontSize:20,letterSpacing:1,cursor:"pointer",textAlign:"center"}}>
             🎤 START INTERVIEW (5 QUESTIONS)
           </div>
           <div style={{textAlign:"center",fontSize:12,color:C2.muted,marginTop:10}}>AI asks 5 questions → gives feedback → scores your performance</div>
@@ -994,7 +1031,7 @@ const MockInterview = () => {
                 <div style={{width:36,height:36,borderRadius:10,background:m.role==="interviewer"?`${C2.lime}20`:"rgba(56,189,248,.2)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,flexShrink:0}}>
                   {m.role==="interviewer"?"🤖":"👤"}
                 </div>
-                <div style={{maxWidth:"80%",padding:"12px 16px",borderRadius:m.role==="candidate"?"18px 18px 4px 18px":"18px 18px 18px 4px",background:m.role==="candidate"?"rgba(56,189,248,.15)":"rgba(255,255,255,.05)",color:"#fff",fontSize:13,lineHeight:1.6,fontFamily:"'Nunito',sans-serif"}}>
+                <div style={{maxWidth:"80%",padding:"12px 16px",borderRadius:m.role==="candidate"?"18px 18px 4px 18px":"18px 18px 18px 4px",background:m.role==="candidate"?"rgba(56,189,248,.15)":"rgba(255,255,255,.05)",color:"#fff",fontSize:13,lineHeight:1.6,fontFamily:"'Plus Jakarta Sans',sans-serif"}}>
                   {m.text}
                 </div>
               </div>
@@ -1006,8 +1043,8 @@ const MockInterview = () => {
             <div style={{padding:"14px 16px",borderTop:`1px solid ${C2.border}`,display:"flex",gap:8}}>
               <input value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>e.key==="Enter"&&sendAnswer()}
                 placeholder="Type your answer..."
-                style={{flex:1,padding:"11px 14px",borderRadius:12,border:`1.5px solid ${C2.border}`,background:C2.surface,color:"#fff",fontSize:13,fontFamily:"'Nunito',sans-serif"}}/>
-              <div onClick={sendAnswer} style={{padding:"11px 20px",borderRadius:12,background:`linear-gradient(135deg,${C2.lime},#77DD00)`,color:"#05050A",fontWeight:900,cursor:"pointer"}}>Send</div>
+                style={{flex:1,padding:"11px 14px",borderRadius:12,border:`1.5px solid ${C2.border}`,background:C2.surface,color:"#fff",fontSize:13,fontFamily:"'Plus Jakarta Sans',sans-serif"}}/>
+              <div onClick={sendAnswer} style={{padding:"11px 20px",borderRadius:12,background:`linear-gradient(135deg,${C2.lime},#00C8E0)`,color:"#05050A",fontWeight:900,cursor:"pointer"}}>Send</div>
             </div>
           )}
           <div style={{padding:"10px 16px",display:"flex",justifyContent:"center"}}>
@@ -1027,7 +1064,7 @@ const SkillGapAnalyzer = () => {
   const [targetRole, setTargetRole] = useState("");
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
-  const C2 = {bg:"#05050A",card:"#12121F",border:"rgba(255,255,255,.07)",lime:"#AAFF00",muted:"rgba(255,255,255,.4)",surface:"#0D0D1A"};
+  const C2 = {bg:"#05050A",card:"#12121F",border:"rgba(255,255,255,.07)",lime:"#00E5FF",muted:"rgba(255,255,255,.4)",surface:"#0D0D1A"};
 
   const roles = ["Senior React Developer","Data Scientist","Product Manager","DevOps Engineer","UI/UX Designer","Full Stack Developer","ML Engineer","Digital Marketer"];
 
@@ -1062,7 +1099,7 @@ Be specific and actionable. Format with emojis and clear sections.`}],
 
   return (
     <div style={{maxWidth:900,margin:"0 auto",padding:"24px 20px"}}>
-      <div style={{fontFamily:"'Bebas Neue',cursive",fontSize:32,color:"#fff",letterSpacing:.5,marginBottom:4}}>🏆 SKILL GAP ANALYZER</div>
+      <div style={{fontFamily:"'Syne',sans-serif",fontSize:32,color:"#fff",letterSpacing:.5,marginBottom:4}}>🏆 SKILL GAP ANALYZER</div>
       <div style={{color:C2.muted,fontSize:14,marginBottom:24}}>Find out exactly what skills you need for your dream job</div>
 
       <div style={{background:C2.card,borderRadius:20,padding:24,border:`1px solid ${C2.border}`,marginBottom:20}}>
@@ -1070,7 +1107,7 @@ Be specific and actionable. Format with emojis and clear sections.`}],
           <div style={{fontSize:11,fontWeight:800,color:C2.muted,marginBottom:6}}>YOUR CURRENT SKILLS *</div>
           <textarea value={currentSkills} onChange={e=>setCurrentSkills(e.target.value)}
             placeholder="e.g. HTML, CSS, JavaScript, React basics, Git..."
-            style={{width:"100%",padding:"12px 14px",borderRadius:12,border:`1.5px solid ${C2.border}`,background:C2.surface,color:"#fff",fontSize:14,fontFamily:"'Nunito',sans-serif",height:80,resize:"none",boxSizing:"border-box"}}/>
+            style={{width:"100%",padding:"12px 14px",borderRadius:12,border:`1.5px solid ${C2.border}`,background:C2.surface,color:"#fff",fontSize:14,fontFamily:"'Plus Jakarta Sans',sans-serif",height:80,resize:"none",boxSizing:"border-box"}}/>
         </div>
         <div style={{marginBottom:16}}>
           <div style={{fontSize:11,fontWeight:800,color:C2.muted,marginBottom:6}}>TARGET ROLE *</div>
@@ -1082,17 +1119,17 @@ Be specific and actionable. Format with emojis and clear sections.`}],
             ))}
           </div>
           <input value={targetRole} onChange={e=>setTargetRole(e.target.value)} placeholder="Or type custom role..."
-            style={{width:"100%",padding:"12px 14px",borderRadius:12,border:`1.5px solid ${C2.border}`,background:C2.surface,color:"#fff",fontSize:14,fontFamily:"'Nunito',sans-serif",boxSizing:"border-box"}}/>
+            style={{width:"100%",padding:"12px 14px",borderRadius:12,border:`1.5px solid ${C2.border}`,background:C2.surface,color:"#fff",fontSize:14,fontFamily:"'Plus Jakarta Sans',sans-serif",boxSizing:"border-box"}}/>
         </div>
-        <div onClick={analyze} style={{padding:"14px",borderRadius:14,background:loading?"rgba(170,255,0,.3)":`linear-gradient(135deg,${C2.lime},#77DD00)`,color:"#05050A",fontFamily:"'Bebas Neue',cursive",fontSize:20,letterSpacing:1,cursor:loading?"not-allowed":"pointer",textAlign:"center"}}>
+        <div onClick={analyze} style={{padding:"14px",borderRadius:14,background:loading?"rgba(170,255,0,.3)":`linear-gradient(135deg,${C2.lime},#00C8E0)`,color:"#05050A",fontFamily:"'Syne',sans-serif",fontSize:20,letterSpacing:1,cursor:loading?"not-allowed":"pointer",textAlign:"center"}}>
           {loading?"🔍 ANALYZING YOUR SKILLS...":"🚀 ANALYZE MY SKILL GAP"}
         </div>
       </div>
 
       {result && (
         <div style={{background:C2.card,borderRadius:20,padding:24,border:`1px solid ${C2.lime}30`}}>
-          <div style={{fontFamily:"'Bebas Neue',cursive",fontSize:20,color:C2.lime,marginBottom:16}}>📊 YOUR SKILL GAP ANALYSIS</div>
-          <div style={{color:"rgba(255,255,255,.85)",fontSize:14,lineHeight:1.9,whiteSpace:"pre-wrap",fontFamily:"'Nunito',sans-serif"}}>{result}</div>
+          <div style={{fontFamily:"'Syne',sans-serif",fontSize:20,color:C2.lime,marginBottom:16}}>📊 YOUR SKILL GAP ANALYSIS</div>
+          <div style={{color:"rgba(255,255,255,.85)",fontSize:14,lineHeight:1.9,whiteSpace:"pre-wrap",fontFamily:"'Plus Jakarta Sans',sans-serif"}}>{result}</div>
           <div style={{marginTop:20,padding:16,borderRadius:14,background:"rgba(170,255,0,.06)",border:`1px solid ${C2.lime}20`,fontSize:13,color:C2.muted}}>
             💡 Use the <strong style={{color:C2.lime}}>AI Resume Builder</strong> (📄 in navbar) to highlight your skills for this role!
           </div>
@@ -1266,8 +1303,8 @@ export default function App() {
         filled_seats: 0,
         total_seats: 10,
         skills_tags: [],
-        logo_color_1: "#AAFF00",
-        logo_color_2: "#77DD00",
+        logo_color_1: "#00E5FF",
+        logo_color_2: "#00C8E0",
       });
       if(error) throw error;
 
@@ -1320,15 +1357,15 @@ export default function App() {
   return (
     <>
       <Styles/>
-      <div style={{minHeight:"100vh",background:C.bg,color:"#F0F0FF",fontFamily:"'Nunito',sans-serif"}}>
+      <div style={{minHeight:"100vh",background:C.bg,color:"#F0F0FF",fontFamily:"'Plus Jakarta Sans',sans-serif"}}>
 
         {/* NAVBAR */}
         <nav style={{background:C.surface,borderBottom:`1px solid ${C.border}`,position:"sticky",top:0,zIndex:100,boxShadow:"0 4px 30px rgba(0,0,0,.3)"}}>
           <div style={{maxWidth:1400,margin:"0 auto",padding:"0 20px",display:"flex",alignItems:"center",height:64,gap:20}}>
             <div style={{display:"flex",alignItems:"center",gap:10,cursor:"pointer",flexShrink:0}} onClick={()=>setNav("jobs")}>
-              <div style={{width:38,height:38,borderRadius:12,background:`linear-gradient(135deg,${C.lime},#77DD00)`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,boxShadow:`0 4px 16px ${C.lime}30`}}>🚀</div>
+              <div style={{width:38,height:38,borderRadius:12,background:`linear-gradient(135deg,${C.lime},#00C8E0)`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,boxShadow:`0 4px 16px ${C.lime}30`}}>🚀</div>
               <div>
-                <div style={{fontFamily:"'Bebas Neue',cursive",fontSize:20,color:"#fff",letterSpacing:1,lineHeight:1}}>UDYAM PATH</div>
+                <div style={{fontFamily:"'Syne',sans-serif",fontSize:20,color:"#fff",letterSpacing:1,lineHeight:1}}>UDYAM PATH</div>
                 <div style={{fontSize:8,color:C.lime,letterSpacing:1.5,textTransform:"uppercase",fontWeight:700}}>Real-Time · उद्यम पथ</div>
               </div>
             </div>
@@ -1336,7 +1373,7 @@ export default function App() {
             {/* Live indicator */}
             <div style={{display:"flex",alignItems:"center",gap:6,padding:"5px 12px",borderRadius:999,background:`${C.lime}12`,border:`1px solid ${C.lime}25`,flexShrink:0}}>
               <div style={{width:6,height:6,borderRadius:"50%",background:C.lime,animation:"pulse 1.5s infinite"}}/>
-              <span style={{fontSize:11,fontWeight:800,color:C.lime,fontFamily:"'JetBrains Mono',monospace"}}>{liveCount.toLocaleString("en-IN")} LIVE</span>
+              <span style={{fontSize:11,fontWeight:800,color:C.lime,fontFamily:"'Space Mono',monospace"}}>{liveCount.toLocaleString("en-IN")} LIVE</span>
             </div>
 
             {/* Nav */}
@@ -1353,7 +1390,7 @@ export default function App() {
             <div style={{display:"flex",gap:10,alignItems:"center",flexShrink:0}}>
               {user ? (
                 <div style={{display:"flex",gap:10,alignItems:"center"}}>
-                  <div style={{width:34,height:34,borderRadius:10,background:`linear-gradient(135deg,${C.lime},#77DD00)`,display:"flex",alignItems:"center",justifyContent:"center",color:C.bg,fontWeight:900,fontSize:14}}>
+                  <div style={{width:34,height:34,borderRadius:10,background:`linear-gradient(135deg,${C.lime},#00C8E0)`,display:"flex",alignItems:"center",justifyContent:"center",color:C.bg,fontWeight:900,fontSize:14}}>
                     {(user.user_metadata?.full_name||user.email||"U")[0].toUpperCase()}
                   </div>
                   <div onClick={handleSignOut} className="btn" style={{padding:"8px 14px",borderRadius:10,background:C.card,border:`1px solid ${C.border}`,fontSize:11,fontWeight:700,color:C.muted}}>Sign Out</div>
@@ -1362,7 +1399,7 @@ export default function App() {
                 <div onClick={()=>setShowAuth(true)} className="btn" style={{padding:"10px 20px",borderRadius:12,background:C.card,border:`1px solid ${C.border}`,fontSize:13,fontWeight:800,color:"rgba(255,255,255,.6)"}}>Sign In</div>
               )}
               <button onClick={()=>setShowPost(true)} className="btn glow-pulse"
-                style={{padding:"10px 18px",borderRadius:12,background:`linear-gradient(135deg,${C.lime},#77DD00)`,color:C.bg,border:"none",fontWeight:900,fontSize:12,cursor:"pointer",letterSpacing:.5}}>
+                style={{padding:"10px 18px",borderRadius:12,background:`linear-gradient(135deg,${C.lime},#00C8E0)`,color:C.bg,border:"none",fontWeight:900,fontSize:12,cursor:"pointer",letterSpacing:.5}}>
                 + POST JOB FREE
               </button>
             </div>
@@ -1391,7 +1428,7 @@ export default function App() {
                   <div style={{width:8,height:8,borderRadius:"50%",background:C.lime,animation:"pulse 1s infinite"}}/>
                   <span style={{fontSize:11,fontWeight:900,color:C.lime,letterSpacing:1}}>REAL-TIME · JOBS UPDATE LIVE · AUTO-REMOVED WHEN FILLED</span>
                 </div>
-                <h1 className="fu1" style={{fontFamily:"'Bebas Neue',cursive",fontSize:"clamp(40px,8vw,76px)",color:"#fff",lineHeight:1,letterSpacing:2,marginBottom:16}}>
+                <h1 className="fu1" style={{fontFamily:"'Syne',sans-serif",fontSize:"clamp(40px,8vw,76px)",color:"#fff",lineHeight:1,letterSpacing:2,marginBottom:16}}>
                   YOUR DREAM JOB<br/><span style={{color:C.lime}}>STARTS RIGHT NOW</span>
                 </h1>
                 <p className="fu2" style={{fontSize:15,color:"rgba(255,255,255,.45)",margin:"0 auto 36px",maxWidth:580,lineHeight:1.9}}>
@@ -1403,9 +1440,9 @@ export default function App() {
                     <input value={search} onChange={e=>setSearch(e.target.value)} onKeyDown={e=>e.key==="Enter"&&fetchJobs()}
                       placeholder="Search jobs, companies, skills..."
                       className="input-z"
-                      style={{border:"none",background:"transparent",fontSize:15,fontFamily:"'Nunito',sans-serif",color:"#fff",width:"100%",outline:"none"}}/>
+                      style={{border:"none",background:"transparent",fontSize:15,fontFamily:"'Plus Jakarta Sans',sans-serif",color:"#fff",width:"100%",outline:"none"}}/>
                   </div>
-                  <button onClick={fetchJobs} className="btn" style={{padding:"14px 28px",borderRadius:16,background:`linear-gradient(135deg,${C.lime},#77DD00)`,color:C.bg,border:"none",fontWeight:900,fontSize:15,fontFamily:"'Nunito',sans-serif",cursor:"pointer"}}>SEARCH</button>
+                  <button onClick={fetchJobs} className="btn" style={{padding:"14px 28px",borderRadius:16,background:`linear-gradient(135deg,${C.lime},#00C8E0)`,color:C.bg,border:"none",fontWeight:900,fontSize:15,fontFamily:"'Plus Jakarta Sans',sans-serif",cursor:"pointer"}}>SEARCH</button>
                 </div>
                 <div className="fu3" style={{display:"flex",gap:8,justifyContent:"center",flexWrap:"wrap"}}>
                   {["🔥 Fresher","🌍 Remote","🏠 WFH","💰 High Salary","🤖 AI / ML","🚀 Startup"].map(tag=>(
@@ -1423,7 +1460,7 @@ export default function App() {
               <div style={{maxWidth:1400,margin:"0 auto",display:"flex",gap:32,justifyContent:"center",flexWrap:"wrap"}}>
                 {[["💼",liveJobs.length,"Live Jobs",C.lime],["📫",filledJobs.length,"Filled Today",C.coral],["🔖",saved.size,"Saved",C.gold],["⚡","Live","WebSocket",C.sky]].map(([ic,val,lb,c])=>(
                   <div key={lb} style={{textAlign:"center"}}>
-                    <div style={{fontFamily:"'Bebas Neue',cursive",fontSize:22,color:c,letterSpacing:.5}}>{ic} {val}</div>
+                    <div style={{fontFamily:"'Syne',sans-serif",fontSize:22,color:c,letterSpacing:.5}}>{ic} {val}</div>
                     <div style={{fontSize:10,color:"rgba(255,255,255,.25)",textTransform:"uppercase",letterSpacing:.6}}>{lb}</div>
                   </div>
                 ))}
@@ -1438,7 +1475,7 @@ export default function App() {
                   <div style={{display:"flex",gap:10,alignItems:"center"}}>
                     {[region,workType,category,expLevel].some(f=>f!=="All")&&
                       <span onClick={()=>{setRegion("All");setWorkType("All");setCategory("All");setExpLevel("All");}} style={{fontSize:12,color:C.coral,fontWeight:800,cursor:"pointer"}}>Clear ×</span>}
-                    <select value={sortBy} onChange={e=>setSortBy(e.target.value)} style={{padding:"7px 12px",borderRadius:10,border:`1px solid ${C.border}`,fontSize:12,fontWeight:700,color:"#fff",fontFamily:"'Nunito',sans-serif",background:C.surface,cursor:"pointer"}}>
+                    <select value={sortBy} onChange={e=>setSortBy(e.target.value)} style={{padding:"7px 12px",borderRadius:10,border:`1px solid ${C.border}`,fontSize:12,fontWeight:700,color:"#fff",fontFamily:"'Plus Jakarta Sans',sans-serif",background:C.surface,cursor:"pointer"}}>
                       <option value="hot">🔥 Hot</option><option value="new">🆕 Newest</option><option value="seats">📊 Seats</option>
                     </select>
                   </div>
@@ -1452,7 +1489,7 @@ export default function App() {
                     <div key={f.lb}>
                       <div style={{fontSize:10,fontWeight:800,color:"rgba(255,255,255,.25)",marginBottom:5,textTransform:"uppercase",letterSpacing:.6}}>{f.lb}</div>
                       <select value={f.val} onChange={e=>f.set(e.target.value)} className="input-z"
-                        style={{width:"100%",padding:"9px 12px",borderRadius:11,border:`1.5px solid ${f.val!=="All"?C.lime:C.border}`,fontSize:12,fontWeight:700,fontFamily:"'Nunito',sans-serif",background:f.val!=="All"?`${C.lime}08`:C.surface,color:f.val!=="All"?C.lime:"rgba(255,255,255,.5)",cursor:"pointer",transition:"all .2s"}}>
+                        style={{width:"100%",padding:"9px 12px",borderRadius:11,border:`1.5px solid ${f.val!=="All"?C.lime:C.border}`,fontSize:12,fontWeight:700,fontFamily:"'Plus Jakarta Sans',sans-serif",background:f.val!=="All"?`${C.lime}08`:C.surface,color:f.val!=="All"?C.lime:"rgba(255,255,255,.5)",cursor:"pointer",transition:"all .2s"}}>
                         {f.opts.map(o=><option key={o}>{o}</option>)}
                       </select>
                     </div>
@@ -1461,9 +1498,9 @@ export default function App() {
               </div>
 
               {/* Job Grid */}
-              <div style={{fontFamily:"'Bebas Neue',cursive",fontSize:24,color:"#fff",letterSpacing:.5,marginBottom:16}}>
+              <div style={{fontFamily:"'Syne',sans-serif",fontSize:24,color:"#fff",letterSpacing:.5,marginBottom:16}}>
                 {loading?"LOADING LIVE JOBS...":`${liveJobs.length} LIVE JOBS`}
-                <span style={{fontSize:11,fontFamily:"'Nunito',sans-serif",fontWeight:600,letterSpacing:0,color:"rgba(255,255,255,.25)",marginLeft:12}}>
+                <span style={{fontSize:11,fontFamily:"'Plus Jakarta Sans',sans-serif",fontWeight:600,letterSpacing:0,color:"rgba(255,255,255,.25)",marginLeft:12}}>
                   {loading?"Fetching from Adzuna API + Database...":"From Adzuna API + Database · Auto-updates via WebSocket"}
                 </span>
               </div>
@@ -1483,8 +1520,8 @@ export default function App() {
               ) : (
                 <div style={{padding:"60px 20px",textAlign:"center",background:C.card,borderRadius:20,border:`1px solid ${C.border}`,marginBottom:24}}>
                   <div style={{fontSize:48,marginBottom:12}}>🔍</div>
-                  <div style={{fontFamily:"'Bebas Neue',cursive",fontSize:22,color:"#fff",marginBottom:12}}>No Jobs Found</div>
-                  <div onClick={()=>{setSearch("");setRegion("All");setWorkType("All");setCategory("All");setExpLevel("All");fetchJobs();}} className="btn" style={{display:"inline-block",padding:"12px 28px",borderRadius:14,background:`linear-gradient(135deg,${C.lime},#77DD00)`,color:C.bg,fontWeight:900,fontSize:14,cursor:"pointer"}}>Clear Filters & Reload</div>
+                  <div style={{fontFamily:"'Syne',sans-serif",fontSize:22,color:"#fff",marginBottom:12}}>No Jobs Found</div>
+                  <div onClick={()=>{setSearch("");setRegion("All");setWorkType("All");setCategory("All");setExpLevel("All");fetchJobs();}} className="btn" style={{display:"inline-block",padding:"12px 28px",borderRadius:14,background:`linear-gradient(135deg,${C.lime},#00C8E0)`,color:C.bg,fontWeight:900,fontSize:14,cursor:"pointer"}}>Clear Filters & Reload</div>
                 </div>
               )}
 
@@ -1494,9 +1531,9 @@ export default function App() {
                   <div onClick={loadMore} className="btn" style={{
                     display:"inline-flex",alignItems:"center",gap:10,
                     padding:"14px 36px",borderRadius:16,
-                    background:`linear-gradient(135deg,${C.lime},#77DD00)`,
+                    background:`linear-gradient(135deg,${C.lime},#00C8E0)`,
                     color:C.bg,fontWeight:900,fontSize:16,
-                    fontFamily:"'Bebas Neue',cursive",letterSpacing:1,
+                    fontFamily:"'Syne',sans-serif",letterSpacing:1,
                     cursor:"pointer",boxShadow:`0 4px 20px ${C.lime}30`
                   }}>
                     📋 LOAD MORE JOBS
@@ -1508,7 +1545,7 @@ export default function App() {
               {/* Filled Jobs */}
               {filledJobs.length>0&&(
                 <>
-                  <div style={{fontFamily:"'Bebas Neue',cursive",fontSize:18,color:"rgba(255,77,109,.5)",letterSpacing:.5,marginBottom:12}}>
+                  <div style={{fontFamily:"'Syne',sans-serif",fontSize:18,color:"rgba(255,77,109,.5)",letterSpacing:.5,marginBottom:12}}>
                     POSITIONS FILLED ({filledJobs.length}) — Auto-removed from active listings
                   </div>
                   <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(320px,1fr))",gap:14,marginBottom:24}}>
@@ -1521,10 +1558,10 @@ export default function App() {
               <div style={{background:`linear-gradient(135deg,rgba(170,255,0,.06),rgba(56,189,248,.04))`,border:`1px solid ${C.lime}20`,borderRadius:24,padding:"28px 32px",display:"flex",gap:24,alignItems:"center",flexWrap:"wrap"}}>
                 <div style={{fontSize:44}} className="float">🔔</div>
                 <div style={{flex:1,minWidth:220}}>
-                  <div style={{fontFamily:"'Bebas Neue',cursive",fontSize:22,color:"#fff",letterSpacing:.5}}>REAL EMAIL ALERTS — FREE</div>
+                  <div style={{fontFamily:"'Syne',sans-serif",fontSize:22,color:"#fff",letterSpacing:.5}}>REAL EMAIL ALERTS — FREE</div>
                   <div style={{fontSize:13,color:C.muted,marginTop:4}}>Get emailed the instant a matching job is posted. Powered by Resend.</div>
                 </div>
-                <div onClick={()=>setNav("alerts")} className="btn glow-pulse" style={{padding:"14px 28px",borderRadius:14,background:`linear-gradient(135deg,${C.lime},#77DD00)`,color:C.bg,fontWeight:900,fontSize:14,cursor:"pointer"}}>Set Alert Free →</div>
+                <div onClick={()=>setNav("alerts")} className="btn glow-pulse" style={{padding:"14px 28px",borderRadius:14,background:`linear-gradient(135deg,${C.lime},#00C8E0)`,color:C.bg,fontWeight:900,fontSize:14,cursor:"pointer"}}>Set Alert Free →</div>
               </div>
             </div>
           </>
@@ -1540,19 +1577,19 @@ export default function App() {
 
         {nav==="saved"&&(
           <div style={{maxWidth:1100,margin:"0 auto",padding:"28px 20px"}}>
-            <div style={{fontFamily:"'Bebas Neue',cursive",fontSize:34,color:"#fff",letterSpacing:.5,marginBottom:6}}>SAVED JOBS 🔖</div>
+            <div style={{fontFamily:"'Syne',sans-serif",fontSize:34,color:"#fff",letterSpacing:.5,marginBottom:6}}>SAVED JOBS 🔖</div>
             <div style={{fontSize:13,color:C.muted,marginBottom:24}}>Saved to your Supabase account · Synced across devices</div>
             {!user ? (
               <div style={{padding:"60px 20px",textAlign:"center",background:C.card,borderRadius:20,border:`1px solid ${C.border}`}}>
                 <div style={{fontSize:48,marginBottom:12}}>🔐</div>
-                <div style={{fontFamily:"'Bebas Neue',cursive",fontSize:22,color:"#fff",marginBottom:12}}>Sign In to Save Jobs</div>
-                <div onClick={()=>setShowAuth(true)} className="btn" style={{display:"inline-block",padding:"14px 32px",borderRadius:16,background:`linear-gradient(135deg,${C.lime},#77DD00)`,color:C.bg,fontWeight:900,fontSize:15,cursor:"pointer"}}>Sign In / Create Account →</div>
+                <div style={{fontFamily:"'Syne',sans-serif",fontSize:22,color:"#fff",marginBottom:12}}>Sign In to Save Jobs</div>
+                <div onClick={()=>setShowAuth(true)} className="btn" style={{display:"inline-block",padding:"14px 32px",borderRadius:16,background:`linear-gradient(135deg,${C.lime},#00C8E0)`,color:C.bg,fontWeight:900,fontSize:15,cursor:"pointer"}}>Sign In / Create Account →</div>
               </div>
             ) : savedJobs.length===0 ? (
               <div style={{padding:"60px 20px",textAlign:"center",background:C.card,borderRadius:20,border:`1px solid ${C.border}`}}>
                 <div style={{fontSize:48,marginBottom:12}}>🏷️</div>
-                <div style={{fontFamily:"'Bebas Neue',cursive",fontSize:22,color:"#fff",marginBottom:12}}>NO SAVED JOBS</div>
-                <div onClick={()=>setNav("jobs")} className="btn" style={{display:"inline-block",padding:"14px 32px",borderRadius:16,background:`linear-gradient(135deg,${C.lime},#77DD00)`,color:C.bg,fontWeight:900,fontSize:15,cursor:"pointer"}}>Browse Jobs →</div>
+                <div style={{fontFamily:"'Syne',sans-serif",fontSize:22,color:"#fff",marginBottom:12}}>NO SAVED JOBS</div>
+                <div onClick={()=>setNav("jobs")} className="btn" style={{display:"inline-block",padding:"14px 32px",borderRadius:16,background:`linear-gradient(135deg,${C.lime},#00C8E0)`,color:C.bg,fontWeight:900,fontSize:15,cursor:"pointer"}}>Browse Jobs →</div>
               </div>
             ) : (
               <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(320px,1fr))",gap:14}}>
@@ -1569,7 +1606,7 @@ export default function App() {
             <div style={{position:"relative",background:C.surface,borderRadius:28,maxWidth:560,width:"100%",overflow:"hidden",maxHeight:"90vh",display:"flex",flexDirection:"column",border:`1px solid ${C.border}`}}>
               <div style={{background:C.card,padding:"22px 24px",borderBottom:`1px solid ${C.border}`,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
                 <div>
-                  <div style={{fontFamily:"'Bebas Neue',cursive",fontSize:22,color:"#fff",letterSpacing:.5}}>POST A JOB — FREE</div>
+                  <div style={{fontFamily:"'Syne',sans-serif",fontSize:22,color:"#fff",letterSpacing:.5}}>POST A JOB — FREE</div>
                   <div style={{fontSize:11,color:C.muted,marginTop:2}}>Saved to database · Alerts sent to matching users instantly</div>
                 </div>
                 <div onClick={()=>{setShowPost(false);setPostDone(false);}} className="btn" style={{width:36,height:36,borderRadius:12,background:C.surface,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",border:`1px solid ${C.border}`,color:C.muted,fontSize:18}}>✕</div>
@@ -1581,10 +1618,10 @@ export default function App() {
                       <label style={{fontSize:11,fontWeight:800,color:C.muted,display:"block",marginBottom:5,textTransform:"uppercase",letterSpacing:.6}}>{lb}</label>
                       {key==="description"?(
                         <textarea value={postForm[key]} onChange={e=>setPostForm(f=>({...f,[key]:e.target.value}))} placeholder={ph} className="input-z"
-                          style={{width:"100%",padding:"12px 16px",borderRadius:12,border:`1.5px solid ${C.border}`,fontSize:13,fontFamily:"'Nunito',sans-serif",background:C.card,color:"#fff",height:80,resize:"none"}}/>
+                          style={{width:"100%",padding:"12px 16px",borderRadius:12,border:`1.5px solid ${C.border}`,fontSize:13,fontFamily:"'Plus Jakarta Sans',sans-serif",background:C.card,color:"#fff",height:80,resize:"none"}}/>
                       ):(
                         <input value={postForm[key]} onChange={e=>setPostForm(f=>({...f,[key]:e.target.value}))} placeholder={ph} className="input-z"
-                          style={{width:"100%",padding:"12px 16px",borderRadius:12,border:`1.5px solid ${C.border}`,fontSize:14,fontFamily:"'Nunito',sans-serif",background:C.card,color:"#fff"}}/>
+                          style={{width:"100%",padding:"12px 16px",borderRadius:12,border:`1.5px solid ${C.border}`,fontSize:14,fontFamily:"'Plus Jakarta Sans',sans-serif",background:C.card,color:"#fff"}}/>
                       )}
                     </div>
                   ))}
@@ -1593,7 +1630,7 @@ export default function App() {
                       <div key={key}>
                         <label style={{fontSize:11,fontWeight:800,color:C.muted,display:"block",marginBottom:5,textTransform:"uppercase",letterSpacing:.6}}>{lb}</label>
                         <select value={postForm[key]} onChange={e=>setPostForm(f=>({...f,[key]:e.target.value}))} className="input-z"
-                          style={{width:"100%",padding:"11px 14px",borderRadius:12,border:`1.5px solid ${C.border}`,fontSize:13,fontFamily:"'Nunito',sans-serif",background:C.card,color:"#fff",cursor:"pointer"}}>
+                          style={{width:"100%",padding:"11px 14px",borderRadius:12,border:`1.5px solid ${C.border}`,fontSize:13,fontFamily:"'Plus Jakarta Sans',sans-serif",background:C.card,color:"#fff",cursor:"pointer"}}>
                           {opts.map(o=><option key={o}>{o}</option>)}
                         </select>
                       </div>
@@ -1603,14 +1640,14 @@ export default function App() {
               ):(
                 <div style={{padding:40,textAlign:"center"}}>
                   <div style={{fontSize:64,marginBottom:16}} className="float">🎊</div>
-                  <div style={{fontFamily:"'Bebas Neue',cursive",fontSize:26,color:C.lime,letterSpacing:.5}}>JOB LIVE!</div>
+                  <div style={{fontFamily:"'Syne',sans-serif",fontSize:26,color:C.lime,letterSpacing:.5}}>JOB LIVE!</div>
                   <div style={{fontSize:13,color:C.muted,margin:"12px 0 24px",lineHeight:1.8}}>Job saved to database. Alerts sent to all matching users via email.</div>
                 </div>
               )}
               {!postDone&&(
                 <div style={{padding:"16px 24px 24px",borderTop:`1px solid ${C.border}`}}>
                   <button onClick={handlePostJob} disabled={postLoading} className="btn glow-pulse"
-                    style={{width:"100%",padding:16,borderRadius:14,background:`linear-gradient(135deg,${C.lime},#77DD00)`,color:C.bg,border:"none",fontFamily:"'Bebas Neue',cursive",fontSize:20,letterSpacing:1,cursor:postLoading?"not-allowed":"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:10}}>
+                    style={{width:"100%",padding:16,borderRadius:14,background:`linear-gradient(135deg,${C.lime},#00C8E0)`,color:C.bg,border:"none",fontFamily:"'Syne',sans-serif",fontSize:20,letterSpacing:1,cursor:postLoading?"not-allowed":"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:10}}>
                     {postLoading?<><Spinner size={20} color={C.bg}/> Posting...</>:"🚀 POST JOB FREE"}
                   </button>
                   {!user&&<div style={{textAlign:"center",marginTop:8,fontSize:11,color:C.muted}}>You'll be asked to sign in first</div>}
@@ -1639,13 +1676,13 @@ export default function App() {
         <footer style={{background:"#05050A",borderTop:`1px solid ${C.border}`,padding:"32px 20px 20px",marginTop:40}}>
           <div style={{maxWidth:1400,margin:"0 auto",display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:16}}>
             <div style={{display:"flex",alignItems:"center",gap:10}}>
-              <div style={{width:30,height:30,borderRadius:10,background:`linear-gradient(135deg,${C.lime},#77DD00)`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:16}}>🚀</div>
-              <div style={{fontFamily:"'Bebas Neue',cursive",fontSize:18,color:"#fff",letterSpacing:1}}>UDYAM PATH</div>
+              <div style={{width:30,height:30,borderRadius:10,background:`linear-gradient(135deg,${C.lime},#00C8E0)`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:16}}>🚀</div>
+              <div style={{fontFamily:"'Syne',sans-serif",fontSize:18,color:"#fff",letterSpacing:1}}>UDYAM PATH</div>
             </div>
             <div style={{fontSize:11,color:"rgba(255,255,255,.2)",textAlign:"center"}}>
               Real-time via Supabase WebSocket · Jobs via Adzuna API · Emails via Resend · Hosted on Vercel
               <div style={{marginTop:8,fontSize:13,color:"rgba(255,255,255,.5)"}}>
-                Made with ❤️ by <span style={{color:"#AAFF00",fontWeight:900}}>Sanjeev & Vedha Nikitha</span>
+                Made with ❤️ by <span style={{color:"#00E5FF",fontWeight:900}}>Sanjeev & Vedha Nikitha</span>
               </div>
             </div>
             <div style={{display:"flex",gap:8}}>
