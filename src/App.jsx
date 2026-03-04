@@ -558,6 +558,103 @@ const AlertSetup = ({user, onAuthRequired, onToast}) => {
 /* ══════════════════════════════════════════════════════
    MAIN APP
 ══════════════════════════════════════════════════════ */
+
+/* ── Resume Builder ──────────────────────────────── */
+const ResumeBuilder = ({ user, onClose }) => {
+  const [form, setForm] = useState({
+    name: user?.user_metadata?.full_name || "",
+    email: user?.email || "",
+    phone: "", location: "", linkedin: "", summary: "",
+    skills: "", experience: "", education: "", projects: ""
+  });
+  const [generating, setGenerating] = useState(false);
+  const [done, setDone] = useState(false);
+
+  const generateResume = async () => {
+    setGenerating(true);
+    try {
+      const response = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-20250514",
+          max_tokens: 2000,
+          system: "You are a professional resume writer. Generate a clean, ATS-friendly resume in plain text format. Use clear sections with headers. Be professional and concise.",
+          messages: [{ role: "user", content: `Create a professional resume for: Name: ${form.name}, Email: ${form.email}, Phone: ${form.phone}, Location: ${form.location}, LinkedIn: ${form.linkedin}, Summary: ${form.summary}, Skills: ${form.skills}, Experience: ${form.experience}, Education: ${form.education}, Projects: ${form.projects}` }]
+        })
+      });
+      const data = await response.json();
+      const resumeText = data.content?.[0]?.text || "";
+      
+      // Create downloadable file
+      const blob = new Blob([resumeText], { type: "text/plain" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${form.name.replace(/ /g,"_")}_Resume.txt`;
+      a.click();
+      setDone(true);
+    } catch(e) {
+      console.error(e);
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  const C2 = { bg:"#05050A", card:"#12121F", border:"rgba(255,255,255,.07)", lime:"#AAFF00", muted:"rgba(255,255,255,.4)" };
+  const inputStyle = { width:"100%", padding:"11px 14px", borderRadius:12, border:`1.5px solid ${C2.border}`, fontSize:13, fontFamily:"'Nunito',sans-serif", background:"#0D0D1A", color:"#fff", boxSizing:"border-box" };
+
+  return (
+    <div style={{position:"fixed",inset:0,zIndex:500,display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(0,0,0,.8)"}}>
+      <div style={{background:C2.bg,borderRadius:24,padding:28,width:"100%",maxWidth:560,maxHeight:"90vh",overflowY:"auto",border:`1px solid ${C2.border}`,position:"relative"}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
+          <div style={{fontFamily:"'Bebas Neue',cursive",fontSize:24,color:"#fff",letterSpacing:.5}}>📄 AI RESUME BUILDER</div>
+          <div onClick={onClose} style={{cursor:"pointer",color:C2.muted,fontSize:20}}>✕</div>
+        </div>
+
+        {done ? (
+          <div style={{textAlign:"center",padding:32}}>
+            <div style={{fontSize:56,marginBottom:12}}>🎉</div>
+            <div style={{fontFamily:"'Bebas Neue',cursive",fontSize:24,color:C2.lime}}>RESUME DOWNLOADED!</div>
+            <div style={{color:C2.muted,fontSize:13,marginTop:8}}>Your AI-generated resume has been downloaded!</div>
+            <div onClick={()=>setDone(false)} style={{marginTop:16,padding:"12px 28px",borderRadius:14,background:`linear-gradient(135deg,${C2.lime},#77DD00)`,color:"#05050A",fontWeight:900,fontSize:14,cursor:"pointer",display:"inline-block"}}>Build Another</div>
+          </div>
+        ) : (
+          <div style={{display:"flex",flexDirection:"column",gap:14}}>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+              <div><label style={{fontSize:11,color:C2.muted,fontWeight:800,display:"block",marginBottom:5}}>FULL NAME *</label>
+                <input style={inputStyle} value={form.name} onChange={e=>setForm(f=>({...f,name:e.target.value}))} placeholder="Sanjeev Kumar"/></div>
+              <div><label style={{fontSize:11,color:C2.muted,fontWeight:800,display:"block",marginBottom:5}}>EMAIL *</label>
+                <input style={inputStyle} value={form.email} onChange={e=>setForm(f=>({...f,email:e.target.value}))} placeholder="you@email.com"/></div>
+              <div><label style={{fontSize:11,color:C2.muted,fontWeight:800,display:"block",marginBottom:5}}>PHONE</label>
+                <input style={inputStyle} value={form.phone} onChange={e=>setForm(f=>({...f,phone:e.target.value}))} placeholder="+91 9999999999"/></div>
+              <div><label style={{fontSize:11,color:C2.muted,fontWeight:800,display:"block",marginBottom:5}}>LOCATION</label>
+                <input style={inputStyle} value={form.location} onChange={e=>setForm(f=>({...f,location:e.target.value}))} placeholder="Bangalore, India"/></div>
+            </div>
+            <div><label style={{fontSize:11,color:C2.muted,fontWeight:800,display:"block",marginBottom:5}}>LINKEDIN URL</label>
+              <input style={inputStyle} value={form.linkedin} onChange={e=>setForm(f=>({...f,linkedin:e.target.value}))} placeholder="linkedin.com/in/yourname"/></div>
+            <div><label style={{fontSize:11,color:C2.muted,fontWeight:800,display:"block",marginBottom:5}}>PROFESSIONAL SUMMARY</label>
+              <textarea style={{...inputStyle,height:70,resize:"none"}} value={form.summary} onChange={e=>setForm(f=>({...f,summary:e.target.value}))} placeholder="5+ years React developer with expertise in..."/></div>
+            <div><label style={{fontSize:11,color:C2.muted,fontWeight:800,display:"block",marginBottom:5}}>SKILLS</label>
+              <input style={inputStyle} value={form.skills} onChange={e=>setForm(f=>({...f,skills:e.target.value}))} placeholder="React, Node.js, Python, AWS, MongoDB..."/></div>
+            <div><label style={{fontSize:11,color:C2.muted,fontWeight:800,display:"block",marginBottom:5}}>WORK EXPERIENCE</label>
+              <textarea style={{...inputStyle,height:80,resize:"none"}} value={form.experience} onChange={e=>setForm(f=>({...f,experience:e.target.value}))} placeholder="Senior Developer at TechCorp (2020-2024): Built..."/></div>
+            <div><label style={{fontSize:11,color:C2.muted,fontWeight:800,display:"block",marginBottom:5}}>EDUCATION</label>
+              <input style={inputStyle} value={form.education} onChange={e=>setForm(f=>({...f,education:e.target.value}))} placeholder="B.Tech Computer Science, VIT (2016-2020)"/></div>
+            <div><label style={{fontSize:11,color:C2.muted,fontWeight:800,display:"block",marginBottom:5}}>PROJECTS (optional)</label>
+              <input style={inputStyle} value={form.projects} onChange={e=>setForm(f=>({...f,projects:e.target.value}))} placeholder="E-commerce app with 10k users..."/></div>
+
+            <div onClick={generateResume} style={{padding:"14px",borderRadius:14,background:generating?"rgba(170,255,0,.3)":`linear-gradient(135deg,${C2.lime},#77DD00)`,color:"#05050A",fontFamily:"'Bebas Neue',cursive",fontSize:20,letterSpacing:1,cursor:generating?"not-allowed":"pointer",textAlign:"center",fontWeight:900}}>
+              {generating ? "✨ AI IS BUILDING YOUR RESUME..." : "🚀 GENERATE RESUME FREE WITH AI"}
+            </div>
+            <div style={{textAlign:"center",fontSize:11,color:C2.muted}}>Powered by Claude AI · Downloads instantly · 100% Free</div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
 /* ── AI Job Chatbot ──────────────────────────────── */
 const AIChatbot = ({ jobs }) => {
   const [open, setOpen] = useState(false);
@@ -714,6 +811,8 @@ export default function App() {
   const [jobLimit, setJobLimit] = useState(100);
   const [appliedJobs, setAppliedJobs] = useState(new Set());
   const [hasMore, setHasMore] = useState(false);
+  const [salaryFilter, setSalaryFilter] = useState("All");
+  const [showResumeBuilder, setShowResumeBuilder] = useState(false);
 
   const showToast = (msg, type="success") => {
     setToast({msg, type});
@@ -879,7 +978,17 @@ export default function App() {
   };
 
   // ── Filter jobs ───────────────────────────────────
-  const liveJobs  = jobs.filter(j=>!j.filled_seats||(j.filled_seats<(j.total_seats||10)));
+  const liveJobs  = jobs.filter(j=>!j.filled_seats||(j.filled_seats<(j.total_seats||10))).filter(j=>{
+    if(salaryFilter==="All") return true;
+    const s = (j.salary_range||"").toLowerCase();
+    if(salaryFilter==="Competitive") return s.includes("competitive");
+    if(salaryFilter==="0–3 LPA") return s.includes("₹") && (s.includes("0") || s.includes("1") || s.includes("2") || s.includes("3"));
+    if(salaryFilter==="3–6 LPA") return s.includes("₹") && (s.includes("3") || s.includes("4") || s.includes("5") || s.includes("6"));
+    if(salaryFilter==="6–10 LPA") return s.includes("₹") && (s.includes("6") || s.includes("7") || s.includes("8") || s.includes("9") || s.includes("10"));
+    if(salaryFilter==="10–20 LPA") return s.includes("₹") && parseInt(s.match(/\d+/)?.[0]||0) >= 10;
+    if(salaryFilter==="20+ LPA") return s.includes("₹") && parseInt(s.match(/\d+/)?.[0]||0) >= 20;
+    return true;
+  });
   const filledJobs = jobs.filter(j=>j.filled_seats>=(j.total_seats||10));
   const savedJobs  = jobs.filter(j=>saved.has(j.id));
 
@@ -1019,7 +1128,8 @@ export default function App() {
                   {[{lb:"Region",opts:["All","India","USA","UK","Canada","Australia","Singapore","Remote – Global"],val:region,set:setRegion},
                     {lb:"Work Type",opts:["All","Remote","WFH","Hybrid","In-Office","Freelance"],val:workType,set:setWorkType},
                     {lb:"Category",opts:["All","Tech","Data","Product","Design","Marketing","Sales","HR","Content","Operations"],val:category,set:setCategory},
-                    {lb:"Experience",opts:["All","Fresher","0–2 yrs","2–5 yrs","5–10 yrs","10+ yrs"],val:expLevel,set:setExpLevel}].map(f=>(
+                    {lb:"Experience",opts:["All","Fresher","0–2 yrs","2–5 yrs","5–10 yrs","10+ yrs"],val:expLevel,set:setExpLevel},
+                    {lb:"💰 Salary",opts:["All","0–3 LPA","3–6 LPA","6–10 LPA","10–20 LPA","20+ LPA","Competitive"],val:salaryFilter,set:setSalaryFilter}].map(f=>(
                     <div key={f.lb}>
                       <div style={{fontSize:10,fontWeight:800,color:"rgba(255,255,255,.25)",marginBottom:5,textTransform:"uppercase",letterSpacing:.6}}>{f.lb}</div>
                       <select value={f.val} onChange={e=>f.set(e.target.value)} className="input-z"
@@ -1194,6 +1304,9 @@ export default function App() {
         {/* TOAST */}
         {toast&&<Toast msg={toast.msg} type={toast.type} onClose={()=>setToast(null)}/>}
 
+        {/* RESUME BUILDER */}
+        {showResumeBuilder&&<ResumeBuilder user={user} onClose={()=>setShowResumeBuilder(false)}/>}
+
         {/* AI CHATBOT */}
         <AIChatbot jobs={jobs} />
 
@@ -1206,6 +1319,9 @@ export default function App() {
             </div>
             <div style={{fontSize:11,color:"rgba(255,255,255,.2)",textAlign:"center"}}>
               Real-time via Supabase WebSocket · Jobs via Adzuna API · Emails via Resend · Hosted on Vercel
+              <div style={{marginTop:8,fontSize:13,color:"rgba(255,255,255,.5)"}}>
+                Made with ❤️ by <span style={{color:"#AAFF00",fontWeight:900}}>Sanjeev & Vedha Nikitha</span>
+              </div>
             </div>
             <div style={{display:"flex",gap:8}}>
               <Chip color={C.lime}>Supabase ✓</Chip>
