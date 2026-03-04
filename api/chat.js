@@ -13,7 +13,7 @@ export default async function handler(req, res) {
     const prompt = `You are UdyamPath AI, a friendly job search assistant for an Indian jobs portal. Help users find relevant jobs. Be concise (2-3 sentences max). Here are available jobs:\n${jobSummary}\n\nUser question: ${lastMessage}`;
 
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
