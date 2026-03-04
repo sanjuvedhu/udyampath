@@ -667,27 +667,16 @@ export default function App() {
 
   // ── Real-time subscription (WebSocket) ────────────
   useEffect(()=>{
-    const channel = supabase
-      .channel("jobs-live")
-      .on("postgres_changes",{event:"INSERT",schema:"public",table:"jobs"},(payload)=>{
-        setJobs(prev=>[payload.new,...prev]);
-        setLiveCount(p=>p+1);
-        showToast(`🆕 New job: ${payload.new.title} at ${payload.new.company_name}!`,"success");
-      })
-      .on("postgres_changes",{event:"UPDATE",schema:"public",table:"jobs"},(payload)=>{
-        setJobs(prev=>prev.map(j=>j.id===payload.new.id?payload.new:j));
-        // If job just got filled, show toast
-        if(payload.new.filled_seats>=payload.new.total_seats && payload.old.filled_seats<payload.old.total_seats) {
-          showToast(`✅ Position filled: ${payload.new.title}. Auto-removed from active listings.`,"error");
-        }
-      })
-      .on("postgres_changes",{event:"DELETE",schema:"public",table:"jobs"},(payload)=>{
-        setJobs(prev=>prev.filter(j=>j.id!==payload.old.id));
-        setLiveCount(p=>Math.max(0,p-1));
-      })
-      .subscribe();
-
-    return ()=>supabase.removeChannel(channel);
+    // Polling every 60s instead of WebSocket (fixes Safari crash)
+    const interval = setInterval(async () => {
+      try {
+        const {count} = await supabase.from("jobs")
+          .select("*",{count:"exact",head:true})
+          .eq("is_active",true);
+        if(count) setLiveCount(count);
+      } catch(e) {}
+    }, 60000);
+    return ()=>clearInterval(interval);
   },[]);
 
   // ── Toggle save job ───────────────────────────────
