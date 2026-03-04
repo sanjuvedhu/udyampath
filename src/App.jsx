@@ -659,11 +659,11 @@ export default function App() {
       }
     } catch (err) {
       console.error("Job fetch error:",err);
-      showToast("Couldn't load jobs. Retrying...","error");
     } finally { setLoading(false); }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   },[search,region,workType,category,expLevel]);
 
-  useEffect(()=>{ fetchJobs(); },[fetchJobs]);
+  useEffect(()=>{ fetchJobs(); },[search,region,workType,category,expLevel]);
 
   // ── Real-time subscription (WebSocket) ────────────
   useEffect(()=>{
