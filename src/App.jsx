@@ -21,33 +21,36 @@ const Styles = () => (
     body{font-family:'Nunito',sans-serif;background:#09090F;color:#F0F0FF;overflow-x:hidden;}
     ::-webkit-scrollbar{width:4px;}
     ::-webkit-scrollbar-thumb{background:#AAFF00;border-radius:99px;}
+    @-webkit-keyframes fadeUp{from{opacity:0;-webkit-transform:translateY(20px);transform:translateY(20px)}to{opacity:1;-webkit-transform:translateY(0);transform:translateY(0)}}
     @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
     @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+    @-webkit-keyframes spin{from{-webkit-transform:rotate(0deg)}to{-webkit-transform:rotate(360deg)}}
     @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
-    @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+    @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
     @keyframes marquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+    @-webkit-keyframes slideIn{from{-webkit-transform:translateX(100%);opacity:0}to{-webkit-transform:translateX(0);opacity:1}}
     @keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
-    @keyframes glow{0%,100%{box-shadow:0 0 20px #AAFF0040}50%{box-shadow:0 0 50px #AAFF0080}}
+    @keyframes glow{0%,100%{box-shadow:0 0 20px #AAFF0040}50%{box-shadow:0 0 40px #AAFF0060}}
     @keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
-    @keyframes popIn{0%{transform:scale(0.5);opacity:0}80%{transform:scale(1.05)}100%{transform:scale(1);opacity:1}}
-    .fu{animation:fadeUp .5s cubic-bezier(.22,1,.36,1) both}
-    .fu1{animation:fadeUp .5s cubic-bezier(.22,1,.36,1) .1s both}
-    .fu2{animation:fadeUp .5s cubic-bezier(.22,1,.36,1) .2s both}
-    .fu3{animation:fadeUp .5s cubic-bezier(.22,1,.36,1) .3s both}
-    .float{animation:float 4s ease-in-out infinite}
-    .spin{animation:spin .8s linear infinite}
+    @keyframes popIn{0%{transform:scale(0.8);opacity:0}100%{transform:scale(1);opacity:1}}
+    .fu{-webkit-animation:fadeUp .5s ease both;animation:fadeUp .5s ease both}
+    .fu1{-webkit-animation:fadeUp .5s ease .1s both;animation:fadeUp .5s ease .1s both}
+    .fu2{-webkit-animation:fadeUp .5s ease .2s both;animation:fadeUp .5s ease .2s both}
+    .fu3{-webkit-animation:fadeUp .5s ease .3s both;animation:fadeUp .5s ease .3s both}
+    .float{-webkit-animation:float 4s ease-in-out infinite;animation:float 4s ease-in-out infinite}
+    .spin{-webkit-animation:spin .8s linear infinite;animation:spin .8s linear infinite}
     .btn{transition:all .18s cubic-bezier(.22,1,.36,1);cursor:pointer;}
     .btn:active{transform:scale(.96);}
     .card-hover{transition:all .25s cubic-bezier(.22,1,.36,1);}
     .card-hover:hover{transform:translateY(-4px);box-shadow:0 20px 60px rgba(170,255,0,.08)!important;}
     .input-z:focus{outline:none!important;border-color:#AAFF00!important;box-shadow:0 0 0 3px #AAFF0015!important;}
     .tag{display:inline-flex;align-items:center;padding:3px 10px;border-radius:99px;font-size:10px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;}
-    .shimmer-bg{background:linear-gradient(90deg,#1A1A2E 0%,#2A2A3E 50%,#1A1A2E 100%);background-size:200% 100%;animation:shimmer 1.5s infinite;}
+    .shimmer-bg{background:linear-gradient(90deg,#1A1A2E 0%,#2A2A3E 50%,#1A1A2E 100%);background-size:200% 100%;-webkit-animation:shimmer 1.5s infinite;animation:shimmer 1.5s infinite;}
     .grid-pattern{background-image:linear-gradient(rgba(170,255,0,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(170,255,0,.03) 1px,transparent 1px);background-size:40px 40px;}
     .marquee-wrap{overflow:hidden;width:100%;}
-    .marquee-inner{display:flex;animation:marquee 35s linear infinite;width:max-content;}
-    .pop{animation:popIn .4s cubic-bezier(.34,1.56,.64,1) both;}
-    .glow-pulse{animation:glow 2s ease-in-out infinite;}
+    .marquee-inner{display:-webkit-flex;display:flex;-webkit-animation:marquee 35s linear infinite;animation:marquee 35s linear infinite;width:-webkit-max-content;width:max-content;}
+    .pop{-webkit-animation:popIn .4s ease both;animation:popIn .4s ease both;}
+    .glow-pulse{-webkit-animation:glow 2s ease-in-out infinite;animation:glow 2s ease-in-out infinite;}
     .nav-active{color:#AAFF00!important;}
     :root{--lime:#AAFF00;--gold:#FFB800;--coral:#FF4D6D;--sky:#38BDF8;--violet:#A78BFA;--mint:#34D399;}
   `}</style>
