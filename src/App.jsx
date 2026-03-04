@@ -203,7 +203,7 @@ const AuthModal = ({onClose, onAuth}) => {
 };
 
 /* ── Job Card ────────────────────────────────────────── */
-const JobCard = ({job, onOpen, saved, onSave, user, onAuthRequired}) => {
+const JobCard = ({job, onOpen, saved, onSave, user, onAuthRequired, isApplied, isFeatured}) => {
   const isFull = job.filled_seats >= job.total_seats;
   const pct = Math.min(100, Math.round(((job.filled_seats||0)/(job.total_seats||1))*100));
   const urgent = pct >= 80;
@@ -710,6 +710,10 @@ export default function App() {
   const [postForm, setPostForm] = useState({title:"",company_name:"",salary_range:"",location:"",work_type:"Remote",region:"India",category:"Tech",experience_level:"Any",description:"",contact_email:""});
   const [postLoading, setPostLoading] = useState(false);
   const [postDone, setPostDone] = useState(false);
+  const [darkMode, setDarkMode] = useState(true);
+  const [jobLimit, setJobLimit] = useState(100);
+  const [appliedJobs, setAppliedJobs] = useState(new Set());
+  const [hasMore, setHasMore] = useState(false);
 
   const showToast = (msg, type="success") => {
     setToast({msg, type});
@@ -754,14 +758,15 @@ export default function App() {
   };
 
   // ── Fetch jobs ─────────────────────────────────────
-  const fetchJobs = useCallback(async () => {
+  const fetchJobs = useCallback(async (limit=100) => {
     setLoading(true);
     try {
       let query = supabase.from("jobs")
         .select("id,title,company_name,salary_range,location,work_type,region,category,experience_level,skills_tags,total_seats,filled_seats,is_hot,is_new,logo_color_1,logo_color_2,posted_ago,created_at,description")
         .eq("is_active", true)
+        .order("is_hot", {ascending: false})
         .order("created_at", {ascending: false})
-        .limit(100);
+        .limit(limit);
 
       if(region!=="All") query = query.eq("region", region);
       if(workType!=="All") query = query.eq("work_type", workType);
@@ -772,12 +777,19 @@ export default function App() {
       const {data, error} = await query;
       if(error) throw error;
       setJobs(data || []);
+      setHasMore((data||[]).length >= limit);
 
-      // Get total count separately
       const {count} = await supabase.from("jobs")
         .select("*", {count:"exact", head:true})
         .eq("is_active", true);
       setLiveCount(count || 0);
+
+      // Load applied jobs for logged in user
+      if(user) {
+        const {data:applied} = await supabase.from("applications")
+          .select("job_id").eq("user_id", user.id);
+        if(applied) setAppliedJobs(new Set(applied.map(a=>a.job_id)));
+      }
 
     } catch (err) {
       console.error("Job fetch error:", err);
@@ -785,9 +797,15 @@ export default function App() {
     } finally {
       setLoading(false);
     }
-  },[search, region, workType, category, expLevel]);
+  },[search, region, workType, category, expLevel, user]);
 
-  useEffect(()=>{ fetchJobs(); },[search, region, workType, category, expLevel]);
+  useEffect(()=>{ setJobLimit(100); fetchJobs(100); },[search, region, workType, category, expLevel]);
+
+  const loadMore = () => {
+    const newLimit = jobLimit + 100;
+    setJobLimit(newLimit);
+    fetchJobs(newLimit);
+  };
 
   // ── Real-time subscription (WebSocket) ────────────
   useEffect(()=>{
@@ -1029,7 +1047,7 @@ export default function App() {
                 <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(320px,1fr))",gap:14,marginBottom:24}}>
                   {liveJobs.map((job,i)=>(
                     <div key={job.id} className="fu" style={{animationDelay:`${Math.min(i*.04,.4)}s`}}>
-                      <JobCard job={job} onOpen={setSelectedJob} saved={saved.has(job.id)} onSave={toggleSave} user={user} onAuthRequired={()=>setShowAuth(true)}/>
+                      <JobCard job={job} onOpen={setSelectedJob} saved={saved.has(job.id)} onSave={toggleSave} user={user} onAuthRequired={()=>setShowAuth(true)} isApplied={appliedJobs.has(job.id)} isFeatured={job.is_featured}/>
                     </div>
                   ))}
                 </div>
@@ -1038,6 +1056,23 @@ export default function App() {
                   <div style={{fontSize:48,marginBottom:12}}>🔍</div>
                   <div style={{fontFamily:"'Bebas Neue',cursive",fontSize:22,color:"#fff",marginBottom:12}}>No Jobs Found</div>
                   <div onClick={()=>{setSearch("");setRegion("All");setWorkType("All");setCategory("All");setExpLevel("All");fetchJobs();}} className="btn" style={{display:"inline-block",padding:"12px 28px",borderRadius:14,background:`linear-gradient(135deg,${C.lime},#77DD00)`,color:C.bg,fontWeight:900,fontSize:14,cursor:"pointer"}}>Clear Filters & Reload</div>
+                </div>
+              )}
+
+              {/* Load More Button */}
+              {hasMore && liveJobs.length > 0 && (
+                <div style={{textAlign:"center",marginBottom:24}}>
+                  <div onClick={loadMore} className="btn" style={{
+                    display:"inline-flex",alignItems:"center",gap:10,
+                    padding:"14px 36px",borderRadius:16,
+                    background:`linear-gradient(135deg,${C.lime},#77DD00)`,
+                    color:C.bg,fontWeight:900,fontSize:16,
+                    fontFamily:"'Bebas Neue',cursive",letterSpacing:1,
+                    cursor:"pointer",boxShadow:`0 4px 20px ${C.lime}30`
+                  }}>
+                    📋 LOAD MORE JOBS
+                  </div>
+                  <div style={{fontSize:12,color:C.muted,marginTop:8}}>Showing {liveJobs.length} of {liveCount} jobs</div>
                 </div>
               )}
 
