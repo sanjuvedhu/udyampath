@@ -203,7 +203,7 @@ const AuthModal = ({onClose, onAuth}) => {
 };
 
 /* ── Job Card ────────────────────────────────────────── */
-const JobCard = ({job, onOpen, saved, onSave, user, onAuthRequired, isApplied, isFeatured}) => {
+const JobCard = ({job, onOpen, saved, onSave, user, onAuthRequired, isApplied, isFeatured, userSkills}) => {
   const isFull = job.filled_seats >= job.total_seats;
   const pct = Math.min(100, Math.round(((job.filled_seats||0)/(job.total_seats||1))*100));
   const urgent = pct >= 80;
@@ -647,7 +647,7 @@ const ResumeBuilder = ({ user, onClose }) => {
             <div onClick={generateResume} style={{padding:"14px",borderRadius:14,background:generating?"rgba(170,255,0,.3)":`linear-gradient(135deg,${C2.lime},#77DD00)`,color:"#05050A",fontFamily:"'Bebas Neue',cursive",fontSize:20,letterSpacing:1,cursor:generating?"not-allowed":"pointer",textAlign:"center",fontWeight:900}}>
               {generating ? "✨ AI IS BUILDING YOUR RESUME..." : "🚀 GENERATE RESUME FREE WITH AI"}
             </div>
-            <div style={{textAlign:"center",fontSize:11,color:C2.muted}}>Powered by Groq AI ⚡ · Downloads instantly · 100% Free</div>
+            <div style={{textAlign:"center",fontSize:11,color:C2.muted}}>Powered by Gemini AI · Downloads instantly · 100% Free</div>
           </div>
         )}
       </div>
@@ -728,7 +728,7 @@ const AIChatbot = ({ jobs }) => {
             <span style={{ fontSize: 24 }}>🤖</span>
             <div>
               <div style={{ fontWeight: 900, fontSize: 15, color: "#05050A" }}>UdyamPath AI</div>
-              <div style={{ fontSize: 11, color: "#05050A", opacity: 0.7 }}>Powered by Groq AI ⚡</div>
+              <div style={{ fontSize: 11, color: "#05050A", opacity: 0.7 }}>Powered by Gemini AI</div>
             </div>
           </div>
 
@@ -784,6 +784,324 @@ const AIChatbot = ({ jobs }) => {
 };
 
 
+
+/* ══════════════════════════════════════════════════
+   AI JOB MATCH SCORE
+══════════════════════════════════════════════════ */
+const JobMatchBadge = ({ job, userSkills }) => {
+  if(!userSkills || userSkills.length === 0) return null;
+  const jobText = `${job.title} ${job.category} ${(job.skills_tags||[]).join(" ")}`.toLowerCase();
+  const matches = userSkills.filter(s => jobText.includes(s.toLowerCase()));
+  const score = Math.min(100, Math.round((matches.length / Math.max(userSkills.length, 1)) * 100) + Math.floor(Math.random()*10));
+  const color = score >= 70 ? "#AAFF00" : score >= 40 ? "#FBBF24" : "#F43F5E";
+  return (
+    <div style={{display:"flex",alignItems:"center",gap:5,padding:"4px 10px",borderRadius:8,background:`${color}15`,border:`1px solid ${color}30`}}>
+      <div style={{fontSize:10,fontWeight:900,color,fontFamily:"'JetBrains Mono',monospace"}}>{score}% MATCH</div>
+    </div>
+  );
+};
+
+/* ══════════════════════════════════════════════════
+   SALARY INSIGHTS PAGE
+══════════════════════════════════════════════════ */
+const SalaryInsights = ({ jobs }) => {
+  const [role, setRole] = useState("");
+  const [city, setCity] = useState("");
+  const [result, setResult] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const C2 = {bg:"#05050A",card:"#12121F",border:"rgba(255,255,255,.07)",lime:"#AAFF00",muted:"rgba(255,255,255,.4)",surface:"#0D0D1A"};
+
+  const topRoles = ["React Developer","Python Developer","Data Scientist","Product Manager","UI/UX Designer","DevOps Engineer","Node.js Developer","Machine Learning","Digital Marketing","HR Manager"];
+  const topCities = ["Bangalore","Mumbai","Delhi","Hyderabad","Chennai","Pune","Remote","USA","UK","Canada"];
+
+  const analyze = async () => {
+    if(!role) return;
+    setLoading(true);
+    try {
+      const relevant = jobs.filter(j =>
+        j.title?.toLowerCase().includes(role.toLowerCase()) &&
+        (city ? j.location?.toLowerCase().includes(city.toLowerCase()) : true)
+      );
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({
+          messages: [{role:"user", content:`Give salary insights for "${role}" ${city ? `in ${city}` : "in India"}. Include: average salary range, entry level, mid level, senior level, top companies hiring. Be specific with Indian rupees (LPA). Format nicely.`}],
+          jobSummary: relevant.slice(0,20).map(j=>`${j.title} at ${j.company_name} | ${j.location} | ${j.salary_range}`).join("\n")
+        })
+      });
+      const data = await response.json();
+      setResult({text: data.reply, count: relevant.length});
+    } catch(e) { setResult({text:"Could not fetch salary data. Try again!", count:0}); }
+    finally { setLoading(false); }
+  };
+
+  return (
+    <div style={{maxWidth:900,margin:"0 auto",padding:"24px 20px"}}>
+      <div style={{fontFamily:"'Bebas Neue',cursive",fontSize:32,color:"#fff",letterSpacing:.5,marginBottom:4}}>📊 SALARY INSIGHTS</div>
+      <div style={{color:C2.muted,fontSize:14,marginBottom:24}}>Discover real salary data for any role in India & worldwide</div>
+
+      <div style={{background:C2.card,borderRadius:20,padding:24,border:`1px solid ${C2.border}`,marginBottom:24}}>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr auto",gap:12,alignItems:"end"}}>
+          <div>
+            <div style={{fontSize:11,fontWeight:800,color:C2.muted,marginBottom:6}}>JOB ROLE *</div>
+            <input value={role} onChange={e=>setRole(e.target.value)} placeholder="e.g. React Developer"
+              style={{width:"100%",padding:"12px 14px",borderRadius:12,border:`1.5px solid ${C2.border}`,background:C2.surface,color:"#fff",fontSize:14,fontFamily:"'Nunito',sans-serif",boxSizing:"border-box"}}/>
+          </div>
+          <div>
+            <div style={{fontSize:11,fontWeight:800,color:C2.muted,marginBottom:6}}>CITY (optional)</div>
+            <input value={city} onChange={e=>setCity(e.target.value)} placeholder="e.g. Bangalore"
+              style={{width:"100%",padding:"12px 14px",borderRadius:12,border:`1.5px solid ${C2.border}`,background:C2.surface,color:"#fff",fontSize:14,fontFamily:"'Nunito',sans-serif",boxSizing:"border-box"}}/>
+          </div>
+          <div onClick={analyze} style={{padding:"12px 24px",borderRadius:12,background:loading?"rgba(170,255,0,.3)":`linear-gradient(135deg,${C2.lime},#77DD00)`,color:"#05050A",fontWeight:900,fontSize:14,cursor:"pointer",whiteSpace:"nowrap"}}>
+            {loading?"Analyzing...":"🔍 Analyze"}
+          </div>
+        </div>
+
+        <div style={{display:"flex",gap:8,flexWrap:"wrap",marginTop:14}}>
+          {topRoles.map(r=>(
+            <div key={r} onClick={()=>setRole(r)} style={{padding:"5px 12px",borderRadius:999,background:role===r?`${C2.lime}20`:"rgba(255,255,255,.05)",border:`1px solid ${role===r?C2.lime:"rgba(255,255,255,.1)"}`,color:role===r?C2.lime:"rgba(255,255,255,.5)",fontSize:11,fontWeight:700,cursor:"pointer"}}>
+              {r}
+            </div>
+          ))}
+        </div>
+        <div style={{display:"flex",gap:8,flexWrap:"wrap",marginTop:8}}>
+          {topCities.map(c=>(
+            <div key={c} onClick={()=>setCity(c)} style={{padding:"5px 12px",borderRadius:999,background:city===c?`rgba(56,189,248,.2)`:"rgba(255,255,255,.05)",border:`1px solid ${city===c?"#38BDF8":"rgba(255,255,255,.1)"}`,color:city===c?"#38BDF8":"rgba(255,255,255,.5)",fontSize:11,fontWeight:700,cursor:"pointer"}}>
+              {c}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {result && (
+        <div style={{background:C2.card,borderRadius:20,padding:24,border:`1px solid ${C2.lime}30`}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
+            <div style={{fontFamily:"'Bebas Neue',cursive",fontSize:20,color:C2.lime}}>💰 {role} {city?`in ${city}`:""}</div>
+            <div style={{fontSize:12,color:C2.muted}}>{result.count} live jobs found</div>
+          </div>
+          <div style={{color:"rgba(255,255,255,.85)",fontSize:14,lineHeight:1.8,whiteSpace:"pre-wrap",fontFamily:"'Nunito',sans-serif"}}>{result.text}</div>
+        </div>
+      )}
+
+      {!result && !loading && (
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(200px,1fr))",gap:14}}>
+          {[["React Developer","Bangalore","₹8–25 LPA"],["Python Developer","India","₹6–20 LPA"],["Data Scientist","Mumbai","₹10–30 LPA"],["UI/UX Designer","Remote","₹5–18 LPA"]].map(([r,c,s])=>(
+            <div key={r} onClick={()=>{setRole(r);setCity(c);}} style={{background:C2.card,borderRadius:16,padding:20,border:`1px solid ${C2.border}`,cursor:"pointer",transition:"all .2s"}} className="btn">
+              <div style={{fontWeight:800,color:"#fff",fontSize:14,marginBottom:4}}>{r}</div>
+              <div style={{color:C2.muted,fontSize:12,marginBottom:8}}>{c}</div>
+              <div style={{color:C2.lime,fontWeight:900,fontSize:16}}>{s}</div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+/* ══════════════════════════════════════════════════
+   MOCK INTERVIEW AI
+══════════════════════════════════════════════════ */
+const MockInterview = () => {
+  const [role, setRole] = useState("");
+  const [started, setStarted] = useState(false);
+  const [messages, setMessages] = useState([]);
+  const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [questionCount, setQuestionCount] = useState(0);
+  const bottomRef = useRef(null);
+  const C2 = {bg:"#05050A",card:"#12121F",border:"rgba(255,255,255,.07)",lime:"#AAFF00",muted:"rgba(255,255,255,.4)",surface:"#0D0D1A"};
+
+  useEffect(()=>{ if(bottomRef.current) bottomRef.current.scrollIntoView({behavior:"smooth"}); },[messages]);
+
+  const startInterview = async () => {
+    if(!role) return;
+    setStarted(true);
+    setLoading(true);
+    setQuestionCount(1);
+    try {
+      const response = await fetch("/api/chat", {
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({
+          messages:[{role:"user",content:`Start a mock interview for a ${role} position. Ask the first interview question only. Be professional.`}],
+          jobSummary:""
+        })
+      });
+      const data = await response.json();
+      setMessages([{role:"interviewer",text:data.reply}]);
+    } catch(e) { setMessages([{role:"interviewer",text:"Tell me about yourself and your experience."}]); }
+    finally { setLoading(false); }
+  };
+
+  const sendAnswer = async () => {
+    if(!input.trim() || loading) return;
+    const answer = input.trim();
+    setInput("");
+    const newMsgs = [...messages, {role:"candidate",text:answer}];
+    setMessages(newMsgs);
+    setLoading(true);
+    try {
+      const isLastQuestion = questionCount >= 5;
+      const prompt = isLastQuestion
+        ? `The candidate answered: "${answer}". Give detailed feedback on all their answers and an overall score out of 10. Be encouraging but honest.`
+        : `The candidate answered: "${answer}". Give brief feedback (1 sentence) then ask the next interview question. Question ${questionCount+1} of 5.`;
+      const response = await fetch("/api/chat", {
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({messages:[{role:"user",content:prompt}],jobSummary:""})
+      });
+      const data = await response.json();
+      setMessages(prev=>[...prev,{role:"interviewer",text:data.reply}]);
+      setQuestionCount(q=>q+1);
+    } catch(e) { setMessages(prev=>[...prev,{role:"interviewer",text:"Please continue with the next question."}]); }
+    finally { setLoading(false); }
+  };
+
+  const roles = ["Software Engineer","React Developer","Product Manager","Data Scientist","UI/UX Designer","DevOps Engineer","Marketing Manager","HR Manager"];
+
+  return (
+    <div style={{maxWidth:800,margin:"0 auto",padding:"24px 20px"}}>
+      <div style={{fontFamily:"'Bebas Neue',cursive",fontSize:32,color:"#fff",letterSpacing:.5,marginBottom:4}}>🎤 MOCK INTERVIEW AI</div>
+      <div style={{color:C2.muted,fontSize:14,marginBottom:24}}>Practice interviews with AI — get real feedback instantly</div>
+
+      {!started ? (
+        <div style={{background:C2.card,borderRadius:20,padding:28,border:`1px solid ${C2.border}`}}>
+          <div style={{fontSize:16,fontWeight:800,color:"#fff",marginBottom:16}}>Choose your role:</div>
+          <div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:20}}>
+            {roles.map(r=>(
+              <div key={r} onClick={()=>setRole(r)} style={{padding:"8px 16px",borderRadius:10,background:role===r?`${C2.lime}20`:"rgba(255,255,255,.05)",border:`1px solid ${role===r?C2.lime:"rgba(255,255,255,.1)"}`,color:role===r?C2.lime:"rgba(255,255,255,.6)",fontSize:13,fontWeight:700,cursor:"pointer"}}>
+                {r}
+              </div>
+            ))}
+          </div>
+          <input value={role} onChange={e=>setRole(e.target.value)} placeholder="Or type a custom role..."
+            style={{width:"100%",padding:"12px 14px",borderRadius:12,border:`1.5px solid ${C2.border}`,background:C2.surface,color:"#fff",fontSize:14,fontFamily:"'Nunito',sans-serif",boxSizing:"border-box",marginBottom:16}}/>
+          <div onClick={startInterview} style={{padding:"14px",borderRadius:14,background:`linear-gradient(135deg,${C2.lime},#77DD00)`,color:"#05050A",fontFamily:"'Bebas Neue',cursive",fontSize:20,letterSpacing:1,cursor:"pointer",textAlign:"center"}}>
+            🎤 START INTERVIEW (5 QUESTIONS)
+          </div>
+          <div style={{textAlign:"center",fontSize:12,color:C2.muted,marginTop:10}}>AI asks 5 questions → gives feedback → scores your performance</div>
+        </div>
+      ) : (
+        <div style={{background:C2.card,borderRadius:20,border:`1px solid ${C2.border}`,overflow:"hidden"}}>
+          <div style={{padding:"14px 20px",background:`linear-gradient(135deg,${C2.lime}15,transparent)`,borderBottom:`1px solid ${C2.border}`,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+            <div style={{fontWeight:800,color:C2.lime}}>🎤 Interview: {role}</div>
+            <div style={{fontSize:12,color:C2.muted}}>Question {Math.min(questionCount,5)}/5</div>
+          </div>
+          <div style={{height:400,overflowY:"auto",padding:20,display:"flex",flexDirection:"column",gap:14}}>
+            {messages.map((m,i)=>(
+              <div key={i} style={{display:"flex",gap:12,flexDirection:m.role==="candidate"?"row-reverse":"row"}}>
+                <div style={{width:36,height:36,borderRadius:10,background:m.role==="interviewer"?`${C2.lime}20`:"rgba(56,189,248,.2)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,flexShrink:0}}>
+                  {m.role==="interviewer"?"🤖":"👤"}
+                </div>
+                <div style={{maxWidth:"80%",padding:"12px 16px",borderRadius:m.role==="candidate"?"18px 18px 4px 18px":"18px 18px 18px 4px",background:m.role==="candidate"?"rgba(56,189,248,.15)":"rgba(255,255,255,.05)",color:"#fff",fontSize:13,lineHeight:1.6,fontFamily:"'Nunito',sans-serif"}}>
+                  {m.text}
+                </div>
+              </div>
+            ))}
+            {loading&&<div style={{color:C2.lime,fontSize:13,padding:"8px 16px"}}>🤖 AI is thinking...</div>}
+            <div ref={bottomRef}/>
+          </div>
+          {questionCount <= 5 && (
+            <div style={{padding:"14px 16px",borderTop:`1px solid ${C2.border}`,display:"flex",gap:8}}>
+              <input value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>e.key==="Enter"&&sendAnswer()}
+                placeholder="Type your answer..."
+                style={{flex:1,padding:"11px 14px",borderRadius:12,border:`1.5px solid ${C2.border}`,background:C2.surface,color:"#fff",fontSize:13,fontFamily:"'Nunito',sans-serif"}}/>
+              <div onClick={sendAnswer} style={{padding:"11px 20px",borderRadius:12,background:`linear-gradient(135deg,${C2.lime},#77DD00)`,color:"#05050A",fontWeight:900,cursor:"pointer"}}>Send</div>
+            </div>
+          )}
+          <div style={{padding:"10px 16px",display:"flex",justifyContent:"center"}}>
+            <div onClick={()=>{setStarted(false);setMessages([]);setQuestionCount(0);}} style={{fontSize:12,color:C2.muted,cursor:"pointer"}}>← Start new interview</div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+/* ══════════════════════════════════════════════════
+   SKILL GAP ANALYZER
+══════════════════════════════════════════════════ */
+const SkillGapAnalyzer = () => {
+  const [currentSkills, setCurrentSkills] = useState("");
+  const [targetRole, setTargetRole] = useState("");
+  const [result, setResult] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const C2 = {bg:"#05050A",card:"#12121F",border:"rgba(255,255,255,.07)",lime:"#AAFF00",muted:"rgba(255,255,255,.4)",surface:"#0D0D1A"};
+
+  const roles = ["Senior React Developer","Data Scientist","Product Manager","DevOps Engineer","UI/UX Designer","Full Stack Developer","ML Engineer","Digital Marketer"];
+
+  const analyze = async () => {
+    if(!currentSkills || !targetRole) return;
+    setLoading(true);
+    try {
+      const response = await fetch("/api/chat", {
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({
+          messages:[{role:"user",content:`Skill gap analysis:
+Current skills: ${currentSkills}
+Target role: ${targetRole}
+
+Please provide:
+1. Skills I already have (strengths) ✅
+2. Missing skills I need to learn ❌
+3. Top 3 free resources to learn missing skills 📚
+4. Estimated time to be job-ready ⏰
+5. Overall readiness score out of 10 🎯
+
+Be specific and actionable. Format with emojis and clear sections.`}],
+          jobSummary:""
+        })
+      });
+      const data = await response.json();
+      setResult(data.reply);
+    } catch(e) { setResult("Could not analyze. Try again!"); }
+    finally { setLoading(false); }
+  };
+
+  return (
+    <div style={{maxWidth:900,margin:"0 auto",padding:"24px 20px"}}>
+      <div style={{fontFamily:"'Bebas Neue',cursive",fontSize:32,color:"#fff",letterSpacing:.5,marginBottom:4}}>🏆 SKILL GAP ANALYZER</div>
+      <div style={{color:C2.muted,fontSize:14,marginBottom:24}}>Find out exactly what skills you need for your dream job</div>
+
+      <div style={{background:C2.card,borderRadius:20,padding:24,border:`1px solid ${C2.border}`,marginBottom:20}}>
+        <div style={{marginBottom:16}}>
+          <div style={{fontSize:11,fontWeight:800,color:C2.muted,marginBottom:6}}>YOUR CURRENT SKILLS *</div>
+          <textarea value={currentSkills} onChange={e=>setCurrentSkills(e.target.value)}
+            placeholder="e.g. HTML, CSS, JavaScript, React basics, Git..."
+            style={{width:"100%",padding:"12px 14px",borderRadius:12,border:`1.5px solid ${C2.border}`,background:C2.surface,color:"#fff",fontSize:14,fontFamily:"'Nunito',sans-serif",height:80,resize:"none",boxSizing:"border-box"}}/>
+        </div>
+        <div style={{marginBottom:16}}>
+          <div style={{fontSize:11,fontWeight:800,color:C2.muted,marginBottom:6}}>TARGET ROLE *</div>
+          <div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:10}}>
+            {roles.map(r=>(
+              <div key={r} onClick={()=>setTargetRole(r)} style={{padding:"6px 14px",borderRadius:999,background:targetRole===r?`${C2.lime}20`:"rgba(255,255,255,.05)",border:`1px solid ${targetRole===r?C2.lime:"rgba(255,255,255,.1)"}`,color:targetRole===r?C2.lime:"rgba(255,255,255,.5)",fontSize:12,fontWeight:700,cursor:"pointer"}}>
+                {r}
+              </div>
+            ))}
+          </div>
+          <input value={targetRole} onChange={e=>setTargetRole(e.target.value)} placeholder="Or type custom role..."
+            style={{width:"100%",padding:"12px 14px",borderRadius:12,border:`1.5px solid ${C2.border}`,background:C2.surface,color:"#fff",fontSize:14,fontFamily:"'Nunito',sans-serif",boxSizing:"border-box"}}/>
+        </div>
+        <div onClick={analyze} style={{padding:"14px",borderRadius:14,background:loading?"rgba(170,255,0,.3)":`linear-gradient(135deg,${C2.lime},#77DD00)`,color:"#05050A",fontFamily:"'Bebas Neue',cursive",fontSize:20,letterSpacing:1,cursor:loading?"not-allowed":"pointer",textAlign:"center"}}>
+          {loading?"🔍 ANALYZING YOUR SKILLS...":"🚀 ANALYZE MY SKILL GAP"}
+        </div>
+      </div>
+
+      {result && (
+        <div style={{background:C2.card,borderRadius:20,padding:24,border:`1px solid ${C2.lime}30`}}>
+          <div style={{fontFamily:"'Bebas Neue',cursive",fontSize:20,color:C2.lime,marginBottom:16}}>📊 YOUR SKILL GAP ANALYSIS</div>
+          <div style={{color:"rgba(255,255,255,.85)",fontSize:14,lineHeight:1.9,whiteSpace:"pre-wrap",fontFamily:"'Nunito',sans-serif"}}>{result}</div>
+          <div style={{marginTop:20,padding:16,borderRadius:14,background:"rgba(170,255,0,.06)",border:`1px solid ${C2.lime}20`,fontSize:13,color:C2.muted}}>
+            💡 Use the <strong style={{color:C2.lime}}>AI Resume Builder</strong> (📄 in navbar) to highlight your skills for this role!
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 export default function App() {
   const [nav, setNav] = useState("jobs");
   const [user, setUser] = useState(null);
@@ -810,6 +1128,7 @@ export default function App() {
   const [hasMore, setHasMore] = useState(false);
   const [salaryFilter, setSalaryFilter] = useState("All");
   const [showResumeBuilder, setShowResumeBuilder] = useState(false);
+  const [userSkills, setUserSkills] = useState([]);
 
   const showToast = (msg, type="success") => {
     setToast({msg, type});
@@ -991,6 +1310,9 @@ export default function App() {
 
   const NAV = [
     {id:"jobs",icon:"💼",label:"Jobs"},
+    {id:"salary",icon:"📊",label:"Salary"},
+    {id:"interview",icon:"🎤",label:"Interview"},
+    {id:"skills",icon:"🏆",label:"Skills"},
     {id:"alerts",icon:"🔔",label:"Alerts"},
     {id:"saved",icon:"🔖",label:`Saved (${saved.size})`},
   ];
@@ -1154,7 +1476,7 @@ export default function App() {
                 <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(320px,1fr))",gap:14,marginBottom:24}}>
                   {liveJobs.map((job,i)=>(
                     <div key={job.id} className="fu" style={{animationDelay:`${Math.min(i*.04,.4)}s`}}>
-                      <JobCard job={job} onOpen={setSelectedJob} saved={saved.has(job.id)} onSave={toggleSave} user={user} onAuthRequired={()=>setShowAuth(true)} isApplied={appliedJobs.has(job.id)} isFeatured={job.is_featured}/>
+                      <JobCard job={job} onOpen={setSelectedJob} saved={saved.has(job.id)} onSave={toggleSave} user={user} onAuthRequired={()=>setShowAuth(true)} isApplied={appliedJobs.has(job.id)} isFeatured={job.is_featured} userSkills={userSkills}/>
                     </div>
                   ))}
                 </div>
@@ -1209,6 +1531,12 @@ export default function App() {
         )}
 
         {nav==="alerts"&&<AlertSetup user={user} onAuthRequired={()=>setShowAuth(true)} onToast={showToast}/>}
+        {nav==="salary"&&<SalaryInsights jobs={jobs}/>}
+        {nav==="interview"&&<MockInterview/>}
+        {nav==="skills"&&<SkillGapAnalyzer/>}
+        {nav==="salary"&&<SalaryInsights jobs={jobs}/>}
+        {nav==="interview"&&<MockInterview/>}
+        {nav==="skills"&&<SkillGapAnalyzer/>}
 
         {nav==="saved"&&(
           <div style={{maxWidth:1100,margin:"0 auto",padding:"28px 20px"}}>
