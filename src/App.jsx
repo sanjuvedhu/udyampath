@@ -1036,6 +1036,9 @@ export default function App() {
             </div>
             <div style={{fontSize:11,color:"rgba(255,255,255,.2)",textAlign:"center"}}>
               Real-time via Supabase WebSocket · Jobs via Adzuna API · Emails via Resend · Hosted on Vercel
+          </div>
+          <div style={{fontSize:12,color:"rgba(255,255,255,.3)",marginTop:8,textAlign:"center"}}>
+            Made with ❤️ by <span style={{color:"#AAFF00",fontWeight:700}}>Sanjeev & Vedha Nikitha</span>
             </div>
             <div style={{display:"flex",gap:8}}>
               <Chip color={C.lime}>Supabase ✓</Chip>
