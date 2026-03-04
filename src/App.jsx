@@ -673,29 +673,26 @@ const AIChatbot = ({ jobs }) => {
     if(!input.trim() || loading) return;
     const userMsg = input.trim();
     setInput("");
-    setMessages(prev => [...prev, { role: "user", text: userMsg }]);
+    const newMessages = [...messages, { role: "user", text: userMsg }];
+    setMessages(newMessages);
     setLoading(true);
 
     try {
-      // Get relevant jobs from database
-      const jobSummary = jobs.slice(0, 30).map(j =>
+      const jobSummary = jobs.slice(0, 50).map(j =>
         `${j.title} at ${j.company_name} | ${j.location} | ${j.salary_range} | ${j.work_type} | ${j.experience_level}`
       ).join("\n");
 
-      const response = await fetch("https://api.anthropic.com/v1/messages", {
+      const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          model: "claude-sonnet-4-20250514",
-          max_tokens: 1000,
-          system: `You are UdyamPath AI, a helpful job search assistant for an Indian jobs portal. You help users find relevant jobs from the database. Be friendly, concise and helpful. Always respond in 2-4 sentences max. If asked about jobs, filter from the available jobs list and suggest the most relevant ones. Available jobs:\n${jobSummary}`,
-          messages: [{ role: "user", content: userMsg }]
+          messages: newMessages.map(m => ({ role: m.role === "assistant" ? "assistant" : "user", content: m.text })),
+          jobSummary
         })
       });
 
       const data = await response.json();
-      const reply = data.content?.[0]?.text || "Sorry, I couldn't process that. Try again!";
-      setMessages(prev => [...prev, { role: "assistant", text: reply }]);
+      setMessages(prev => [...prev, { role: "assistant", text: data.reply }]);
     } catch(e) {
       setMessages(prev => [...prev, { role: "assistant", text: "Sorry, something went wrong. Please try again!" }]);
     } finally {
