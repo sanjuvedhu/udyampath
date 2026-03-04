@@ -618,52 +618,41 @@ export default function App() {
     if(data) setSaved(new Set(data.map(r=>r.job_id)));
   };
 
-  // ── Fetch jobs (real data from Adzuna via our API) ─
+  // ── Fetch jobs ─────────────────────────────────────
   const fetchJobs = useCallback(async () => {
     setLoading(true);
     try {
-      // Fetch ALL jobs in batches of 1000 (Supabase limit per request)
-      let allData = [];
-      let from = 0;
-      const batchSize = 1000;
+      let query = supabase.from("jobs")
+        .select("id,title,company_name,salary_range,location,work_type,region,category,experience_level,skills_tags,total_seats,filled_seats,is_hot,is_new,logo_color_1,logo_color_2,posted_ago,created_at,description")
+        .eq("is_active", true)
+        .order("created_at", {ascending: false})
+        .limit(100);
 
-      while(true) {
-        let query = supabase.from("jobs").select("*")
-          .eq("is_active",true)
-          .order("created_at",{ascending:false})
-          .range(from, from + batchSize - 1);
+      if(region!=="All") query = query.eq("region", region);
+      if(workType!=="All") query = query.eq("work_type", workType);
+      if(category!=="All") query = query.eq("category", category);
+      if(expLevel!=="All") query = query.eq("experience_level", expLevel);
+      if(search) query = query.or(`title.ilike.%${search}%,company_name.ilike.%${search}%`);
 
-        if(region!=="All") query = query.eq("region",region);
-        if(workType!=="All") query = query.eq("work_type",workType);
-        if(category!=="All") query = query.eq("category",category);
-        if(expLevel!=="All") query = query.eq("experience_level",expLevel);
-        if(search) query = query.or(`title.ilike.%${search}%,company_name.ilike.%${search}%`);
+      const {data, error} = await query;
+      if(error) throw error;
+      setJobs(data || []);
 
-        const {data:batch, error} = await query;
-        if(error) throw error;
-        if(!batch || batch.length === 0) break;
-        allData = [...allData, ...batch];
-        if(batch.length < batchSize) break;
-        from += batchSize;
-      }
+      // Get total count separately
+      const {count} = await supabase.from("jobs")
+        .select("*", {count:"exact", head:true})
+        .eq("is_active", true);
+      setLiveCount(count || 0);
 
-      if(allData.length > 0) {
-        setJobs(allData);
-        setLiveCount(allData.length);
-      } else {
-        // Fallback to Adzuna API
-        const res = await fetch(`/api/fetch-jobs?q=${encodeURIComponent(search||"software developer")}&country=in&results_per_page=20`);
-        const apiData = await res.json();
-        setJobs(apiData.jobs||[]);
-        setLiveCount(apiData.total||0);
-      }
     } catch (err) {
-      console.error("Job fetch error:",err);
-    } finally { setLoading(false); }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  },[search,region,workType,category,expLevel]);
+      console.error("Job fetch error:", err);
+      setJobs([]);
+    } finally {
+      setLoading(false);
+    }
+  },[search, region, workType, category, expLevel]);
 
-  useEffect(()=>{ fetchJobs(); },[search,region,workType,category,expLevel]);
+  useEffect(()=>{ fetchJobs(); },[search, region, workType, category, expLevel]);
 
   // ── Real-time subscription (WebSocket) ────────────
   useEffect(()=>{
