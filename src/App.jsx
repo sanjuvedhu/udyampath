@@ -684,7 +684,7 @@ const ResumeBuilder = ({ user, onClose }) => {
             <div onClick={generateResume} style={{padding:"14px",borderRadius:14,background:generating?"rgba(170,255,0,.3)":`linear-gradient(135deg,${C2.lime},#00C8E0)`,color:"#05050A",fontFamily:"'Syne',sans-serif",fontSize:20,letterSpacing:1,cursor:generating?"not-allowed":"pointer",textAlign:"center",fontWeight:900}}>
               {generating ? "✨ AI IS BUILDING YOUR RESUME..." : "🚀 GENERATE RESUME FREE WITH AI"}
             </div>
-            <div style={{textAlign:"center",fontSize:11,color:C2.muted}}>Powered by Gemini AI · Downloads instantly · 100% Free</div>
+            <div style={{textAlign:"center",fontSize:11,color:C2.muted}}>Powered by Groq AI ⚡ · Downloads instantly · 100% Free</div>
           </div>
         )}
       </div>
@@ -765,7 +765,7 @@ const AIChatbot = ({ jobs }) => {
             <span style={{ fontSize: 24 }}>🤖</span>
             <div>
               <div style={{ fontWeight: 900, fontSize: 15, color: "#05050A" }}>UdyamPath AI</div>
-              <div style={{ fontSize: 11, color: "#05050A", opacity: 0.7 }}>Powered by Gemini AI</div>
+              <div style={{ fontSize: 11, color: "#05050A", opacity: 0.7 }}>Powered by Groq AI ⚡</div>
             </div>
           </div>
 
