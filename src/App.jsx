@@ -558,6 +558,138 @@ const AlertSetup = ({user, onAuthRequired, onToast}) => {
 /* ══════════════════════════════════════════════════════
    MAIN APP
 ══════════════════════════════════════════════════════ */
+/* ── AI Job Chatbot ──────────────────────────────── */
+const AIChatbot = ({ jobs }) => {
+  const [open, setOpen] = useState(false);
+  const [messages, setMessages] = useState([
+    { role: "assistant", text: "👋 Hi! I'm UdyamPath AI! Ask me anything about jobs — 'Find React jobs in Bangalore', 'Fresher jobs in Mumbai', 'Remote jobs for designers' etc!" }
+  ]);
+  const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
+  const bottomRef = useRef(null);
+
+  useEffect(() => {
+    if(bottomRef.current) bottomRef.current.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  const sendMessage = async () => {
+    if(!input.trim() || loading) return;
+    const userMsg = input.trim();
+    setInput("");
+    setMessages(prev => [...prev, { role: "user", text: userMsg }]);
+    setLoading(true);
+
+    try {
+      // Get relevant jobs from database
+      const jobSummary = jobs.slice(0, 30).map(j =>
+        `${j.title} at ${j.company_name} | ${j.location} | ${j.salary_range} | ${j.work_type} | ${j.experience_level}`
+      ).join("\n");
+
+      const response = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-20250514",
+          max_tokens: 1000,
+          system: `You are UdyamPath AI, a helpful job search assistant for an Indian jobs portal. You help users find relevant jobs from the database. Be friendly, concise and helpful. Always respond in 2-4 sentences max. If asked about jobs, filter from the available jobs list and suggest the most relevant ones. Available jobs:\n${jobSummary}`,
+          messages: [{ role: "user", content: userMsg }]
+        })
+      });
+
+      const data = await response.json();
+      const reply = data.content?.[0]?.text || "Sorry, I couldn't process that. Try again!";
+      setMessages(prev => [...prev, { role: "assistant", text: reply }]);
+    } catch(e) {
+      setMessages(prev => [...prev, { role: "assistant", text: "Sorry, something went wrong. Please try again!" }]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <>
+      {/* Chat Button */}
+      <div onClick={() => setOpen(!open)} style={{
+        position: "fixed", bottom: 24, right: 24, zIndex: 999,
+        width: 60, height: 60, borderRadius: "50%",
+        background: `linear-gradient(135deg, #AAFF00, #77DD00)`,
+        display: "flex", alignItems: "center", justifyContent: "center",
+        cursor: "pointer", boxShadow: "0 4px 20px rgba(170,255,0,0.4)",
+        fontSize: 28, transition: "transform .2s"
+      }} className="btn">
+        {open ? "✕" : "🤖"}
+      </div>
+
+      {/* Chat Window */}
+      {open && (
+        <div style={{
+          position: "fixed", bottom: 96, right: 24, zIndex: 998,
+          width: 340, height: 480, borderRadius: 20,
+          background: "#0D0D1A", border: "1px solid rgba(170,255,0,0.2)",
+          boxShadow: "0 20px 60px rgba(0,0,0,0.5)",
+          display: "flex", flexDirection: "column", overflow: "hidden"
+        }} className="pop">
+          {/* Header */}
+          <div style={{ padding: "16px 20px", background: "linear-gradient(135deg,#AAFF00,#77DD00)", display: "flex", alignItems: "center", gap: 10 }}>
+            <span style={{ fontSize: 24 }}>🤖</span>
+            <div>
+              <div style={{ fontWeight: 900, fontSize: 15, color: "#05050A" }}>UdyamPath AI</div>
+              <div style={{ fontSize: 11, color: "#05050A", opacity: 0.7 }}>Powered by Claude AI</div>
+            </div>
+          </div>
+
+          {/* Messages */}
+          <div style={{ flex: 1, overflowY: "auto", padding: 16, display: "flex", flexDirection: "column", gap: 12 }}>
+            {messages.map((m, i) => (
+              <div key={i} style={{
+                alignSelf: m.role === "user" ? "flex-end" : "flex-start",
+                maxWidth: "85%",
+                background: m.role === "user" ? "linear-gradient(135deg,#AAFF00,#77DD00)" : "#1A1A2E",
+                color: m.role === "user" ? "#05050A" : "#fff",
+                padding: "10px 14px", borderRadius: m.role === "user" ? "18px 18px 4px 18px" : "18px 18px 18px 4px",
+                fontSize: 13, lineHeight: 1.5, fontFamily: "'Nunito',sans-serif", fontWeight: 600
+              }}>
+                {m.text}
+              </div>
+            ))}
+            {loading && (
+              <div style={{ alignSelf: "flex-start", background: "#1A1A2E", padding: "10px 14px", borderRadius: "18px 18px 18px 4px", color: "#AAFF00", fontSize: 13 }}>
+                ✨ Thinking...
+              </div>
+            )}
+            <div ref={bottomRef} />
+          </div>
+
+          {/* Input */}
+          <div style={{ padding: "12px 16px", borderTop: "1px solid rgba(255,255,255,.08)", display: "flex", gap: 8 }}>
+            <input
+              value={input}
+              onChange={e => setInput(e.target.value)}
+              onKeyDown={e => e.key === "Enter" && sendMessage()}
+              placeholder="Ask about jobs..."
+              style={{
+                flex: 1, padding: "10px 14px", borderRadius: 12,
+                border: "1.5px solid rgba(170,255,0,0.2)",
+                background: "#1A1A2E", color: "#fff", fontSize: 13,
+                fontFamily: "'Nunito',sans-serif", outline: "none"
+              }}
+            />
+            <div onClick={sendMessage} className="btn" style={{
+              width: 40, height: 40, borderRadius: 12,
+              background: loading ? "rgba(170,255,0,.3)" : "linear-gradient(135deg,#AAFF00,#77DD00)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              cursor: loading ? "not-allowed" : "pointer", fontSize: 18, flexShrink: 0
+            }}>
+              🚀
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+};
+
+
 export default function App() {
   const [nav, setNav] = useState("jobs");
   const [user, setUser] = useState(null);
@@ -1027,6 +1159,9 @@ export default function App() {
         {/* TOAST */}
         {toast&&<Toast msg={toast.msg} type={toast.type} onClose={()=>setToast(null)}/>}
 
+        {/* AI CHATBOT */}
+        <AIChatbot jobs={jobs} />
+
         {/* FOOTER */}
         <footer style={{background:"#05050A",borderTop:`1px solid ${C.border}`,padding:"32px 20px 20px",marginTop:40}}>
           <div style={{maxWidth:1400,margin:"0 auto",display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:16}}>
@@ -1036,9 +1171,6 @@ export default function App() {
             </div>
             <div style={{fontSize:11,color:"rgba(255,255,255,.2)",textAlign:"center"}}>
               Real-time via Supabase WebSocket · Jobs via Adzuna API · Emails via Resend · Hosted on Vercel
-          </div>
-          <div style={{fontSize:12,color:"rgba(255,255,255,.3)",marginTop:8,textAlign:"center"}}>
-            Made with ❤️ by <span style={{color:"#AAFF00",fontWeight:700}}>Sanjeev & Vedha Nikitha</span>
             </div>
             <div style={{display:"flex",gap:8}}>
               <Chip color={C.lime}>Supabase ✓</Chip>
