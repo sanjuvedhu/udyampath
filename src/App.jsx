@@ -294,12 +294,16 @@ const JobCard = ({job, onOpen, saved, onSave, user, onAuthRequired, isApplied, i
           </div>
         </div>
         {!isFull && (
-          <div className="btn" style={{
+          <div className="btn" onClick={e=>{
+            e.stopPropagation();
+            if(job.apply_url) window.open(job.apply_url,"_blank");
+            else onOpen(job);
+          }} style={{
             padding:"8px 18px",borderRadius:8,
             background:"linear-gradient(135deg,#00E5FF,#7C3AED)",
             color:"#fff",fontWeight:700,fontSize:11,fontFamily:"'Syne',sans-serif",
             letterSpacing:.3,boxShadow:"0 4px 16px rgba(0,229,255,.2)"
-          }}>APPLY →</div>
+          }}>{job.apply_url?"APPLY ↗":"APPLY →"}</div>
         )}
       </div>
 
@@ -332,6 +336,10 @@ const JobDetail = ({job, onClose, user, onAuthRequired}) => {
   const [currentLocation, setCurrentLocation] = useState("");
   const [coverNote, setCoverNote] = useState("");
   const [resumeFile, setResumeFile] = useState(null);
+
+  useEffect(()=>{
+    if(job.apply_url) window.open(job.apply_url,"_blank");
+  },[]);
 
   const handleApply = async () => {
     if (!user) return onAuthRequired();
