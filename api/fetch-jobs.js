@@ -73,6 +73,7 @@ export default async function handler(req, res) {
       source:          "adzuna",
       external_id:     job.id,
       posted_ago:      "Today",
+      apply_url:       job.redirect_url || null,
     }));
 
     // ── Step 4: Upsert to our DB (avoid duplicates via external_id) ──
