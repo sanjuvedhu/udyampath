@@ -336,6 +336,7 @@ const JobDetail = ({job, onClose, user, onAuthRequired}) => {
   const [resumeFile, setResumeFile] = useState(null);
 
   const handleApply = async () => {
+    if (job.apply_url) { window.open(job.apply_url, "_blank"); return; }
     if (!user) return onAuthRequired();
     if (!applicantName || !applicantEmail) return;
     setLoading(true);
