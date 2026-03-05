@@ -495,14 +495,14 @@ const JobDetail = ({job, onClose, user, onAuthRequired}) => {
                   style={{width:"100%",padding:16,borderRadius:14,background:loading?"rgba(170,255,0,.3)":`linear-gradient(135deg,${C.lime},#00C8E0)`,color:C.bg,border:"none",fontFamily:"'Syne',sans-serif",fontSize:20,letterSpacing:1,cursor:loading?"not-allowed":"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:10}}>
                   {loading ? <><Spinner size={20} color={C.bg}/> Submitting...</> : "SUBMIT APPLICATION 🚀"}
                 </button>
-                <div style={{textAlign:"center",fontSize:11,color:C.muted}}>✅ Your email will be sent to {job.company_name} · Confirmation sent to you</div>
+                <div style={{textAlign:"center",fontSize:11,color:C.muted}}>✅ Confirmation email sent to you · Apply on company site for best results</div>
               </div>
             </div>
           ) : (
             <div style={{padding:28,borderRadius:20,background:`${C.mint}10`,border:`1px solid ${C.mint}30`,textAlign:"center"}}>
               <div style={{fontSize:48,marginBottom:12}} className="float">🎉</div>
               <div style={{fontFamily:"'Syne',sans-serif",fontSize:24,color:C.mint,letterSpacing:.5}}>APPLICATION SUBMITTED!</div>
-              <div style={{fontSize:13,color:C.muted,marginTop:8,lineHeight:1.8}}>Check your email at <strong style={{color:"#fff"}}>{applicantEmail}</strong> for confirmation.<br/>We've notified {job.company_name}. Good luck! 🙏</div>
+              <div style={{fontSize:13,color:C.muted,marginTop:8,lineHeight:1.8}}>Check your email at <strong style={{color:"#fff"}}>{applicantEmail}</strong> for confirmation.<br/>Apply directly on {job.company_name}'s website for best chances. Good luck! 🙏</div>
             </div>
           )}
         </div>
