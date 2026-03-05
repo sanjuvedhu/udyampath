@@ -294,16 +294,14 @@ const JobCard = ({job, onOpen, saved, onSave, user, onAuthRequired, isApplied, i
           </div>
         </div>
         {!isFull && (
-          <div className="btn" onClick={e=>{
-            e.stopPropagation();
-            if(job.apply_url) window.open(job.apply_url,"_blank");
-            else onOpen(job);
-          }} style={{
+          <div className="btn" style={{
             padding:"8px 18px",borderRadius:8,
             background:"linear-gradient(135deg,#00E5FF,#7C3AED)",
             color:"#fff",fontWeight:700,fontSize:11,fontFamily:"'Syne',sans-serif",
             letterSpacing:.3,boxShadow:"0 4px 16px rgba(0,229,255,.2)"
-          }}>{job.apply_url?"APPLY ↗":"APPLY →"}</div>
+          }} onClick={e=>{e.stopPropagation();if(job.apply_url)window.open(job.apply_url,"_blank");else onOpen(job);}}>
+            {job.apply_url ? "APPLY ↗" : "APPLY →"}
+          </div>
         )}
       </div>
 
@@ -336,10 +334,6 @@ const JobDetail = ({job, onClose, user, onAuthRequired}) => {
   const [currentLocation, setCurrentLocation] = useState("");
   const [coverNote, setCoverNote] = useState("");
   const [resumeFile, setResumeFile] = useState(null);
-
-  useEffect(()=>{
-    if(job.apply_url) window.open(job.apply_url,"_blank");
-  },[]);
 
   const handleApply = async () => {
     if (!user) return onAuthRequired();
@@ -692,7 +686,7 @@ const ResumeBuilder = ({ user, onClose }) => {
             <div onClick={generateResume} style={{padding:"14px",borderRadius:14,background:generating?"rgba(170,255,0,.3)":`linear-gradient(135deg,${C2.lime},#00C8E0)`,color:"#05050A",fontFamily:"'Syne',sans-serif",fontSize:20,letterSpacing:1,cursor:generating?"not-allowed":"pointer",textAlign:"center",fontWeight:900}}>
               {generating ? "✨ AI IS BUILDING YOUR RESUME..." : "🚀 GENERATE RESUME FREE WITH AI"}
             </div>
-            <div style={{textAlign:"center",fontSize:11,color:C2.muted}}>Powered by Groq AI ⚡ · Downloads instantly · 100% Free</div>
+            <div style={{textAlign:"center",fontSize:11,color:C2.muted}}>Powered by Gemini AI · Downloads instantly · 100% Free</div>
           </div>
         )}
       </div>
@@ -773,7 +767,7 @@ const AIChatbot = ({ jobs }) => {
             <span style={{ fontSize: 24 }}>🤖</span>
             <div>
               <div style={{ fontWeight: 900, fontSize: 15, color: "#05050A" }}>UdyamPath AI</div>
-              <div style={{ fontSize: 11, color: "#05050A", opacity: 0.7 }}>Powered by Groq AI ⚡</div>
+              <div style={{ fontSize: 11, color: "#05050A", opacity: 0.7 }}>Powered by Gemini AI</div>
             </div>
           </div>
 
@@ -1222,7 +1216,7 @@ export default function App() {
     setLoading(true);
     try {
       let query = supabase.from("jobs")
-        .select("id,title,company_name,salary_range,location,work_type,region,category,experience_level,skills_tags,total_seats,filled_seats,is_hot,is_new,logo_color_1,logo_color_2,posted_ago,created_at,description")
+        .select("id,title,company_name,salary_range,location,work_type,region,category,experience_level,skills_tags,total_seats,filled_seats,is_hot,is_new,logo_color_1,logo_color_2,posted_ago,created_at,description,apply_url")
         .eq("is_active", true)
         .order("is_hot", {ascending: false})
         .order("created_at", {ascending: false})
@@ -1576,6 +1570,42 @@ export default function App() {
         )}
 
         {nav==="alerts"&&<AlertSetup user={user} onAuthRequired={()=>setShowAuth(true)} onToast={showToast}/>}
+        {nav==="applied"&&(
+          <div style={{maxWidth:1000,margin:"0 auto",padding:"24px 20px"}}>
+            <div style={{fontFamily:"'Syne',sans-serif",fontWeight:800,fontSize:28,color:"#fff",marginBottom:20}}>📋 MY APPLICATIONS</div>
+            {!user?(
+              <div style={{textAlign:"center",padding:60,background:"#0D0D1F",borderRadius:20,border:"1px solid rgba(0,229,255,.08)"}}>
+                <div style={{fontSize:48,marginBottom:12}}>📋</div>
+                <div style={{fontFamily:"'Syne',sans-serif",fontWeight:800,fontSize:22,color:"#fff",marginBottom:16}}>Sign in to track applications</div>
+                <div onClick={()=>setShowAuth(true)} style={{display:"inline-block",padding:"12px 28px",borderRadius:12,background:"linear-gradient(135deg,#00E5FF,#7C3AED)",color:"#fff",fontWeight:700,cursor:"pointer"}}>Sign In →</div>
+              </div>
+            ):appliedJobs.size===0?(
+              <div style={{textAlign:"center",padding:60,background:"#0D0D1F",borderRadius:20,border:"1px solid rgba(0,229,255,.08)"}}>
+                <div style={{fontSize:48,marginBottom:12}}>📭</div>
+                <div style={{fontFamily:"'Syne',sans-serif",fontWeight:800,fontSize:22,color:"#fff",marginBottom:8}}>No applications yet</div>
+                <div style={{color:"rgba(255,255,255,.4)",fontSize:13}}>Apply for jobs and track your status here!</div>
+              </div>
+            ):(
+              <div style={{display:"flex",flexDirection:"column",gap:12}}>
+                {jobs.filter(j=>appliedJobs.has(j.id)).map(job=>(
+                  <div key={job.id} style={{background:"#0D0D1F",borderRadius:16,padding:20,border:"1px solid rgba(0,229,255,.08)",display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:12}}>
+                    <div style={{display:"flex",gap:12,alignItems:"center"}}>
+                      <div style={{width:42,height:42,borderRadius:12,background:`linear-gradient(135deg,${job.logo_color_1||"#00E5FF"},${job.logo_color_2||"#7C3AED"})`,display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontWeight:800,fontSize:16}}>{(job.company_name||"?")[0]}</div>
+                      <div>
+                        <div style={{fontFamily:"'Syne',sans-serif",fontWeight:700,color:"#fff",fontSize:15}}>{job.title}</div>
+                        <div style={{color:"rgba(255,255,255,.4)",fontSize:12}}>{job.company_name} · {job.location}</div>
+                      </div>
+                    </div>
+                    <div style={{display:"flex",gap:8,alignItems:"center"}}>
+                      <span style={{padding:"6px 14px",borderRadius:8,background:"rgba(0,229,255,.1)",color:"#00E5FF",fontWeight:700,fontSize:11,fontFamily:"'Space Mono',monospace"}}>✓ APPLIED</span>
+                      <span style={{padding:"6px 14px",borderRadius:8,background:"rgba(255,183,0,.1)",color:"#FFB700",fontWeight:700,fontSize:11,fontFamily:"'Space Mono',monospace"}}>⏳ REVIEWING</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
         {nav==="salary"&&<SalaryInsights jobs={jobs}/>}
         {nav==="interview"&&<MockInterview/>}
         {nav==="skills"&&<SkillGapAnalyzer/>}
