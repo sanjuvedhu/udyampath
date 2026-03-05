@@ -35,7 +35,7 @@ export default async function handler(req, res) {
   <div style="max-width:560px;margin:0 auto;background:#13131F;border-radius:20px;overflow:hidden;border:1px solid rgba(255,255,255,.08);">
     
     <!-- Header -->
-    <div style="background:linear-gradient(135deg,#AAFF00,#77DD00);padding:32px 28px;text-align:center;">
+    <div style="background:linear-gradient(135deg,#00E5FF,#7C3AED);padding:32px 28px;text-align:center;">
       <div style="font-size:36px;margin-bottom:8px;">🚀</div>
       <h1 style="color:#09090F;margin:0;font-size:26px;font-weight:900;letter-spacing:-0.5px;">Application Submitted!</h1>
       <p style="color:rgba(0,0,0,.7);margin:8px 0 0;font-size:14px;">UdyamPath — उद्यम पथ</p>
@@ -43,24 +43,24 @@ export default async function handler(req, res) {
 
     <!-- Body -->
     <div style="padding:28px;">
-      <p style="color:rgba(255,255,255,.8);font-size:15px;margin:0 0 20px;">Hi <strong style="color:#fff;">${name || "Friend"}</strong>,</p>
+      <p style="color:rgba(255,255,255,.8);font-size:15px;margin:0 0 20px;">Hi <strong style="color:#fff;">${(name||"Friend").split(" ")[0]}</strong>,</p>
       <p style="color:rgba(255,255,255,.6);font-size:14px;line-height:1.8;margin:0 0 24px;">
-        Your application has been <strong style="color:#AAFF00;">successfully submitted</strong>. Here are your details:
+        Your application has been <strong style="color:#00E5FF;">successfully submitted</strong>. Here are your details:
       </p>
 
       <!-- Job Card -->
       <div style="background:#1A1A2E;border-radius:14px;padding:20px;margin-bottom:24px;border:1px solid rgba(170,255,0,.15);">
         <div style="font-size:11px;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Applied For</div>
         <div style="color:#fff;font-size:18px;font-weight:800;margin-bottom:4px;">${jobTitle}</div>
-        <div style="color:#AAFF00;font-size:14px;font-weight:700;">${company}</div>
+        <div style="color:#00E5FF;font-size:14px;font-weight:700;">${company}</div>
       </div>
 
       <div style="background:#1A1A2E;border-radius:14px;padding:20px;margin-bottom:24px;">
         <div style="font-size:13px;color:rgba(255,255,255,.5);margin-bottom:12px;font-weight:700;">⏭️ What happens next?</div>
         <div style="display:flex;flex-direction:column;gap:10px;">
-          ${[["1","📧","${company} reviews your application","Usually within 3–7 business days"],["2","📞","Recruiter reaches out","Phone or email screening"],["3","💼","Interview process","Technical + HR rounds"],["4","🎉","Offer letter","If selected, you get a formal offer"]].map(([n,ic,title,sub])=>`
+          ${[["1","📧","Company reviews your application","Usually within 3–7 business days"],["2","📞","Recruiter reaches out","Phone or email screening"],["3","💼","Interview process","Technical + HR rounds"],["4","🎉","Offer letter","If selected, you get a formal offer"]].map(([n,ic,title,sub])=>`
           <div style="display:flex;gap:12px;align-items:flex-start;">
-            <div style="width:24px;height:24px;border-radius:50%;background:rgba(170,255,0,.15);color:#AAFF00;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;flex-shrink:0;">${n}</div>
+            <div style="width:24px;height:24px;border-radius:50%;background:rgba(170,255,0,.15);color:#00E5FF;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;flex-shrink:0;">${n}</div>
             <div>
               <div style="color:#fff;font-size:13px;font-weight:700;">${ic} ${title}</div>
               <div style="color:rgba(255,255,255,.35);font-size:11px;">${sub}</div>
@@ -70,9 +70,9 @@ export default async function handler(req, res) {
       </div>
 
       <div style="background:rgba(170,255,0,.06);border:1px solid rgba(170,255,0,.15);border-radius:14px;padding:16px;margin-bottom:24px;">
-        <div style="color:#AAFF00;font-size:13px;font-weight:800;margin-bottom:6px;">💡 Pro Tips while you wait</div>
+        <div style="color:#00E5FF;font-size:13px;font-weight:800;margin-bottom:6px;">💡 Pro Tips while you wait</div>
         <ul style="color:rgba(255,255,255,.5);font-size:12px;line-height:1.9;margin:0;padding-left:16px;">
-          <li>Connect with ${company} employees on LinkedIn</li>
+          <li>Connect with <strong style="color:#fff;">${company||"the company"}</strong> employees on LinkedIn</li>
           <li>Research the company's products and recent news</li>
           <li>Prepare STAR stories for behavioral questions</li>
           <li>Keep applying to 3–5 more jobs per day on UdyamPath</li>
@@ -80,7 +80,7 @@ export default async function handler(req, res) {
       </div>
 
       <div style="text-align:center;">
-        <a href="https://udyampath.vercel.app" style="display:inline-block;padding:14px 32px;background:linear-gradient(135deg,#AAFF00,#77DD00);color:#09090F;text-decoration:none;border-radius:12px;font-weight:900;font-size:15px;">
+        <a href="https://udyampath.vercel.app" style="display:inline-block;padding:14px 32px;background:linear-gradient(135deg,#00E5FF,#7C3AED);color:#09090F;text-decoration:none;border-radius:12px;font-weight:900;font-size:15px;">
           Find More Jobs →
         </a>
       </div>
