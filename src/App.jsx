@@ -336,7 +336,6 @@ const JobDetail = ({job, onClose, user, onAuthRequired}) => {
   const [resumeFile, setResumeFile] = useState(null);
 
   const handleApply = async () => {
-    if (job.apply_url) { window.open(job.apply_url, "_blank"); return; }
     if (!user) return onAuthRequired();
     if (!applicantName || !applicantEmail) return;
     setLoading(true);
@@ -368,12 +367,33 @@ const JobDetail = ({job, onClose, user, onAuthRequired}) => {
       // 2. Update filled seats (real-time trigger)
       await supabase.from("jobs").update({ filled_seats: (job.filled_seats||0) + 1 }).eq("id", job.id);
 
-      // 3. Send confirmation email via our API
+      // 3. Send confirmation email to candidate
       await fetch("/api/send-confirmation", {
         method: "POST",
         headers: {"Content-Type":"application/json"},
         body: JSON.stringify({ email: applicantEmail, name: applicantName, jobTitle: job.title, company: job.company_name }),
       });
+
+      // 4. Send application email to HR if contact_email exists
+      if (job.contact_email) {
+        await fetch("/api/send-to-hr", {
+          method: "POST",
+          headers: {"Content-Type":"application/json"},
+          body: JSON.stringify({
+            hrEmail: job.contact_email,
+            jobTitle: job.title,
+            company: job.company_name,
+            applicantName,
+            applicantEmail,
+            phone,
+            linkedin,
+            experience,
+            currentLocation,
+            coverNote,
+            resumeUrl,
+          }),
+        });
+      }
 
       setApplied(true);
     } catch (err) {
@@ -404,7 +424,9 @@ const JobDetail = ({job, onClose, user, onAuthRequired}) => {
             <Chip color={C.mint}>{job.experience_level}</Chip>
             {(job.filled_seats||0)>=(job.total_seats||10)
               ? <Chip color={C.coral}>Position Filled</Chip>
-              : <Chip color={C.mint}>✓ Actively Hiring</Chip>
+              : job.contact_email
+                ? <Chip color="#00E5FF">⚡ Direct Apply</Chip>
+                : <Chip color={C.mint}>✓ Actively Hiring</Chip>
             }
           </div>
         </div>
@@ -496,14 +518,14 @@ const JobDetail = ({job, onClose, user, onAuthRequired}) => {
                   style={{width:"100%",padding:16,borderRadius:14,background:loading?"rgba(170,255,0,.3)":`linear-gradient(135deg,${C.lime},#00C8E0)`,color:C.bg,border:"none",fontFamily:"'Syne',sans-serif",fontSize:20,letterSpacing:1,cursor:loading?"not-allowed":"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:10}}>
                   {loading ? <><Spinner size={20} color={C.bg}/> Submitting...</> : "SUBMIT APPLICATION 🚀"}
                 </button>
-                <div style={{textAlign:"center",fontSize:11,color:C.muted}}>✅ Confirmation email sent to you · Apply on company site for best results</div>
+                <div style={{textAlign:"center",fontSize:11,color:C.muted}}>✅ Your email will be sent to {job.company_name} · Confirmation sent to you</div>
               </div>
             </div>
           ) : (
             <div style={{padding:28,borderRadius:20,background:`${C.mint}10`,border:`1px solid ${C.mint}30`,textAlign:"center"}}>
               <div style={{fontSize:48,marginBottom:12}} className="float">🎉</div>
               <div style={{fontFamily:"'Syne',sans-serif",fontSize:24,color:C.mint,letterSpacing:.5}}>APPLICATION SUBMITTED!</div>
-              <div style={{fontSize:13,color:C.muted,marginTop:8,lineHeight:1.8}}>Check your email at <strong style={{color:"#fff"}}>{applicantEmail}</strong> for confirmation.<br/>Apply directly on {job.company_name}'s website for best chances. Good luck! 🙏</div>
+              <div style={{fontSize:13,color:C.muted,marginTop:8,lineHeight:1.8}}>Check your email at <strong style={{color:"#fff"}}>{applicantEmail}</strong> for confirmation.<br/>We've notified {job.company_name}. Good luck! 🙏</div>
             </div>
           )}
         </div>
@@ -1646,7 +1668,7 @@ export default function App() {
               <div style={{background:C.card,padding:"22px 24px",borderBottom:`1px solid ${C.border}`,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
                 <div>
                   <div style={{fontFamily:"'Syne',sans-serif",fontSize:22,color:"#fff",letterSpacing:.5}}>POST A JOB — FREE</div>
-                  <div style={{fontSize:11,color:C.muted,marginTop:2}}>Saved to database · Alerts sent to matching users instantly</div>
+                  <div style={{fontSize:11,color:"#00E5FF",marginTop:2}}>✅ Candidates apply DIRECTLY to your HR email!</div>
                 </div>
                 <div onClick={()=>{setShowPost(false);setPostDone(false);}} className="btn" style={{width:36,height:36,borderRadius:12,background:C.surface,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",border:`1px solid ${C.border}`,color:C.muted,fontSize:18}}>✕</div>
               </div>
@@ -1679,8 +1701,12 @@ export default function App() {
               ):(
                 <div style={{padding:40,textAlign:"center"}}>
                   <div style={{fontSize:64,marginBottom:16}} className="float">🎊</div>
-                  <div style={{fontFamily:"'Syne',sans-serif",fontSize:26,color:C.lime,letterSpacing:.5}}>JOB LIVE!</div>
-                  <div style={{fontSize:13,color:C.muted,margin:"12px 0 24px",lineHeight:1.8}}>Job saved to database. Alerts sent to all matching users via email.</div>
+                  <div style={{fontFamily:"'Syne',sans-serif",fontSize:26,color:"#00E5FF",letterSpacing:.5}}>JOB IS LIVE! 🎉</div>
+                  <div style={{fontSize:13,color:C.muted,margin:"12px 0 24px",lineHeight:1.8}}>
+                    ✅ Job posted on UdyamPath<br/>
+                    ✅ Alerts sent to matching candidates<br/>
+                    ✅ Applications will land directly in your HR inbox!
+                  </div>
                 </div>
               )}
               {!postDone&&(
