@@ -1255,7 +1255,12 @@ const PricingModal = ({ onClose, user, onAuthRequired, selectedPlan, jobId }) =>
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ amount: plan.price, receipt: `${plan.id}_${user.id}`, notes: { plan: plan.id, userId: user.id } })
       });
-      const { order, key } = await res.json();
+      const resData = await res.json();
+      console.log("Order response:", resData);
+      if (!resData.success || !resData.order) {
+        throw new Error(resData.error || "Failed to create order. Check Razorpay keys in Vercel.");
+      }
+      const { order, key } = resData;
 
       // Open Razorpay checkout
       const rzp = new window.Razorpay({
