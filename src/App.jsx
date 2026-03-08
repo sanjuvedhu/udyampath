@@ -1253,7 +1253,7 @@ const PricingModal = ({ onClose, user, onAuthRequired, selectedPlan, jobId }) =>
       const res = await fetch("/api/create-order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amount: plan.price, receipt: `${plan.id}_${user.id}`, notes: { plan: plan.id, userId: user.id } })
+        body: JSON.stringify({ amount: plan.price, receipt: `${plan.id}_${Date.now().toString().slice(-8)}`, notes: { plan: plan.id, userId: user.id } })
       });
       const resData = await res.json();
       console.log("Order response:", resData);
