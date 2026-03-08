@@ -1164,6 +1164,614 @@ Be specific and actionable. Format with emojis and clear sections.`}],
   );
 };
 
+export default function App() {
+  const [nav, setNav] = useState("jobs");
+  const [user, setUser] = useState(null);
+  const [jobs, setJobs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedJob, setSelectedJob] = useState(null);
+  const [saved, setSaved] = useState(new Set());
+  const [search, setSearch] = useState("");
+  const [region, setRegion] = useState("All");
+  const [workType, setWorkType] = useState("All");
+  const [category, setCategory] = useState("All");
+  const [expLevel, setExpLevel] = useState("All");
+  const [showAuth, setShowAuth] = useState(false);
+  const [toast, setToast] = useState(null);
+  const [liveCount, setLiveCount] = useState(0);
+  const [sortBy, setSortBy] = useState("hot");
+  const [showPost, setShowPost] = useState(false);
+  const [postForm, setPostForm] = useState({title:"",company_name:"",salary_range:"",location:"",work_type:"Remote",region:"India",category:"Tech",experience_level:"Any",description:"",contact_email:""});
+  const [postLoading, setPostLoading] = useState(false);
+  const [postDone, setPostDone] = useState(false);
+  const [darkMode, setDarkMode] = useState(true);
+  const [jobLimit, setJobLimit] = useState(100);
+  const [appliedJobs, setAppliedJobs] = useState(new Set());
+  const [hasMore, setHasMore] = useState(false);
+  const [salaryFilter, setSalaryFilter] = useState("All");
+  const [showResumeBuilder, setShowResumeBuilder] = useState(false);
+  const [userSkills, setUserSkills] = useState([]);
+
+  const showToast = (msg, type="success") => {
+    setToast({msg, type});
+    setTimeout(()=>setToast(null), 4000);
+  };
+
+  // ── Auth listener ─────────────────────────────────
+  useEffect(()=>{
+    // Handle OAuth callback from Google
+    supabase.auth.getSession().then(({data:{session}})=>{
+      setUser(session?.user||null);
+      if(session?.user) {
+        loadSavedJobs(session.user.id);
+        showToast(`Welcome ${session.user.user_metadata?.full_name||session.user.email}! 🎉`,"success");
+      }
+    });
+
+    const {data:{subscription}} = supabase.auth.onAuthStateChange((event,session)=>{
+      if(event==="SIGNED_IN") {
+        setUser(session?.user||null);
+        if(session?.user) {
+          loadSavedJobs(session.user.id);
+          setShowAuth(false);
+          showToast(`Welcome ${session.user.user_metadata?.full_name||session.user.email}! 🎉`,"success");
+        }
+      }
+      if(event==="SIGNED_OUT") {
+        setUser(null);
+        setSaved(new Set());
+      }
+      if(event==="TOKEN_REFRESHED") {
+        setUser(session?.user||null);
+      }
+    });
+    return ()=>subscription.unsubscribe();
+  },[]);
+
+  // ── Load saved jobs ───────────────────────────────
+  const loadSavedJobs = async (userId) => {
+    const {data} = await supabase.from("saved_jobs").select("job_id").eq("user_id",userId);
+    if(data) setSaved(new Set(data.map(r=>r.job_id)));
+  };
+
+  // ── Fetch jobs ─────────────────────────────────────
+  const fetchJobs = useCallback(async (limit=100) => {
+    setLoading(true);
+    try {
+      let query = supabase.from("jobs")
+        .select("id,title,company_name,salary_range,location,work_type,region,category,experience_level,skills_tags,total_seats,filled_seats,is_hot,is_new,logo_color_1,logo_color_2,posted_ago,created_at,description,apply_url")
+        .eq("is_active", true)
+        .order("is_hot", {ascending: false})
+        .order("created_at", {ascending: false})
+        .limit(limit);
+
+      if(region!=="All") query = query.eq("region", region);
+      if(workType!=="All") query = query.eq("work_type", workType);
+      if(category!=="All") query = query.eq("category", category);
+      if(expLevel!=="All") query = query.eq("experience_level", expLevel);
+      if(search) query = query.or(`title.ilike.%${search}%,company_name.ilike.%${search}%`);
+
+      const {data, error} = await query;
+      if(error) throw error;
+      setJobs(data || []);
+      setHasMore((data||[]).length >= limit);
+
+      const {count} = await supabase.from("jobs")
+        .select("*", {count:"exact", head:true})
+        .eq("is_active", true);
+      setLiveCount(count || 0);
+
+      // Load applied jobs for logged in user
+      if(user) {
+        const {data:applied} = await supabase.from("applications")
+          .select("job_id").eq("user_id", user.id);
+        if(applied) setAppliedJobs(new Set(applied.map(a=>a.job_id)));
+      }
+
+    } catch (err) {
+      console.error("Job fetch error:", err);
+      setJobs([]);
+    } finally {
+      setLoading(false);
+    }
+  },[search, region, workType, category, expLevel, user]);
+
+  useEffect(()=>{ setJobLimit(100); fetchJobs(100); },[search, region, workType, category, expLevel]);
+
+  const loadMore = () => {
+    const newLimit = jobLimit + 100;
+    setJobLimit(newLimit);
+    fetchJobs(newLimit);
+  };
+
+  // ── Real-time subscription (WebSocket) ────────────
+  useEffect(()=>{
+    // Polling every 60s instead of WebSocket (fixes Safari crash)
+    const interval = setInterval(async () => {
+      try {
+        const {count} = await supabase.from("jobs")
+          .select("*",{count:"exact",head:true})
+          .eq("is_active",true);
+        if(count) setLiveCount(count);
+      } catch(e) {}
+    }, 60000);
+    return ()=>clearInterval(interval);
+  },[]);
+
+  // ── Toggle save job ───────────────────────────────
+  const toggleSave = async (jobId) => {
+    if(!user) return setShowAuth(true);
+    const isSaved = saved.has(jobId);
+    if(isSaved) {
+      await supabase.from("saved_jobs").delete().eq("user_id",user.id).eq("job_id",jobId);
+      setSaved(prev=>{const n=new Set(prev);n.delete(jobId);return n;});
+      showToast("Job removed from saved","error");
+    } else {
+      await supabase.from("saved_jobs").insert({user_id:user.id,job_id:jobId});
+      setSaved(prev=>new Set([...prev,jobId]));
+      showToast("💾 Job saved!","success");
+    }
+  };
+
+  // ── Post a job ────────────────────────────────────
+  const handlePostJob = async () => {
+    if(!user) return setShowAuth(true);
+    if(!postForm.title||!postForm.company_name||!postForm.salary_range) return showToast("Fill required fields","error");
+    setPostLoading(true);
+    try {
+      const {error} = await supabase.from("jobs").insert({
+        ...postForm,
+        posted_by: user.id,
+        is_active: true,
+        is_hot: false,
+        is_new: true,
+        filled_seats: 0,
+        total_seats: 10,
+        skills_tags: [],
+        logo_color_1: "#00E5FF",
+        logo_color_2: "#00C8E0",
+      });
+      if(error) throw error;
+
+      // Trigger alerts for matching users
+      await fetch("/api/trigger-alerts",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({title:postForm.title,company:postForm.company_name,region:postForm.region,workType:postForm.work_type}),
+      });
+
+      setPostDone(true);
+      showToast("🎉 Job posted! Alerts sent to matching users.","success");
+    } catch(err) {
+      showToast(err.message,"error");
+    } finally { setPostLoading(false); }
+  };
+
+  // ── Sign out ──────────────────────────────────────
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    setUser(null);
+    setSaved(new Set());
+    showToast("Signed out successfully","success");
+  };
+
+  // ── Filter jobs ───────────────────────────────────
+  const liveJobs  = jobs.filter(j=>!j.filled_seats||(j.filled_seats<(j.total_seats||10))).filter(j=>{
+    if(salaryFilter==="All") return true;
+    const s = (j.salary_range||"").toLowerCase();
+    if(salaryFilter==="Competitive") return s.includes("competitive");
+    if(salaryFilter==="0–3 LPA") return s.includes("₹") && (s.includes("0") || s.includes("1") || s.includes("2") || s.includes("3"));
+    if(salaryFilter==="3–6 LPA") return s.includes("₹") && (s.includes("3") || s.includes("4") || s.includes("5") || s.includes("6"));
+    if(salaryFilter==="6–10 LPA") return s.includes("₹") && (s.includes("6") || s.includes("7") || s.includes("8") || s.includes("9") || s.includes("10"));
+    if(salaryFilter==="10–20 LPA") return s.includes("₹") && parseInt(s.match(/\d+/)?.[0]||0) >= 10;
+    if(salaryFilter==="20+ LPA") return s.includes("₹") && parseInt(s.match(/\d+/)?.[0]||0) >= 20;
+    return true;
+  });
+  const filledJobs = jobs.filter(j=>j.filled_seats>=(j.total_seats||10));
+  const savedJobs  = jobs.filter(j=>saved.has(j.id));
+
+  const NAV = [
+    {id:"jobs",icon:"💼",label:"Jobs"},
+    {id:"salary",icon:"📊",label:"Salary"},
+    {id:"interview",icon:"🎤",label:"Interview"},
+    {id:"skills",icon:"🏆",label:"Skills"},
+    {id:"alerts",icon:"🔔",label:"Alerts"},
+    {id:"saved",icon:"🔖",label:`Saved (${saved.size})`},
+    {id:"profile",icon:"👤",label:"Profile"},
+    {id:"hr",icon:"🏢",label:"HR"},
+  ];
+
+  return (
+    <>
+      <Styles/>
+      <div style={{minHeight:"100vh",background:C.bg,color:"#F0F0FF",fontFamily:"'Plus Jakarta Sans',sans-serif"}}>
+
+        {/* NAVBAR */}
+        <nav style={{background:C.surface,borderBottom:`1px solid ${C.border}`,position:"sticky",top:0,zIndex:100,boxShadow:"0 4px 30px rgba(0,0,0,.3)"}}>
+          <div style={{maxWidth:1400,margin:"0 auto",padding:"0 20px",display:"flex",alignItems:"center",height:64,gap:20}}>
+            <div style={{display:"flex",alignItems:"center",gap:10,cursor:"pointer",flexShrink:0}} onClick={()=>setNav("jobs")}>
+              <div style={{width:38,height:38,borderRadius:12,background:`linear-gradient(135deg,${C.lime},#00C8E0)`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,boxShadow:`0 4px 16px ${C.lime}30`}}>🚀</div>
+              <div>
+                <div style={{fontFamily:"'Syne',sans-serif",fontSize:20,color:"#fff",letterSpacing:1,lineHeight:1}}>UDYAM PATH</div>
+                <div style={{fontSize:8,color:C.lime,letterSpacing:1.5,textTransform:"uppercase",fontWeight:700}}>Real-Time · उद्यम पथ</div>
+              </div>
+            </div>
+
+            {/* Live indicator */}
+            <div style={{display:"flex",alignItems:"center",gap:6,padding:"5px 12px",borderRadius:999,background:`${C.lime}12`,border:`1px solid ${C.lime}25`,flexShrink:0}}>
+              <div style={{width:6,height:6,borderRadius:"50%",background:C.lime,animation:"pulse 1.5s infinite"}}/>
+              <span style={{fontSize:11,fontWeight:800,color:C.lime,fontFamily:"'Space Mono',monospace"}}>{liveCount.toLocaleString("en-IN")} LIVE</span>
+            </div>
+
+            {/* Nav */}
+            <div style={{display:"flex",gap:2,flex:1,justifyContent:"center",overflowX:"auto",scrollbarWidth:"none",msOverflowStyle:"none"}}>
+              {NAV.map(item=>(
+                <div key={item.id} onClick={()=>setNav(item.id)} className={`btn ${nav===item.id?"nav-active":""}`}
+                  style={{padding:"8px 12px",borderRadius:10,fontSize:12,fontWeight:800,color:nav===item.id?C.lime:"rgba(255,255,255,.4)",background:nav===item.id?`${C.lime}10`:"transparent",display:"flex",flexDirection:"column",alignItems:"center",gap:2,transition:"all .2s",whiteSpace:"nowrap",flexShrink:0,minWidth:52}}>
+                  <span style={{fontSize:16}}>{item.icon}</span>
+                  <span style={{fontSize:9,letterSpacing:.3}}>{item.label}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* Auth + Post */}
+            <div style={{display:"flex",gap:10,alignItems:"center",flexShrink:0}}>
+              {user ? (
+                <div style={{display:"flex",gap:10,alignItems:"center"}}>
+                  <div style={{width:34,height:34,borderRadius:10,background:`linear-gradient(135deg,${C.lime},#00C8E0)`,display:"flex",alignItems:"center",justifyContent:"center",color:C.bg,fontWeight:900,fontSize:14}}>
+                    {(user.user_metadata?.full_name||user.email||"U")[0].toUpperCase()}
+                  </div>
+                  <div onClick={handleSignOut} className="btn" style={{padding:"8px 14px",borderRadius:10,background:C.card,border:`1px solid ${C.border}`,fontSize:11,fontWeight:700,color:C.muted}}>Sign Out</div>
+                </div>
+              ) : (
+                <div onClick={()=>setShowAuth(true)} className="btn" style={{padding:"10px 20px",borderRadius:12,background:C.card,border:`1px solid ${C.border}`,fontSize:13,fontWeight:800,color:"rgba(255,255,255,.6)"}}>Sign In</div>
+              )}
+              <button onClick={()=>setShowPost(true)} className="btn glow-pulse"
+                style={{padding:"10px 18px",borderRadius:12,background:`linear-gradient(135deg,${C.lime},#00C8E0)`,color:C.bg,border:"none",fontWeight:900,fontSize:12,cursor:"pointer",letterSpacing:.5}}>
+                + POST JOB FREE
+              </button>
+            </div>
+          </div>
+        </nav>
+
+        {/* TICKER */}
+        <div style={{background:`${C.lime}10`,borderBottom:`1px solid ${C.lime}12`,padding:"8px 0",overflow:"hidden"}}>
+          <div className="marquee-inner">
+            {[...Array(2)].map((_,rep)=>(
+              ["🔴 LIVE: Jobs auto-removed when filled","⚡ Real-time WebSocket updates","📧 Real email alerts via Resend","🌍 India + International jobs via Adzuna API","🔔 Set alert — get emailed instantly on new jobs","✅ Applications saved to Supabase database"].map((t,i)=>(
+                <span key={`${rep}-${i}`} style={{marginRight:60,fontSize:11,fontWeight:700,color:i%2===0?C.lime:C.gold,whiteSpace:"nowrap"}}>{t}</span>
+              ))
+            ))}
+          </div>
+        </div>
+
+        {/* PAGES */}
+        {nav==="jobs"&&(
+          <>
+            {/* Hero */}
+            <div style={{background:`linear-gradient(135deg,${C.bg},#0D1520,${C.bg})`,padding:"60px 20px 48px",position:"relative",overflow:"hidden"}} className="grid-pattern">
+              <div style={{position:"absolute",top:-100,right:-100,width:400,height:400,borderRadius:"50%",background:`radial-gradient(circle,${C.lime}08,transparent)`,filter:"blur(60px)"}}/>
+              <div style={{maxWidth:860,margin:"0 auto",textAlign:"center",position:"relative"}}>
+                <div className="fu" style={{display:"inline-flex",alignItems:"center",gap:8,padding:"6px 16px",borderRadius:999,background:`${C.lime}12`,border:`1px solid ${C.lime}25`,marginBottom:20}}>
+                  <div style={{width:8,height:8,borderRadius:"50%",background:C.lime,animation:"pulse 1s infinite"}}/>
+                  <span style={{fontSize:11,fontWeight:900,color:C.lime,letterSpacing:1}}>REAL-TIME · JOBS UPDATE LIVE · AUTO-REMOVED WHEN FILLED</span>
+                </div>
+                <h1 className="fu1" style={{fontFamily:"'Syne',sans-serif",fontSize:"clamp(40px,8vw,76px)",color:"#fff",lineHeight:1,letterSpacing:2,marginBottom:16}}>
+                  YOUR DREAM JOB<br/><span style={{color:C.lime}}>STARTS RIGHT NOW</span>
+                </h1>
+                <p className="fu2" style={{fontSize:15,color:"rgba(255,255,255,.45)",margin:"0 auto 36px",maxWidth:580,lineHeight:1.9}}>
+                  Real jobs from Adzuna API · Real applications saved to database<br/>Real email alerts when jobs match · Real-time WebSocket updates
+                </p>
+                <div className="fu3" style={{display:"flex",gap:0,background:C.card,borderRadius:20,padding:5,boxShadow:`0 20px 80px rgba(0,0,0,.4)`,maxWidth:640,margin:"0 auto 20px",border:`1px solid ${C.border}`}}>
+                  <div style={{flex:1,display:"flex",alignItems:"center",gap:12,padding:"8px 16px"}}>
+                    <span style={{fontSize:18}}>🔍</span>
+                    <input value={search} onChange={e=>setSearch(e.target.value)} onKeyDown={e=>e.key==="Enter"&&fetchJobs()}
+                      placeholder="Search jobs, companies, skills..."
+                      className="input-z"
+                      style={{border:"none",background:"transparent",fontSize:15,fontFamily:"'Plus Jakarta Sans',sans-serif",color:"#fff",width:"100%",outline:"none"}}/>
+                  </div>
+                  <button onClick={fetchJobs} className="btn" style={{padding:"14px 28px",borderRadius:16,background:`linear-gradient(135deg,${C.lime},#00C8E0)`,color:C.bg,border:"none",fontWeight:900,fontSize:15,fontFamily:"'Plus Jakarta Sans',sans-serif",cursor:"pointer"}}>SEARCH</button>
+                </div>
+                <div className="fu3" style={{display:"flex",gap:8,justifyContent:"center",flexWrap:"wrap"}}>
+                  {["🔥 Fresher","🌍 Remote","🏠 WFH","💰 High Salary","🤖 AI / ML","🚀 Startup"].map(tag=>(
+                    <div key={tag} onClick={()=>{setSearch(tag.split(" ").slice(1).join(" "));fetchJobs();}} className="btn"
+                      style={{padding:"7px 16px",borderRadius:999,background:"rgba(255,255,255,.05)",border:`1px solid rgba(255,255,255,.1)`,color:"rgba(255,255,255,.5)",fontSize:12,fontWeight:700}}>
+                      {tag}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Stats */}
+            <div style={{background:C.surface,borderBottom:`1px solid ${C.border}`,padding:"14px 20px"}}>
+              <div style={{maxWidth:1400,margin:"0 auto",display:"flex",gap:32,justifyContent:"center",flexWrap:"wrap"}}>
+                {[["💼",liveJobs.length,"Live Jobs",C.lime],["📫",filledJobs.length,"Filled Today",C.coral],["🔖",saved.size,"Saved",C.gold],["⚡","Live","WebSocket",C.sky]].map(([ic,val,lb,c])=>(
+                  <div key={lb} style={{textAlign:"center"}}>
+                    <div style={{fontFamily:"'Syne',sans-serif",fontSize:22,color:c,letterSpacing:.5}}>{ic} {val}</div>
+                    <div style={{fontSize:10,color:"rgba(255,255,255,.25)",textTransform:"uppercase",letterSpacing:.6}}>{lb}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div style={{maxWidth:1400,margin:"0 auto",padding:"24px 20px"}}>
+              {/* Filters */}
+              <div style={{background:C.card,borderRadius:20,padding:18,border:`1px solid ${C.border}`,marginBottom:24}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14,flexWrap:"wrap",gap:8}}>
+                  <div style={{fontWeight:800,fontSize:14,color:"rgba(255,255,255,.6)"}}>🎛️ Filter</div>
+                  <div style={{display:"flex",gap:10,alignItems:"center"}}>
+                    {[region,workType,category,expLevel].some(f=>f!=="All")&&
+                      <span onClick={()=>{setRegion("All");setWorkType("All");setCategory("All");setExpLevel("All");}} style={{fontSize:12,color:C.coral,fontWeight:800,cursor:"pointer"}}>Clear ×</span>}
+                    <select value={sortBy} onChange={e=>setSortBy(e.target.value)} style={{padding:"7px 12px",borderRadius:10,border:`1px solid ${C.border}`,fontSize:12,fontWeight:700,color:"#fff",fontFamily:"'Plus Jakarta Sans',sans-serif",background:C.surface,cursor:"pointer"}}>
+                      <option value="hot">🔥 Hot</option><option value="new">🆕 Newest</option><option value="seats">📊 Seats</option>
+                    </select>
+                  </div>
+                </div>
+                <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(150px,1fr))",gap:10}}>
+                  {[{lb:"Region",opts:["All","India","USA","UK","Canada","Australia","Singapore","Remote – Global"],val:region,set:setRegion},
+                    {lb:"Work Type",opts:["All","Remote","WFH","Hybrid","In-Office","Freelance"],val:workType,set:setWorkType},
+                    {lb:"Category",opts:["All","Tech","Data","Product","Design","Marketing","Sales","HR","Content","Operations"],val:category,set:setCategory},
+                    {lb:"Experience",opts:["All","Fresher","0–2 yrs","2–5 yrs","5–10 yrs","10+ yrs"],val:expLevel,set:setExpLevel},
+                    {lb:"💰 Salary",opts:["All","0–3 LPA","3–6 LPA","6–10 LPA","10–20 LPA","20+ LPA","Competitive"],val:salaryFilter,set:setSalaryFilter}].map(f=>(
+                    <div key={f.lb}>
+                      <div style={{fontSize:10,fontWeight:800,color:"rgba(255,255,255,.25)",marginBottom:5,textTransform:"uppercase",letterSpacing:.6}}>{f.lb}</div>
+                      <select value={f.val} onChange={e=>f.set(e.target.value)} className="input-z"
+                        style={{width:"100%",padding:"9px 12px",borderRadius:11,border:`1.5px solid ${f.val!=="All"?C.lime:C.border}`,fontSize:12,fontWeight:700,fontFamily:"'Plus Jakarta Sans',sans-serif",background:f.val!=="All"?`${C.lime}08`:C.surface,color:f.val!=="All"?C.lime:"rgba(255,255,255,.5)",cursor:"pointer",transition:"all .2s"}}>
+                        {f.opts.map(o=><option key={o}>{o}</option>)}
+                      </select>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Job Grid */}
+              <div style={{fontFamily:"'Syne',sans-serif",fontSize:24,color:"#fff",letterSpacing:.5,marginBottom:16}}>
+                {loading?"LOADING LIVE JOBS...":`${liveJobs.length} LIVE JOBS`}
+                <span style={{fontSize:11,fontFamily:"'Plus Jakarta Sans',sans-serif",fontWeight:600,letterSpacing:0,color:"rgba(255,255,255,.25)",marginLeft:12}}>
+                  {loading?"Fetching from Adzuna API + Database...":"From Adzuna API + Database · Auto-updates via WebSocket"}
+                </span>
+              </div>
+
+              {loading ? (
+                <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(320px,1fr))",gap:14}}>
+                  {[...Array(8)].map((_,i)=><SkeletonCard key={i}/>)}
+                </div>
+              ) : liveJobs.length > 0 ? (
+                <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(320px,1fr))",gap:14,marginBottom:24}}>
+                  {liveJobs.map((job,i)=>(
+                    <div key={job.id} className="fu" style={{animationDelay:`${Math.min(i*.04,.4)}s`}}>
+                      <JobCard job={job} onOpen={setSelectedJob} saved={saved.has(job.id)} onSave={toggleSave} user={user} onAuthRequired={()=>setShowAuth(true)} isApplied={appliedJobs.has(job.id)} isFeatured={job.is_featured} userSkills={userSkills}/>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div style={{padding:"60px 20px",textAlign:"center",background:C.card,borderRadius:20,border:`1px solid ${C.border}`,marginBottom:24}}>
+                  <div style={{fontSize:48,marginBottom:12}}>🔍</div>
+                  <div style={{fontFamily:"'Syne',sans-serif",fontSize:22,color:"#fff",marginBottom:12}}>No Jobs Found</div>
+                  <div onClick={()=>{setSearch("");setRegion("All");setWorkType("All");setCategory("All");setExpLevel("All");fetchJobs();}} className="btn" style={{display:"inline-block",padding:"12px 28px",borderRadius:14,background:`linear-gradient(135deg,${C.lime},#00C8E0)`,color:C.bg,fontWeight:900,fontSize:14,cursor:"pointer"}}>Clear Filters & Reload</div>
+                </div>
+              )}
+
+              {/* Load More Button */}
+              {hasMore && liveJobs.length > 0 && (
+                <div style={{textAlign:"center",marginBottom:24}}>
+                  <div onClick={loadMore} className="btn" style={{
+                    display:"inline-flex",alignItems:"center",gap:10,
+                    padding:"14px 36px",borderRadius:16,
+                    background:`linear-gradient(135deg,${C.lime},#00C8E0)`,
+                    color:C.bg,fontWeight:900,fontSize:16,
+                    fontFamily:"'Syne',sans-serif",letterSpacing:1,
+                    cursor:"pointer",boxShadow:`0 4px 20px ${C.lime}30`
+                  }}>
+                    📋 LOAD MORE JOBS
+                  </div>
+                  <div style={{fontSize:12,color:C.muted,marginTop:8}}>Showing {liveJobs.length} of {liveCount} jobs</div>
+                </div>
+              )}
+
+              {/* Filled Jobs */}
+              {filledJobs.length>0&&(
+                <>
+                  <div style={{fontFamily:"'Syne',sans-serif",fontSize:18,color:"rgba(255,77,109,.5)",letterSpacing:.5,marginBottom:12}}>
+                    POSITIONS FILLED ({filledJobs.length}) — Auto-removed from active listings
+                  </div>
+                  <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(320px,1fr))",gap:14,marginBottom:24}}>
+                    {filledJobs.map(job=><JobCard key={job.id} job={job} onOpen={()=>{}} saved={saved.has(job.id)} onSave={toggleSave} user={user} onAuthRequired={()=>setShowAuth(true)}/>)}
+                  </div>
+                </>
+              )}
+
+              {/* Alert CTA */}
+              <div style={{background:`linear-gradient(135deg,rgba(170,255,0,.06),rgba(56,189,248,.04))`,border:`1px solid ${C.lime}20`,borderRadius:24,padding:"28px 32px",display:"flex",gap:24,alignItems:"center",flexWrap:"wrap"}}>
+                <div style={{fontSize:44}} className="float">🔔</div>
+                <div style={{flex:1,minWidth:220}}>
+                  <div style={{fontFamily:"'Syne',sans-serif",fontSize:22,color:"#fff",letterSpacing:.5}}>REAL EMAIL ALERTS — FREE</div>
+                  <div style={{fontSize:13,color:C.muted,marginTop:4}}>Get emailed the instant a matching job is posted. Powered by Resend.</div>
+                </div>
+                <div onClick={()=>setNav("alerts")} className="btn glow-pulse" style={{padding:"14px 28px",borderRadius:14,background:`linear-gradient(135deg,${C.lime},#00C8E0)`,color:C.bg,fontWeight:900,fontSize:14,cursor:"pointer"}}>Set Alert Free →</div>
+              </div>
+            </div>
+          </>
+        )}
+
+        {nav==="alerts"&&<AlertSetup user={user} onAuthRequired={()=>setShowAuth(true)} onToast={showToast}/>}
+        {nav==="applied"&&(
+          <div style={{maxWidth:1000,margin:"0 auto",padding:"24px 20px"}}>
+            <div style={{fontFamily:"'Syne',sans-serif",fontWeight:800,fontSize:28,color:"#fff",marginBottom:20}}>📋 MY APPLICATIONS</div>
+            {!user?(
+              <div style={{textAlign:"center",padding:60,background:"#0D0D1F",borderRadius:20,border:"1px solid rgba(0,229,255,.08)"}}>
+                <div style={{fontSize:48,marginBottom:12}}>📋</div>
+                <div style={{fontFamily:"'Syne',sans-serif",fontWeight:800,fontSize:22,color:"#fff",marginBottom:16}}>Sign in to track applications</div>
+                <div onClick={()=>setShowAuth(true)} style={{display:"inline-block",padding:"12px 28px",borderRadius:12,background:"linear-gradient(135deg,#00E5FF,#7C3AED)",color:"#fff",fontWeight:700,cursor:"pointer"}}>Sign In →</div>
+              </div>
+            ):appliedJobs.size===0?(
+              <div style={{textAlign:"center",padding:60,background:"#0D0D1F",borderRadius:20,border:"1px solid rgba(0,229,255,.08)"}}>
+                <div style={{fontSize:48,marginBottom:12}}>📭</div>
+                <div style={{fontFamily:"'Syne',sans-serif",fontWeight:800,fontSize:22,color:"#fff",marginBottom:8}}>No applications yet</div>
+                <div style={{color:"rgba(255,255,255,.4)",fontSize:13}}>Apply for jobs and track your status here!</div>
+              </div>
+            ):(
+              <div style={{display:"flex",flexDirection:"column",gap:12}}>
+                {jobs.filter(j=>appliedJobs.has(j.id)).map(job=>(
+                  <div key={job.id} style={{background:"#0D0D1F",borderRadius:16,padding:20,border:"1px solid rgba(0,229,255,.08)",display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:12}}>
+                    <div style={{display:"flex",gap:12,alignItems:"center"}}>
+                      <div style={{width:42,height:42,borderRadius:12,background:`linear-gradient(135deg,${job.logo_color_1||"#00E5FF"},${job.logo_color_2||"#7C3AED"})`,display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontWeight:800,fontSize:16}}>{(job.company_name||"?")[0]}</div>
+                      <div>
+                        <div style={{fontFamily:"'Syne',sans-serif",fontWeight:700,color:"#fff",fontSize:15}}>{job.title}</div>
+                        <div style={{color:"rgba(255,255,255,.4)",fontSize:12}}>{job.company_name} · {job.location}</div>
+                      </div>
+                    </div>
+                    <div style={{display:"flex",gap:8,alignItems:"center"}}>
+                      <span style={{padding:"6px 14px",borderRadius:8,background:"rgba(0,229,255,.1)",color:"#00E5FF",fontWeight:700,fontSize:11,fontFamily:"'Space Mono',monospace"}}>✓ APPLIED</span>
+                      <span style={{padding:"6px 14px",borderRadius:8,background:"rgba(255,183,0,.1)",color:"#FFB700",fontWeight:700,fontSize:11,fontFamily:"'Space Mono',monospace"}}>⏳ REVIEWING</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+        {nav==="salary"&&<SalaryInsights jobs={jobs}/>}
+        {nav==="interview"&&<MockInterview/>}
+        {nav==="skills"&&<SkillGapAnalyzer/>}
+        {nav==="profile"&&<CandidateProfile user={user} onAuthRequired={()=>setShowAuth(true)}/>}
+        {nav==="hr"&&<HRDashboard user={user} onAuthRequired={()=>setShowAuth(true)}/>}
+        {nav==="salary"&&<SalaryInsights jobs={jobs}/>}
+        {nav==="interview"&&<MockInterview/>}
+        {nav==="skills"&&<SkillGapAnalyzer/>}
+        {nav==="profile"&&<CandidateProfile user={user} onAuthRequired={()=>setShowAuth(true)}/>}
+        {nav==="hr"&&<HRDashboard user={user} onAuthRequired={()=>setShowAuth(true)}/>}
+
+        {nav==="saved"&&(
+          <div style={{maxWidth:1100,margin:"0 auto",padding:"28px 20px"}}>
+            <div style={{fontFamily:"'Syne',sans-serif",fontSize:34,color:"#fff",letterSpacing:.5,marginBottom:6}}>SAVED JOBS 🔖</div>
+            <div style={{fontSize:13,color:C.muted,marginBottom:24}}>Saved to your Supabase account · Synced across devices</div>
+            {!user ? (
+              <div style={{padding:"60px 20px",textAlign:"center",background:C.card,borderRadius:20,border:`1px solid ${C.border}`}}>
+                <div style={{fontSize:48,marginBottom:12}}>🔐</div>
+                <div style={{fontFamily:"'Syne',sans-serif",fontSize:22,color:"#fff",marginBottom:12}}>Sign In to Save Jobs</div>
+                <div onClick={()=>setShowAuth(true)} className="btn" style={{display:"inline-block",padding:"14px 32px",borderRadius:16,background:`linear-gradient(135deg,${C.lime},#00C8E0)`,color:C.bg,fontWeight:900,fontSize:15,cursor:"pointer"}}>Sign In / Create Account →</div>
+              </div>
+            ) : savedJobs.length===0 ? (
+              <div style={{padding:"60px 20px",textAlign:"center",background:C.card,borderRadius:20,border:`1px solid ${C.border}`}}>
+                <div style={{fontSize:48,marginBottom:12}}>🏷️</div>
+                <div style={{fontFamily:"'Syne',sans-serif",fontSize:22,color:"#fff",marginBottom:12}}>NO SAVED JOBS</div>
+                <div onClick={()=>setNav("jobs")} className="btn" style={{display:"inline-block",padding:"14px 32px",borderRadius:16,background:`linear-gradient(135deg,${C.lime},#00C8E0)`,color:C.bg,fontWeight:900,fontSize:15,cursor:"pointer"}}>Browse Jobs →</div>
+              </div>
+            ) : (
+              <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(320px,1fr))",gap:14}}>
+                {savedJobs.map(job=><JobCard key={job.id} job={job} onOpen={setSelectedJob} saved={true} onSave={toggleSave} user={user} onAuthRequired={()=>setShowAuth(true)}/>)}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* POST JOB MODAL */}
+        {showPost&&(
+          <div style={{position:"fixed",inset:0,zIndex:300,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
+            <div onClick={()=>{setShowPost(false);setPostDone(false);}} style={{position:"absolute",inset:0,background:"rgba(0,0,0,.85)",backdropFilter:"blur(8px)"}}/>
+            <div style={{position:"relative",background:C.surface,borderRadius:28,maxWidth:560,width:"100%",overflow:"hidden",maxHeight:"90vh",display:"flex",flexDirection:"column",border:`1px solid ${C.border}`}}>
+              <div style={{background:C.card,padding:"22px 24px",borderBottom:`1px solid ${C.border}`,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                <div>
+                  <div style={{fontFamily:"'Syne',sans-serif",fontSize:22,color:"#fff",letterSpacing:.5}}>POST A JOB — FREE</div>
+                  <div style={{fontSize:11,color:"#00E5FF",marginTop:2}}>✅ Candidates apply DIRECTLY to your HR email!</div>
+                </div>
+                <div onClick={()=>{setShowPost(false);setPostDone(false);}} className="btn" style={{width:36,height:36,borderRadius:12,background:C.surface,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",border:`1px solid ${C.border}`,color:C.muted,fontSize:18}}>✕</div>
+              </div>
+              {!postDone?(
+                <div style={{padding:24,overflowY:"auto",flex:1,display:"flex",flexDirection:"column",gap:12}}>
+                  {[["Job Title *","title","e.g. Senior React Developer"],["Company Name *","company_name","e.g. Your Company"],["Location","location","e.g. Bengaluru / Remote"],["Salary Range *","salary_range","e.g. ₹8–15 LPA"],["Contact Email *","contact_email","hr@company.com"],["Job Description","description","Describe the role..."]].map(([lb,key,ph])=>(
+                    <div key={key}>
+                      <label style={{fontSize:11,fontWeight:800,color:C.muted,display:"block",marginBottom:5,textTransform:"uppercase",letterSpacing:.6}}>{lb}</label>
+                      {key==="description"?(
+                        <textarea value={postForm[key]} onChange={e=>setPostForm(f=>({...f,[key]:e.target.value}))} placeholder={ph} className="input-z"
+                          style={{width:"100%",padding:"12px 16px",borderRadius:12,border:`1.5px solid ${C.border}`,fontSize:13,fontFamily:"'Plus Jakarta Sans',sans-serif",background:C.card,color:"#fff",height:80,resize:"none"}}/>
+                      ):(
+                        <input value={postForm[key]} onChange={e=>setPostForm(f=>({...f,[key]:e.target.value}))} placeholder={ph} className="input-z"
+                          style={{width:"100%",padding:"12px 16px",borderRadius:12,border:`1.5px solid ${C.border}`,fontSize:14,fontFamily:"'Plus Jakarta Sans',sans-serif",background:C.card,color:"#fff"}}/>
+                      )}
+                    </div>
+                  ))}
+                  <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+                    {[["Work Type","work_type",["Remote","WFH","Hybrid","In-Office"]],["Region","region",["India","USA","UK","Canada","Australia","Singapore","Global"]]].map(([lb,key,opts])=>(
+                      <div key={key}>
+                        <label style={{fontSize:11,fontWeight:800,color:C.muted,display:"block",marginBottom:5,textTransform:"uppercase",letterSpacing:.6}}>{lb}</label>
+                        <select value={postForm[key]} onChange={e=>setPostForm(f=>({...f,[key]:e.target.value}))} className="input-z"
+                          style={{width:"100%",padding:"11px 14px",borderRadius:12,border:`1.5px solid ${C.border}`,fontSize:13,fontFamily:"'Plus Jakarta Sans',sans-serif",background:C.card,color:"#fff",cursor:"pointer"}}>
+                          {opts.map(o=><option key={o}>{o}</option>)}
+                        </select>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ):(
+                <div style={{padding:40,textAlign:"center"}}>
+                  <div style={{fontSize:64,marginBottom:16}} className="float">🎊</div>
+                  <div style={{fontFamily:"'Syne',sans-serif",fontSize:26,color:"#00E5FF",letterSpacing:.5}}>JOB IS LIVE! 🎉</div>
+                  <div style={{fontSize:13,color:C.muted,margin:"12px 0 24px",lineHeight:1.8}}>
+                    ✅ Job posted on UdyamPath<br/>
+                    ✅ Alerts sent to matching candidates<br/>
+                    ✅ Applications will land directly in your HR inbox!
+                  </div>
+                </div>
+              )}
+              {!postDone&&(
+                <div style={{padding:"16px 24px 24px",borderTop:`1px solid ${C.border}`}}>
+                  <button onClick={handlePostJob} disabled={postLoading} className="btn glow-pulse"
+                    style={{width:"100%",padding:16,borderRadius:14,background:`linear-gradient(135deg,${C.lime},#00C8E0)`,color:C.bg,border:"none",fontFamily:"'Syne',sans-serif",fontSize:20,letterSpacing:1,cursor:postLoading?"not-allowed":"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:10}}>
+                    {postLoading?<><Spinner size={20} color={C.bg}/> Posting...</>:"🚀 POST JOB FREE"}
+                  </button>
+                  {!user&&<div style={{textAlign:"center",marginTop:8,fontSize:11,color:C.muted}}>You'll be asked to sign in first</div>}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* JOB DETAIL */}
+        {selectedJob&&<JobDetail job={selectedJob} onClose={()=>setSelectedJob(null)} user={user} onAuthRequired={()=>setShowAuth(true)}/>}
+
+        {/* AUTH MODAL */}
+        {showAuth&&<AuthModal onClose={()=>setShowAuth(false)} onAuth={u=>{setUser(u);showToast(`Welcome, ${u.user_metadata?.full_name||u.email}! 🎉`,"success");}}/>}
+
+        {/* TOAST */}
+        {toast&&<Toast msg={toast.msg} type={toast.type} onClose={()=>setToast(null)}/>}
+
+        {/* RESUME BUILDER */}
+        {showResumeBuilder&&<ResumeBuilder user={user} onClose={()=>setShowResumeBuilder(false)}/>}
+
+        {/* AI CHATBOT */}
+        <AIChatbot jobs={jobs} />
+
+        {/* FOOTER */}
+        <footer style={{background:"#05050A",borderTop:`1px solid ${C.border}`,padding:"32px 20px 20px",marginTop:40}}>
+          <div style={{maxWidth:1400,margin:"0 auto",display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:16}}>
+            <div style={{display:"flex",alignItems:"center",gap:10}}>
+              <div style={{width:30,height:30,borderRadius:10,background:`linear-gradient(135deg,${C.lime},#00C8E0)`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:16}}>🚀</div>
+              <div style={{fontFamily:"'Syne',sans-serif",fontSize:18,color:"#fff",letterSpacing:1}}>UDYAM PATH</div>
+            </div>
+            <div style={{fontSize:11,color:"rgba(255,255,255,.2)",textAlign:"center"}}>
+              Real-time via Supabase WebSocket · Jobs via Adzuna API · Emails via Resend · Hosted on Vercel
+              <div style={{marginTop:8,fontSize:13,color:"rgba(255,255,255,.5)"}}>
+                Made with ❤️ by <span style={{color:"#00E5FF",fontWeight:900}}>Sanjeev & Vedha Nikitha</span>
+              </div>
+            </div>
+            <div style={{display:"flex",gap:8}}>
+              <Chip color={C.lime}>Supabase ✓</Chip>
+              <Chip color={C.sky}>Adzuna API ✓</Chip>
+              <Chip color={C.gold}>Resend ✓</Chip>
+            </div>
+          </div>
+        </footer>
+      </div>
+    </>
+  );
+}
+
+/* ══════════════════════════════════════════════════
+   CANDIDATE PROFILE PAGE
+══════════════════════════════════════════════════ */
 const CandidateProfile = ({ user, onAuthRequired }) => {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -1572,606 +2180,3 @@ const HRDashboard = ({ user, onAuthRequired }) => {
     </div>
   );
 };
-
-export default function App() {
-  const [nav, setNav] = useState("jobs");
-  const [user, setUser] = useState(null);
-  const [jobs, setJobs] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [selectedJob, setSelectedJob] = useState(null);
-  const [saved, setSaved] = useState(new Set());
-  const [search, setSearch] = useState("");
-  const [region, setRegion] = useState("All");
-  const [workType, setWorkType] = useState("All");
-  const [category, setCategory] = useState("All");
-  const [expLevel, setExpLevel] = useState("All");
-  const [showAuth, setShowAuth] = useState(false);
-  const [toast, setToast] = useState(null);
-  const [liveCount, setLiveCount] = useState(0);
-  const [sortBy, setSortBy] = useState("hot");
-  const [showPost, setShowPost] = useState(false);
-  const [postForm, setPostForm] = useState({title:"",company_name:"",salary_range:"",location:"",work_type:"Remote",region:"India",category:"Tech",experience_level:"Any",description:"",contact_email:""});
-  const [postLoading, setPostLoading] = useState(false);
-  const [postDone, setPostDone] = useState(false);
-  const [darkMode, setDarkMode] = useState(true);
-  const [jobLimit, setJobLimit] = useState(100);
-  const [appliedJobs, setAppliedJobs] = useState(new Set());
-  const [hasMore, setHasMore] = useState(false);
-  const [salaryFilter, setSalaryFilter] = useState("All");
-  const [showResumeBuilder, setShowResumeBuilder] = useState(false);
-  const [userSkills, setUserSkills] = useState([]);
-
-  const showToast = (msg, type="success") => {
-    setToast({msg, type});
-    setTimeout(()=>setToast(null), 4000);
-  };
-
-  // ── Auth listener ─────────────────────────────────
-  useEffect(()=>{
-    // Handle OAuth callback from Google
-    supabase.auth.getSession().then(({data:{session}})=>{
-      setUser(session?.user||null);
-      if(session?.user) {
-        loadSavedJobs(session.user.id);
-        showToast(`Welcome ${session.user.user_metadata?.full_name||session.user.email}! 🎉`,"success");
-      }
-    });
-
-    const {data:{subscription}} = supabase.auth.onAuthStateChange((event,session)=>{
-      if(event==="SIGNED_IN") {
-        setUser(session?.user||null);
-        if(session?.user) {
-          loadSavedJobs(session.user.id);
-          setShowAuth(false);
-          showToast(`Welcome ${session.user.user_metadata?.full_name||session.user.email}! 🎉`,"success");
-        }
-      }
-      if(event==="SIGNED_OUT") {
-        setUser(null);
-        setSaved(new Set());
-      }
-      if(event==="TOKEN_REFRESHED") {
-        setUser(session?.user||null);
-      }
-    });
-    return ()=>subscription.unsubscribe();
-  },[]);
-
-  // ── Load saved jobs ───────────────────────────────
-  const loadSavedJobs = async (userId) => {
-    const {data} = await supabase.from("saved_jobs").select("job_id").eq("user_id",userId);
-    if(data) setSaved(new Set(data.map(r=>r.job_id)));
-  };
-
-  // ── Fetch jobs ─────────────────────────────────────
-  const fetchJobs = useCallback(async (limit=100) => {
-    setLoading(true);
-    try {
-      let query = supabase.from("jobs")
-        .select("id,title,company_name,salary_range,location,work_type,region,category,experience_level,skills_tags,total_seats,filled_seats,is_hot,is_new,logo_color_1,logo_color_2,posted_ago,created_at,description,apply_url")
-        .eq("is_active", true)
-        .order("is_hot", {ascending: false})
-        .order("created_at", {ascending: false})
-        .limit(limit);
-
-      if(region!=="All") query = query.eq("region", region);
-      if(workType!=="All") query = query.eq("work_type", workType);
-      if(category!=="All") query = query.eq("category", category);
-      if(expLevel!=="All") query = query.eq("experience_level", expLevel);
-      if(search) query = query.or(`title.ilike.%${search}%,company_name.ilike.%${search}%`);
-
-      const {data, error} = await query;
-      if(error) throw error;
-      setJobs(data || []);
-      setHasMore((data||[]).length >= limit);
-
-      const {count} = await supabase.from("jobs")
-        .select("*", {count:"exact", head:true})
-        .eq("is_active", true);
-      setLiveCount(count || 0);
-
-      // Load applied jobs for logged in user
-      if(user) {
-        const {data:applied} = await supabase.from("applications")
-          .select("job_id").eq("user_id", user.id);
-        if(applied) setAppliedJobs(new Set(applied.map(a=>a.job_id)));
-      }
-
-    } catch (err) {
-      console.error("Job fetch error:", err);
-      setJobs([]);
-    } finally {
-      setLoading(false);
-    }
-  },[search, region, workType, category, expLevel, user]);
-
-  useEffect(()=>{ setJobLimit(100); fetchJobs(100); },[search, region, workType, category, expLevel]);
-
-  const loadMore = () => {
-    const newLimit = jobLimit + 100;
-    setJobLimit(newLimit);
-    fetchJobs(newLimit);
-  };
-
-  // ── Real-time subscription (WebSocket) ────────────
-  useEffect(()=>{
-    // Polling every 60s instead of WebSocket (fixes Safari crash)
-    const interval = setInterval(async () => {
-      try {
-        const {count} = await supabase.from("jobs")
-          .select("*",{count:"exact",head:true})
-          .eq("is_active",true);
-        if(count) setLiveCount(count);
-      } catch(e) {}
-    }, 60000);
-    return ()=>clearInterval(interval);
-  },[]);
-
-  // ── Toggle save job ───────────────────────────────
-  const toggleSave = async (jobId) => {
-    if(!user) return setShowAuth(true);
-    const isSaved = saved.has(jobId);
-    if(isSaved) {
-      await supabase.from("saved_jobs").delete().eq("user_id",user.id).eq("job_id",jobId);
-      setSaved(prev=>{const n=new Set(prev);n.delete(jobId);return n;});
-      showToast("Job removed from saved","error");
-    } else {
-      await supabase.from("saved_jobs").insert({user_id:user.id,job_id:jobId});
-      setSaved(prev=>new Set([...prev,jobId]));
-      showToast("💾 Job saved!","success");
-    }
-  };
-
-  // ── Post a job ────────────────────────────────────
-  const handlePostJob = async () => {
-    if(!user) return setShowAuth(true);
-    if(!postForm.title||!postForm.company_name||!postForm.salary_range) return showToast("Fill required fields","error");
-    setPostLoading(true);
-    try {
-      const {error} = await supabase.from("jobs").insert({
-        ...postForm,
-        posted_by: user.id,
-        is_active: true,
-        is_hot: false,
-        is_new: true,
-        filled_seats: 0,
-        total_seats: 10,
-        skills_tags: [],
-        logo_color_1: "#00E5FF",
-        logo_color_2: "#00C8E0",
-      });
-      if(error) throw error;
-
-      // Trigger alerts for matching users
-      await fetch("/api/trigger-alerts",{
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body: JSON.stringify({title:postForm.title,company:postForm.company_name,region:postForm.region,workType:postForm.work_type}),
-      });
-
-      setPostDone(true);
-      showToast("🎉 Job posted! Alerts sent to matching users.","success");
-    } catch(err) {
-      showToast(err.message,"error");
-    } finally { setPostLoading(false); }
-  };
-
-  // ── Sign out ──────────────────────────────────────
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    setUser(null);
-    setSaved(new Set());
-    showToast("Signed out successfully","success");
-  };
-
-  // ── Filter jobs ───────────────────────────────────
-  const liveJobs  = jobs.filter(j=>!j.filled_seats||(j.filled_seats<(j.total_seats||10))).filter(j=>{
-    if(salaryFilter==="All") return true;
-    const s = (j.salary_range||"").toLowerCase();
-    if(salaryFilter==="Competitive") return s.includes("competitive");
-    if(salaryFilter==="0–3 LPA") return s.includes("₹") && (s.includes("0") || s.includes("1") || s.includes("2") || s.includes("3"));
-    if(salaryFilter==="3–6 LPA") return s.includes("₹") && (s.includes("3") || s.includes("4") || s.includes("5") || s.includes("6"));
-    if(salaryFilter==="6–10 LPA") return s.includes("₹") && (s.includes("6") || s.includes("7") || s.includes("8") || s.includes("9") || s.includes("10"));
-    if(salaryFilter==="10–20 LPA") return s.includes("₹") && parseInt(s.match(/\d+/)?.[0]||0) >= 10;
-    if(salaryFilter==="20+ LPA") return s.includes("₹") && parseInt(s.match(/\d+/)?.[0]||0) >= 20;
-    return true;
-  });
-  const filledJobs = jobs.filter(j=>j.filled_seats>=(j.total_seats||10));
-  const savedJobs  = jobs.filter(j=>saved.has(j.id));
-
-  const NAV = [
-    {id:"jobs",icon:"💼",label:"Jobs"},
-    {id:"salary",icon:"📊",label:"Salary"},
-    {id:"interview",icon:"🎤",label:"Interview"},
-    {id:"skills",icon:"🏆",label:"Skills"},
-    {id:"alerts",icon:"🔔",label:"Alerts"},
-    {id:"saved",icon:"🔖",label:`Saved (${saved.size})`},
-    {id:"profile",icon:"👤",label:"Profile"},
-    {id:"hr",icon:"🏢",label:"HR"},
-  ];
-
-  return (
-    <>
-      <Styles/>
-      <div style={{minHeight:"100vh",background:C.bg,color:"#F0F0FF",fontFamily:"'Plus Jakarta Sans',sans-serif"}}>
-
-        {/* NAVBAR */}
-        <nav style={{background:C.surface,borderBottom:`1px solid ${C.border}`,position:"sticky",top:0,zIndex:100,boxShadow:"0 4px 30px rgba(0,0,0,.3)"}}>
-          <div style={{maxWidth:1400,margin:"0 auto",padding:"0 20px",display:"flex",alignItems:"center",height:64,gap:20}}>
-            <div style={{display:"flex",alignItems:"center",gap:10,cursor:"pointer",flexShrink:0}} onClick={()=>setNav("jobs")}>
-              <div style={{width:38,height:38,borderRadius:12,background:`linear-gradient(135deg,${C.lime},#00C8E0)`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,boxShadow:`0 4px 16px ${C.lime}30`}}>🚀</div>
-              <div>
-                <div style={{fontFamily:"'Syne',sans-serif",fontSize:20,color:"#fff",letterSpacing:1,lineHeight:1}}>UDYAM PATH</div>
-                <div style={{fontSize:8,color:C.lime,letterSpacing:1.5,textTransform:"uppercase",fontWeight:700}}>Real-Time · उद्यम पथ</div>
-              </div>
-            </div>
-
-            {/* Live indicator */}
-            <div style={{display:"flex",alignItems:"center",gap:6,padding:"5px 12px",borderRadius:999,background:`${C.lime}12`,border:`1px solid ${C.lime}25`,flexShrink:0}}>
-              <div style={{width:6,height:6,borderRadius:"50%",background:C.lime,animation:"pulse 1.5s infinite"}}/>
-              <span style={{fontSize:11,fontWeight:800,color:C.lime,fontFamily:"'Space Mono',monospace"}}>{liveCount.toLocaleString("en-IN")} LIVE</span>
-            </div>
-
-            {/* Nav */}
-            <div style={{display:"flex",gap:4,flex:1,justifyContent:"center"}}>
-              {NAV.map(item=>(
-                <div key={item.id} onClick={()=>setNav(item.id)} className={`btn ${nav===item.id?"nav-active":""}`}
-                  style={{padding:"8px 16px",borderRadius:10,fontSize:13,fontWeight:800,color:nav===item.id?C.lime:"rgba(255,255,255,.4)",background:nav===item.id?`${C.lime}10`:"transparent",display:"flex",alignItems:"center",gap:6,transition:"all .2s"}}>
-                  <span>{item.icon}</span><span>{item.label}</span>
-                </div>
-              ))}
-            </div>
-
-            {/* Auth + Post */}
-            <div style={{display:"flex",gap:10,alignItems:"center",flexShrink:0}}>
-              {user ? (
-                <div style={{display:"flex",gap:10,alignItems:"center"}}>
-                  <div style={{width:34,height:34,borderRadius:10,background:`linear-gradient(135deg,${C.lime},#00C8E0)`,display:"flex",alignItems:"center",justifyContent:"center",color:C.bg,fontWeight:900,fontSize:14}}>
-                    {(user.user_metadata?.full_name||user.email||"U")[0].toUpperCase()}
-                  </div>
-                  <div onClick={handleSignOut} className="btn" style={{padding:"8px 14px",borderRadius:10,background:C.card,border:`1px solid ${C.border}`,fontSize:11,fontWeight:700,color:C.muted}}>Sign Out</div>
-                </div>
-              ) : (
-                <div onClick={()=>setShowAuth(true)} className="btn" style={{padding:"10px 20px",borderRadius:12,background:C.card,border:`1px solid ${C.border}`,fontSize:13,fontWeight:800,color:"rgba(255,255,255,.6)"}}>Sign In</div>
-              )}
-              <button onClick={()=>setShowPost(true)} className="btn glow-pulse"
-                style={{padding:"10px 18px",borderRadius:12,background:`linear-gradient(135deg,${C.lime},#00C8E0)`,color:C.bg,border:"none",fontWeight:900,fontSize:12,cursor:"pointer",letterSpacing:.5}}>
-                + POST JOB FREE
-              </button>
-            </div>
-          </div>
-        </nav>
-
-        {/* TICKER */}
-        <div style={{background:`${C.lime}10`,borderBottom:`1px solid ${C.lime}12`,padding:"8px 0",overflow:"hidden"}}>
-          <div className="marquee-inner">
-            {[...Array(2)].map((_,rep)=>(
-              ["🔴 LIVE: Jobs auto-removed when filled","⚡ Real-time WebSocket updates","📧 Real email alerts via Resend","🌍 India + International jobs via Adzuna API","🔔 Set alert — get emailed instantly on new jobs","✅ Applications saved to Supabase database"].map((t,i)=>(
-                <span key={`${rep}-${i}`} style={{marginRight:60,fontSize:11,fontWeight:700,color:i%2===0?C.lime:C.gold,whiteSpace:"nowrap"}}>{t}</span>
-              ))
-            ))}
-          </div>
-        </div>
-
-        {/* PAGES */}
-        {nav==="jobs"&&(
-          <>
-            {/* Hero */}
-            <div style={{background:`linear-gradient(135deg,${C.bg},#0D1520,${C.bg})`,padding:"60px 20px 48px",position:"relative",overflow:"hidden"}} className="grid-pattern">
-              <div style={{position:"absolute",top:-100,right:-100,width:400,height:400,borderRadius:"50%",background:`radial-gradient(circle,${C.lime}08,transparent)`,filter:"blur(60px)"}}/>
-              <div style={{maxWidth:860,margin:"0 auto",textAlign:"center",position:"relative"}}>
-                <div className="fu" style={{display:"inline-flex",alignItems:"center",gap:8,padding:"6px 16px",borderRadius:999,background:`${C.lime}12`,border:`1px solid ${C.lime}25`,marginBottom:20}}>
-                  <div style={{width:8,height:8,borderRadius:"50%",background:C.lime,animation:"pulse 1s infinite"}}/>
-                  <span style={{fontSize:11,fontWeight:900,color:C.lime,letterSpacing:1}}>REAL-TIME · JOBS UPDATE LIVE · AUTO-REMOVED WHEN FILLED</span>
-                </div>
-                <h1 className="fu1" style={{fontFamily:"'Syne',sans-serif",fontSize:"clamp(40px,8vw,76px)",color:"#fff",lineHeight:1,letterSpacing:2,marginBottom:16}}>
-                  YOUR DREAM JOB<br/><span style={{color:C.lime}}>STARTS RIGHT NOW</span>
-                </h1>
-                <p className="fu2" style={{fontSize:15,color:"rgba(255,255,255,.45)",margin:"0 auto 36px",maxWidth:580,lineHeight:1.9}}>
-                  Real jobs from Adzuna API · Real applications saved to database<br/>Real email alerts when jobs match · Real-time WebSocket updates
-                </p>
-                <div className="fu3" style={{display:"flex",gap:0,background:C.card,borderRadius:20,padding:5,boxShadow:`0 20px 80px rgba(0,0,0,.4)`,maxWidth:640,margin:"0 auto 20px",border:`1px solid ${C.border}`}}>
-                  <div style={{flex:1,display:"flex",alignItems:"center",gap:12,padding:"8px 16px"}}>
-                    <span style={{fontSize:18}}>🔍</span>
-                    <input value={search} onChange={e=>setSearch(e.target.value)} onKeyDown={e=>e.key==="Enter"&&fetchJobs()}
-                      placeholder="Search jobs, companies, skills..."
-                      className="input-z"
-                      style={{border:"none",background:"transparent",fontSize:15,fontFamily:"'Plus Jakarta Sans',sans-serif",color:"#fff",width:"100%",outline:"none"}}/>
-                  </div>
-                  <button onClick={fetchJobs} className="btn" style={{padding:"14px 28px",borderRadius:16,background:`linear-gradient(135deg,${C.lime},#00C8E0)`,color:C.bg,border:"none",fontWeight:900,fontSize:15,fontFamily:"'Plus Jakarta Sans',sans-serif",cursor:"pointer"}}>SEARCH</button>
-                </div>
-                <div className="fu3" style={{display:"flex",gap:8,justifyContent:"center",flexWrap:"wrap"}}>
-                  {["🔥 Fresher","🌍 Remote","🏠 WFH","💰 High Salary","🤖 AI / ML","🚀 Startup"].map(tag=>(
-                    <div key={tag} onClick={()=>{setSearch(tag.split(" ").slice(1).join(" "));fetchJobs();}} className="btn"
-                      style={{padding:"7px 16px",borderRadius:999,background:"rgba(255,255,255,.05)",border:`1px solid rgba(255,255,255,.1)`,color:"rgba(255,255,255,.5)",fontSize:12,fontWeight:700}}>
-                      {tag}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Stats */}
-            <div style={{background:C.surface,borderBottom:`1px solid ${C.border}`,padding:"14px 20px"}}>
-              <div style={{maxWidth:1400,margin:"0 auto",display:"flex",gap:32,justifyContent:"center",flexWrap:"wrap"}}>
-                {[["💼",liveJobs.length,"Live Jobs",C.lime],["📫",filledJobs.length,"Filled Today",C.coral],["🔖",saved.size,"Saved",C.gold],["⚡","Live","WebSocket",C.sky]].map(([ic,val,lb,c])=>(
-                  <div key={lb} style={{textAlign:"center"}}>
-                    <div style={{fontFamily:"'Syne',sans-serif",fontSize:22,color:c,letterSpacing:.5}}>{ic} {val}</div>
-                    <div style={{fontSize:10,color:"rgba(255,255,255,.25)",textTransform:"uppercase",letterSpacing:.6}}>{lb}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div style={{maxWidth:1400,margin:"0 auto",padding:"24px 20px"}}>
-              {/* Filters */}
-              <div style={{background:C.card,borderRadius:20,padding:18,border:`1px solid ${C.border}`,marginBottom:24}}>
-                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14,flexWrap:"wrap",gap:8}}>
-                  <div style={{fontWeight:800,fontSize:14,color:"rgba(255,255,255,.6)"}}>🎛️ Filter</div>
-                  <div style={{display:"flex",gap:10,alignItems:"center"}}>
-                    {[region,workType,category,expLevel].some(f=>f!=="All")&&
-                      <span onClick={()=>{setRegion("All");setWorkType("All");setCategory("All");setExpLevel("All");}} style={{fontSize:12,color:C.coral,fontWeight:800,cursor:"pointer"}}>Clear ×</span>}
-                    <select value={sortBy} onChange={e=>setSortBy(e.target.value)} style={{padding:"7px 12px",borderRadius:10,border:`1px solid ${C.border}`,fontSize:12,fontWeight:700,color:"#fff",fontFamily:"'Plus Jakarta Sans',sans-serif",background:C.surface,cursor:"pointer"}}>
-                      <option value="hot">🔥 Hot</option><option value="new">🆕 Newest</option><option value="seats">📊 Seats</option>
-                    </select>
-                  </div>
-                </div>
-                <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(150px,1fr))",gap:10}}>
-                  {[{lb:"Region",opts:["All","India","USA","UK","Canada","Australia","Singapore","Remote – Global"],val:region,set:setRegion},
-                    {lb:"Work Type",opts:["All","Remote","WFH","Hybrid","In-Office","Freelance"],val:workType,set:setWorkType},
-                    {lb:"Category",opts:["All","Tech","Data","Product","Design","Marketing","Sales","HR","Content","Operations"],val:category,set:setCategory},
-                    {lb:"Experience",opts:["All","Fresher","0–2 yrs","2–5 yrs","5–10 yrs","10+ yrs"],val:expLevel,set:setExpLevel},
-                    {lb:"💰 Salary",opts:["All","0–3 LPA","3–6 LPA","6–10 LPA","10–20 LPA","20+ LPA","Competitive"],val:salaryFilter,set:setSalaryFilter}].map(f=>(
-                    <div key={f.lb}>
-                      <div style={{fontSize:10,fontWeight:800,color:"rgba(255,255,255,.25)",marginBottom:5,textTransform:"uppercase",letterSpacing:.6}}>{f.lb}</div>
-                      <select value={f.val} onChange={e=>f.set(e.target.value)} className="input-z"
-                        style={{width:"100%",padding:"9px 12px",borderRadius:11,border:`1.5px solid ${f.val!=="All"?C.lime:C.border}`,fontSize:12,fontWeight:700,fontFamily:"'Plus Jakarta Sans',sans-serif",background:f.val!=="All"?`${C.lime}08`:C.surface,color:f.val!=="All"?C.lime:"rgba(255,255,255,.5)",cursor:"pointer",transition:"all .2s"}}>
-                        {f.opts.map(o=><option key={o}>{o}</option>)}
-                      </select>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Job Grid */}
-              <div style={{fontFamily:"'Syne',sans-serif",fontSize:24,color:"#fff",letterSpacing:.5,marginBottom:16}}>
-                {loading?"LOADING LIVE JOBS...":`${liveJobs.length} LIVE JOBS`}
-                <span style={{fontSize:11,fontFamily:"'Plus Jakarta Sans',sans-serif",fontWeight:600,letterSpacing:0,color:"rgba(255,255,255,.25)",marginLeft:12}}>
-                  {loading?"Fetching from Adzuna API + Database...":"From Adzuna API + Database · Auto-updates via WebSocket"}
-                </span>
-              </div>
-
-              {loading ? (
-                <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(320px,1fr))",gap:14}}>
-                  {[...Array(8)].map((_,i)=><SkeletonCard key={i}/>)}
-                </div>
-              ) : liveJobs.length > 0 ? (
-                <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(320px,1fr))",gap:14,marginBottom:24}}>
-                  {liveJobs.map((job,i)=>(
-                    <div key={job.id} className="fu" style={{animationDelay:`${Math.min(i*.04,.4)}s`}}>
-                      <JobCard job={job} onOpen={setSelectedJob} saved={saved.has(job.id)} onSave={toggleSave} user={user} onAuthRequired={()=>setShowAuth(true)} isApplied={appliedJobs.has(job.id)} isFeatured={job.is_featured} userSkills={userSkills}/>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div style={{padding:"60px 20px",textAlign:"center",background:C.card,borderRadius:20,border:`1px solid ${C.border}`,marginBottom:24}}>
-                  <div style={{fontSize:48,marginBottom:12}}>🔍</div>
-                  <div style={{fontFamily:"'Syne',sans-serif",fontSize:22,color:"#fff",marginBottom:12}}>No Jobs Found</div>
-                  <div onClick={()=>{setSearch("");setRegion("All");setWorkType("All");setCategory("All");setExpLevel("All");fetchJobs();}} className="btn" style={{display:"inline-block",padding:"12px 28px",borderRadius:14,background:`linear-gradient(135deg,${C.lime},#00C8E0)`,color:C.bg,fontWeight:900,fontSize:14,cursor:"pointer"}}>Clear Filters & Reload</div>
-                </div>
-              )}
-
-              {/* Load More Button */}
-              {hasMore && liveJobs.length > 0 && (
-                <div style={{textAlign:"center",marginBottom:24}}>
-                  <div onClick={loadMore} className="btn" style={{
-                    display:"inline-flex",alignItems:"center",gap:10,
-                    padding:"14px 36px",borderRadius:16,
-                    background:`linear-gradient(135deg,${C.lime},#00C8E0)`,
-                    color:C.bg,fontWeight:900,fontSize:16,
-                    fontFamily:"'Syne',sans-serif",letterSpacing:1,
-                    cursor:"pointer",boxShadow:`0 4px 20px ${C.lime}30`
-                  }}>
-                    📋 LOAD MORE JOBS
-                  </div>
-                  <div style={{fontSize:12,color:C.muted,marginTop:8}}>Showing {liveJobs.length} of {liveCount} jobs</div>
-                </div>
-              )}
-
-              {/* Filled Jobs */}
-              {filledJobs.length>0&&(
-                <>
-                  <div style={{fontFamily:"'Syne',sans-serif",fontSize:18,color:"rgba(255,77,109,.5)",letterSpacing:.5,marginBottom:12}}>
-                    POSITIONS FILLED ({filledJobs.length}) — Auto-removed from active listings
-                  </div>
-                  <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(320px,1fr))",gap:14,marginBottom:24}}>
-                    {filledJobs.map(job=><JobCard key={job.id} job={job} onOpen={()=>{}} saved={saved.has(job.id)} onSave={toggleSave} user={user} onAuthRequired={()=>setShowAuth(true)}/>)}
-                  </div>
-                </>
-              )}
-
-              {/* Alert CTA */}
-              <div style={{background:`linear-gradient(135deg,rgba(170,255,0,.06),rgba(56,189,248,.04))`,border:`1px solid ${C.lime}20`,borderRadius:24,padding:"28px 32px",display:"flex",gap:24,alignItems:"center",flexWrap:"wrap"}}>
-                <div style={{fontSize:44}} className="float">🔔</div>
-                <div style={{flex:1,minWidth:220}}>
-                  <div style={{fontFamily:"'Syne',sans-serif",fontSize:22,color:"#fff",letterSpacing:.5}}>REAL EMAIL ALERTS — FREE</div>
-                  <div style={{fontSize:13,color:C.muted,marginTop:4}}>Get emailed the instant a matching job is posted. Powered by Resend.</div>
-                </div>
-                <div onClick={()=>setNav("alerts")} className="btn glow-pulse" style={{padding:"14px 28px",borderRadius:14,background:`linear-gradient(135deg,${C.lime},#00C8E0)`,color:C.bg,fontWeight:900,fontSize:14,cursor:"pointer"}}>Set Alert Free →</div>
-              </div>
-            </div>
-          </>
-        )}
-
-        {nav==="alerts"&&<AlertSetup user={user} onAuthRequired={()=>setShowAuth(true)} onToast={showToast}/>}
-        {nav==="applied"&&(
-          <div style={{maxWidth:1000,margin:"0 auto",padding:"24px 20px"}}>
-            <div style={{fontFamily:"'Syne',sans-serif",fontWeight:800,fontSize:28,color:"#fff",marginBottom:20}}>📋 MY APPLICATIONS</div>
-            {!user?(
-              <div style={{textAlign:"center",padding:60,background:"#0D0D1F",borderRadius:20,border:"1px solid rgba(0,229,255,.08)"}}>
-                <div style={{fontSize:48,marginBottom:12}}>📋</div>
-                <div style={{fontFamily:"'Syne',sans-serif",fontWeight:800,fontSize:22,color:"#fff",marginBottom:16}}>Sign in to track applications</div>
-                <div onClick={()=>setShowAuth(true)} style={{display:"inline-block",padding:"12px 28px",borderRadius:12,background:"linear-gradient(135deg,#00E5FF,#7C3AED)",color:"#fff",fontWeight:700,cursor:"pointer"}}>Sign In →</div>
-              </div>
-            ):appliedJobs.size===0?(
-              <div style={{textAlign:"center",padding:60,background:"#0D0D1F",borderRadius:20,border:"1px solid rgba(0,229,255,.08)"}}>
-                <div style={{fontSize:48,marginBottom:12}}>📭</div>
-                <div style={{fontFamily:"'Syne',sans-serif",fontWeight:800,fontSize:22,color:"#fff",marginBottom:8}}>No applications yet</div>
-                <div style={{color:"rgba(255,255,255,.4)",fontSize:13}}>Apply for jobs and track your status here!</div>
-              </div>
-            ):(
-              <div style={{display:"flex",flexDirection:"column",gap:12}}>
-                {jobs.filter(j=>appliedJobs.has(j.id)).map(job=>(
-                  <div key={job.id} style={{background:"#0D0D1F",borderRadius:16,padding:20,border:"1px solid rgba(0,229,255,.08)",display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:12}}>
-                    <div style={{display:"flex",gap:12,alignItems:"center"}}>
-                      <div style={{width:42,height:42,borderRadius:12,background:`linear-gradient(135deg,${job.logo_color_1||"#00E5FF"},${job.logo_color_2||"#7C3AED"})`,display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontWeight:800,fontSize:16}}>{(job.company_name||"?")[0]}</div>
-                      <div>
-                        <div style={{fontFamily:"'Syne',sans-serif",fontWeight:700,color:"#fff",fontSize:15}}>{job.title}</div>
-                        <div style={{color:"rgba(255,255,255,.4)",fontSize:12}}>{job.company_name} · {job.location}</div>
-                      </div>
-                    </div>
-                    <div style={{display:"flex",gap:8,alignItems:"center"}}>
-                      <span style={{padding:"6px 14px",borderRadius:8,background:"rgba(0,229,255,.1)",color:"#00E5FF",fontWeight:700,fontSize:11,fontFamily:"'Space Mono',monospace"}}>✓ APPLIED</span>
-                      <span style={{padding:"6px 14px",borderRadius:8,background:"rgba(255,183,0,.1)",color:"#FFB700",fontWeight:700,fontSize:11,fontFamily:"'Space Mono',monospace"}}>⏳ REVIEWING</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-        {nav==="salary"&&<SalaryInsights jobs={jobs}/>}
-        {nav==="interview"&&<MockInterview/>}
-        {nav==="skills"&&<SkillGapAnalyzer/>}
-        {nav==="profile"&&<CandidateProfile user={user} onAuthRequired={()=>setShowAuth(true)}/>}
-        {nav==="hr"&&<HRDashboard user={user} onAuthRequired={()=>setShowAuth(true)}/>}
-
-        {nav==="saved"&&(
-          <div style={{maxWidth:1100,margin:"0 auto",padding:"28px 20px"}}>
-            <div style={{fontFamily:"'Syne',sans-serif",fontSize:34,color:"#fff",letterSpacing:.5,marginBottom:6}}>SAVED JOBS 🔖</div>
-            <div style={{fontSize:13,color:C.muted,marginBottom:24}}>Saved to your Supabase account · Synced across devices</div>
-            {!user ? (
-              <div style={{padding:"60px 20px",textAlign:"center",background:C.card,borderRadius:20,border:`1px solid ${C.border}`}}>
-                <div style={{fontSize:48,marginBottom:12}}>🔐</div>
-                <div style={{fontFamily:"'Syne',sans-serif",fontSize:22,color:"#fff",marginBottom:12}}>Sign In to Save Jobs</div>
-                <div onClick={()=>setShowAuth(true)} className="btn" style={{display:"inline-block",padding:"14px 32px",borderRadius:16,background:`linear-gradient(135deg,${C.lime},#00C8E0)`,color:C.bg,fontWeight:900,fontSize:15,cursor:"pointer"}}>Sign In / Create Account →</div>
-              </div>
-            ) : savedJobs.length===0 ? (
-              <div style={{padding:"60px 20px",textAlign:"center",background:C.card,borderRadius:20,border:`1px solid ${C.border}`}}>
-                <div style={{fontSize:48,marginBottom:12}}>🏷️</div>
-                <div style={{fontFamily:"'Syne',sans-serif",fontSize:22,color:"#fff",marginBottom:12}}>NO SAVED JOBS</div>
-                <div onClick={()=>setNav("jobs")} className="btn" style={{display:"inline-block",padding:"14px 32px",borderRadius:16,background:`linear-gradient(135deg,${C.lime},#00C8E0)`,color:C.bg,fontWeight:900,fontSize:15,cursor:"pointer"}}>Browse Jobs →</div>
-              </div>
-            ) : (
-              <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(320px,1fr))",gap:14}}>
-                {savedJobs.map(job=><JobCard key={job.id} job={job} onOpen={setSelectedJob} saved={true} onSave={toggleSave} user={user} onAuthRequired={()=>setShowAuth(true)}/>)}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* POST JOB MODAL */}
-        {showPost&&(
-          <div style={{position:"fixed",inset:0,zIndex:300,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
-            <div onClick={()=>{setShowPost(false);setPostDone(false);}} style={{position:"absolute",inset:0,background:"rgba(0,0,0,.85)",backdropFilter:"blur(8px)"}}/>
-            <div style={{position:"relative",background:C.surface,borderRadius:28,maxWidth:560,width:"100%",overflow:"hidden",maxHeight:"90vh",display:"flex",flexDirection:"column",border:`1px solid ${C.border}`}}>
-              <div style={{background:C.card,padding:"22px 24px",borderBottom:`1px solid ${C.border}`,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                <div>
-                  <div style={{fontFamily:"'Syne',sans-serif",fontSize:22,color:"#fff",letterSpacing:.5}}>POST A JOB — FREE</div>
-                  <div style={{fontSize:11,color:"#00E5FF",marginTop:2}}>✅ Candidates apply DIRECTLY to your HR email!</div>
-                </div>
-                <div onClick={()=>{setShowPost(false);setPostDone(false);}} className="btn" style={{width:36,height:36,borderRadius:12,background:C.surface,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",border:`1px solid ${C.border}`,color:C.muted,fontSize:18}}>✕</div>
-              </div>
-              {!postDone?(
-                <div style={{padding:24,overflowY:"auto",flex:1,display:"flex",flexDirection:"column",gap:12}}>
-                  {[["Job Title *","title","e.g. Senior React Developer"],["Company Name *","company_name","e.g. Your Company"],["Location","location","e.g. Bengaluru / Remote"],["Salary Range *","salary_range","e.g. ₹8–15 LPA"],["Contact Email *","contact_email","hr@company.com"],["Job Description","description","Describe the role..."]].map(([lb,key,ph])=>(
-                    <div key={key}>
-                      <label style={{fontSize:11,fontWeight:800,color:C.muted,display:"block",marginBottom:5,textTransform:"uppercase",letterSpacing:.6}}>{lb}</label>
-                      {key==="description"?(
-                        <textarea value={postForm[key]} onChange={e=>setPostForm(f=>({...f,[key]:e.target.value}))} placeholder={ph} className="input-z"
-                          style={{width:"100%",padding:"12px 16px",borderRadius:12,border:`1.5px solid ${C.border}`,fontSize:13,fontFamily:"'Plus Jakarta Sans',sans-serif",background:C.card,color:"#fff",height:80,resize:"none"}}/>
-                      ):(
-                        <input value={postForm[key]} onChange={e=>setPostForm(f=>({...f,[key]:e.target.value}))} placeholder={ph} className="input-z"
-                          style={{width:"100%",padding:"12px 16px",borderRadius:12,border:`1.5px solid ${C.border}`,fontSize:14,fontFamily:"'Plus Jakarta Sans',sans-serif",background:C.card,color:"#fff"}}/>
-                      )}
-                    </div>
-                  ))}
-                  <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
-                    {[["Work Type","work_type",["Remote","WFH","Hybrid","In-Office"]],["Region","region",["India","USA","UK","Canada","Australia","Singapore","Global"]]].map(([lb,key,opts])=>(
-                      <div key={key}>
-                        <label style={{fontSize:11,fontWeight:800,color:C.muted,display:"block",marginBottom:5,textTransform:"uppercase",letterSpacing:.6}}>{lb}</label>
-                        <select value={postForm[key]} onChange={e=>setPostForm(f=>({...f,[key]:e.target.value}))} className="input-z"
-                          style={{width:"100%",padding:"11px 14px",borderRadius:12,border:`1.5px solid ${C.border}`,fontSize:13,fontFamily:"'Plus Jakarta Sans',sans-serif",background:C.card,color:"#fff",cursor:"pointer"}}>
-                          {opts.map(o=><option key={o}>{o}</option>)}
-                        </select>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ):(
-                <div style={{padding:40,textAlign:"center"}}>
-                  <div style={{fontSize:64,marginBottom:16}} className="float">🎊</div>
-                  <div style={{fontFamily:"'Syne',sans-serif",fontSize:26,color:"#00E5FF",letterSpacing:.5}}>JOB IS LIVE! 🎉</div>
-                  <div style={{fontSize:13,color:C.muted,margin:"12px 0 24px",lineHeight:1.8}}>
-                    ✅ Job posted on UdyamPath<br/>
-                    ✅ Alerts sent to matching candidates<br/>
-                    ✅ Applications will land directly in your HR inbox!
-                  </div>
-                </div>
-              )}
-              {!postDone&&(
-                <div style={{padding:"16px 24px 24px",borderTop:`1px solid ${C.border}`}}>
-                  <button onClick={handlePostJob} disabled={postLoading} className="btn glow-pulse"
-                    style={{width:"100%",padding:16,borderRadius:14,background:`linear-gradient(135deg,${C.lime},#00C8E0)`,color:C.bg,border:"none",fontFamily:"'Syne',sans-serif",fontSize:20,letterSpacing:1,cursor:postLoading?"not-allowed":"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:10}}>
-                    {postLoading?<><Spinner size={20} color={C.bg}/> Posting...</>:"🚀 POST JOB FREE"}
-                  </button>
-                  {!user&&<div style={{textAlign:"center",marginTop:8,fontSize:11,color:C.muted}}>You'll be asked to sign in first</div>}
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* JOB DETAIL */}
-        {selectedJob&&<JobDetail job={selectedJob} onClose={()=>setSelectedJob(null)} user={user} onAuthRequired={()=>setShowAuth(true)}/>}
-
-        {/* AUTH MODAL */}
-        {showAuth&&<AuthModal onClose={()=>setShowAuth(false)} onAuth={u=>{setUser(u);showToast(`Welcome, ${u.user_metadata?.full_name||u.email}! 🎉`,"success");}}/>}
-
-        {/* TOAST */}
-        {toast&&<Toast msg={toast.msg} type={toast.type} onClose={()=>setToast(null)}/>}
-
-        {/* RESUME BUILDER */}
-        {showResumeBuilder&&<ResumeBuilder user={user} onClose={()=>setShowResumeBuilder(false)}/>}
-
-        {/* AI CHATBOT */}
-        <AIChatbot jobs={jobs} />
-
-        {/* FOOTER */}
-        <footer style={{background:"#05050A",borderTop:`1px solid ${C.border}`,padding:"32px 20px 20px",marginTop:40}}>
-          <div style={{maxWidth:1400,margin:"0 auto",display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:16}}>
-            <div style={{display:"flex",alignItems:"center",gap:10}}>
-              <div style={{width:30,height:30,borderRadius:10,background:`linear-gradient(135deg,${C.lime},#00C8E0)`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:16}}>🚀</div>
-              <div style={{fontFamily:"'Syne',sans-serif",fontSize:18,color:"#fff",letterSpacing:1}}>UDYAM PATH</div>
-            </div>
-            <div style={{fontSize:11,color:"rgba(255,255,255,.2)",textAlign:"center"}}>
-              Real-time via Supabase WebSocket · Jobs via Adzuna API · Emails via Resend · Hosted on Vercel
-              <div style={{marginTop:8,fontSize:13,color:"rgba(255,255,255,.5)"}}>
-                Made with ❤️ by <span style={{color:"#00E5FF",fontWeight:900}}>Sanjeev & Vedha Nikitha</span>
-              </div>
-            </div>
-            <div style={{display:"flex",gap:8}}>
-              <Chip color={C.lime}>Supabase ✓</Chip>
-              <Chip color={C.sky}>Adzuna API ✓</Chip>
-              <Chip color={C.gold}>Resend ✓</Chip>
-            </div>
-          </div>
-        </footer>
-      </div>
-    </>
-  );
-}
-
-/* ══════════════════════════════════════════════════
-   CANDIDATE PROFILE PAGE
-══════════════════════════════════════════════════ */
