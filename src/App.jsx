@@ -351,8 +351,12 @@ const JobCard = ({job, onOpen, saved, onSave, user, onAuthRequired, isApplied, i
             background:"linear-gradient(135deg,#00E5FF,#7C3AED)",
             color:"#fff",fontWeight:700,fontSize:11,fontFamily:"'Syne',sans-serif",
             letterSpacing:.3,boxShadow:"0 4px 16px rgba(0,229,255,.2)"
-          }} onClick={e=>{e.stopPropagation();onOpen(job);}}>
-            APPLY →
+          }} onClick={e=>{e.stopPropagation();
+            if(job.contact_email){onOpen(job);}
+            else if(job.apply_url){window.open(job.apply_url,"_blank");}
+            else{onOpen(job);}
+          }}>
+            {job.contact_email ? "APPLY →" : "APPLY ↗"}
           </div>
         )}
       </div>
@@ -448,12 +452,6 @@ const JobDetail = ({job, onClose, user, onAuthRequired}) => {
       }
 
       setApplied(true);
-      // Auto-open company apply page after 2 seconds
-      if (job.apply_url) {
-        setTimeout(() => {
-          window.open(job.apply_url, "_blank");
-        }, 2000);
-      }
     } catch (err) {
       console.error(err);
     } finally { setLoading(false); }
@@ -519,7 +517,25 @@ const JobDetail = ({job, onClose, user, onAuthRequired}) => {
           {/* Application Form */}
           {!applied ? (
             <div style={{background:C.card,borderRadius:20,padding:20,border:`1px solid ${C.border}`}}>
-              <div style={{fontFamily:"'Syne',sans-serif",fontSize:18,color:"#fff",letterSpacing:.5,marginBottom:16}}>APPLY NOW — FREE</div>
+              <div style={{fontFamily:"'Syne',sans-serif",fontSize:18,color:"#fff",letterSpacing:.5,marginBottom:16}}>
+                {job.contact_email ? "APPLY NOW — FREE" : "APPLY ON COMPANY SITE"}
+              </div>
+              {!job.contact_email && job.apply_url && (
+                <div style={{marginBottom:16}}>
+                  <div style={{fontSize:13,color:"rgba(255,255,255,.4)",marginBottom:16,lineHeight:1.7}}>
+                    This job is sourced from Adzuna. Click below to apply directly on the company's official website.
+                  </div>
+                  <button onClick={()=>window.open(job.apply_url,"_blank")} className="btn"
+                    style={{width:"100%",padding:"14px",borderRadius:14,background:"linear-gradient(135deg,#00E5FF,#7C3AED)",
+                      color:"#fff",fontWeight:900,fontSize:15,border:"none",cursor:"pointer",letterSpacing:.5}}>
+                    Apply on Company Site ↗
+                  </button>
+                  <div style={{fontSize:11,color:"rgba(255,255,255,.2)",marginTop:8,textAlign:"center"}}>
+                    Opens official company application page
+                  </div>
+                </div>
+              )}
+              {job.contact_email && <div>
               <div style={{display:"flex",flexDirection:"column",gap:12}}>
                 {/* Row 1 - Name + Email */}
                 <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
@@ -579,6 +595,7 @@ const JobDetail = ({job, onClose, user, onAuthRequired}) => {
                 <div style={{textAlign:"center",fontSize:11,color:C.muted}}>✅ Your email will be sent to {job.company_name} · Confirmation sent to you</div>
               </div>
             </div>
+              </div>}
           ) : (
             <div style={{padding:28,borderRadius:20,background:`${C.mint}10`,border:`1px solid ${C.mint}30`,textAlign:"center"}}>
               <div style={{fontSize:48,marginBottom:12}} className="float">🎉</div>
