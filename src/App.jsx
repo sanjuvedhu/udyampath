@@ -51,7 +51,8 @@ const Styles = () => (
     @media(max-width:640px){
       .bottom-nav{display:flex!important;position:fixed;bottom:0;left:0;right:0;z-index:999;background:rgba(4,4,12,0.95);border-top:1px solid rgba(255,255,255,0.08);padding:8px 4px 20px;gap:2px;justify-content:space-around;backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);}
       .top-nav{display:none!important;}
-      .main-content{padding-bottom:90px!important;}
+      .main-content{padding-bottom:20px!important;}
+      footer{padding-bottom:calc(90px + env(safe-area-inset-bottom,0px))!important;}
       .mobile-hide{display:none!important;}
       .mobile-only{display:flex!important;}
       .logo-text{display:none!important;}
@@ -1962,19 +1963,19 @@ export default function App() {
         </div>
 
         {/* FOOTER */}
-        <footer style={{background:"#05050A",borderTop:`1px solid ${C.border}`,padding:"32px 20px 20px",marginTop:40}}>
-          <div style={{maxWidth:1400,margin:"0 auto",display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:16}}>
+        <footer style={{background:"#05050A",borderTop:`1px solid ${C.border}`,padding:"24px 20px",marginTop:20,paddingBottom:"calc(100px + env(safe-area-inset-bottom, 20px))"}}>
+          <div style={{maxWidth:1400,margin:"0 auto",display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:12}}>
             <div style={{display:"flex",alignItems:"center",gap:10}}>
               <div style={{width:30,height:30,borderRadius:10,background:`linear-gradient(135deg,${C.lime},#00C8E0)`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:16}}>🚀</div>
               <div style={{fontFamily:"'Syne',sans-serif",fontSize:18,color:"#fff",letterSpacing:1}}>UDYAM PATH</div>
             </div>
             <div style={{fontSize:11,color:"rgba(255,255,255,.2)",textAlign:"center"}}>
               Real-time via Supabase WebSocket · Jobs via Adzuna API · Emails via Resend · Hosted on Vercel
-              <div style={{marginTop:8,fontSize:13,color:"rgba(255,255,255,.5)"}}>
+              <div style={{marginTop:6,fontSize:13,color:"rgba(255,255,255,.5)"}}>
                 Made with ❤️ by <span style={{color:"#00E5FF",fontWeight:900}}>Sanjeev & Vedha Nikitha</span>
               </div>
             </div>
-            <div style={{display:"flex",gap:8}}>
+            <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
               <Chip color={C.lime}>Supabase ✓</Chip>
               <Chip color={C.sky}>Adzuna API ✓</Chip>
               <Chip color={C.gold}>Resend ✓</Chip>
