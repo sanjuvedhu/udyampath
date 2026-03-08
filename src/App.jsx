@@ -1603,6 +1603,10 @@ export default function App() {
               ) : (
                 <div onClick={()=>setShowAuth(true)} className="btn" style={{padding:"10px 20px",borderRadius:12,background:C.card,border:`1px solid ${C.border}`,fontSize:13,fontWeight:800,color:"rgba(255,255,255,.6)"}}>Sign In</div>
               )}
+              <button onClick={()=>setShowPricing(true)} className="btn"
+                style={{padding:"10px 14px",borderRadius:12,background:"linear-gradient(135deg,#FFB700,#FF6B00)",color:"#000",border:"none",fontWeight:900,fontSize:13,cursor:"pointer"}}>
+                💎
+              </button>
               <button onClick={()=>setShowPost(true)} className="btn glow-pulse"
                 style={{padding:"10px 18px",borderRadius:12,background:`linear-gradient(135deg,${C.lime},#00C8E0)`,color:C.bg,border:"none",fontWeight:900,fontSize:12,cursor:"pointer",letterSpacing:.5}}>
                 + POST JOB FREE
