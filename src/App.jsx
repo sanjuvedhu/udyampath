@@ -1395,7 +1395,7 @@ export default function App() {
   return (
     <>
       <Styles/>
-      <div style={{minHeight:"100vh",background:C.bg,color:"#F0F0FF",fontFamily:"'Plus Jakarta Sans',sans-serif"}}>
+      <div style={{minHeight:"100vh",background:C.bg,color:"#F0F0FF",fontFamily:"'Plus Jakarta Sans',sans-serif",overflowX:"hidden",width:"100%",maxWidth:"100vw"}}>
 
         {/* NAVBAR */}
         <nav style={{background:C.surface,borderBottom:`1px solid ${C.border}`,position:"sticky",top:0,zIndex:100,boxShadow:"0 4px 30px rgba(0,0,0,.3)"}}>
@@ -1415,10 +1415,10 @@ export default function App() {
             </div>
 
             {/* Nav */}
-            <div style={{display:"flex",gap:2,flex:1,justifyContent:"center",overflowX:"auto",scrollbarWidth:"none",msOverflowStyle:"none"}}>
+            <div style={{display:"flex",gap:1,flex:1,justifyContent:"center",overflowX:"auto",scrollbarWidth:"none",WebkitOverflowScrolling:"touch",msOverflowStyle:"none",padding:"0 4px"}}>
               {NAV.map(item=>(
                 <div key={item.id} onClick={()=>setNav(item.id)} className={`btn ${nav===item.id?"nav-active":""}`}
-                  style={{padding:"8px 12px",borderRadius:10,fontSize:12,fontWeight:800,color:nav===item.id?C.lime:"rgba(255,255,255,.4)",background:nav===item.id?`${C.lime}10`:"transparent",display:"flex",flexDirection:"column",alignItems:"center",gap:2,transition:"all .2s",whiteSpace:"nowrap",flexShrink:0,minWidth:52}}>
+                  style={{padding:"6px 8px",borderRadius:8,fontSize:11,fontWeight:800,color:nav===item.id?C.lime:"rgba(255,255,255,.4)",background:nav===item.id?`${C.lime}10`:"transparent",display:"flex",flexDirection:"column",alignItems:"center",gap:1,transition:"all .2s",whiteSpace:"nowrap",flexShrink:0,minWidth:44}}>
                   <span style={{fontSize:16}}>{item.icon}</span>
                   <span style={{fontSize:9,letterSpacing:.3}} className="mobile-hide">{item.label}</span>
                 </div>
@@ -2167,7 +2167,7 @@ const HRDashboard = ({ user, onAuthRequired }) => {
           {myJobs.length === 0 ? (
             <div style={{textAlign:"center",padding:60,background:C2.card,borderRadius:20}}>
               <div style={{fontSize:48,marginBottom:12}}>💼</div>
-              <div style={{color:C2.muted}}>No jobs posted yet. Click "+ POST JOB FREE" to start!</div>
+              <div style={{color:C2.muted}}>No jobs posted yet. Click "+ POST JOB" to start!</div>
             </div>
           ) : (
             <div style={{display:"flex",flexDirection:"column",gap:12}}>
