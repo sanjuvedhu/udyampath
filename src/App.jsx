@@ -1181,6 +1181,134 @@ Be specific and actionable. Format with emojis and clear sections.`}],
   );
 };
 
+
+/* ══════════════════════════════════════════════════
+   PRICING & PAYMENT
+══════════════════════════════════════════════════ */
+const PLANS = [
+  { id:"featured_job", name:"Featured Job", price:999, icon:"⭐", color:"#FFB700",
+    features:["Top of search results","Featured badge","3x more views","30 days active","Email to matched candidates"] },
+  { id:"premium_candidate", name:"Premium Profile", price:299, icon:"🚀", color:"#00E5FF",
+    features:["Top of HR search","Boosted badge","Unlimited applications","Priority profile","30 days active"] },
+  { id:"company_subscription", name:"Company Plan", price:2999, icon:"🏢", color:"#7C3AED",
+    features:["Unlimited job posts","Full candidate database","Featured listings included","Priority support","30 days active"] },
+];
+
+const PricingModal = ({ onClose, user, onAuthRequired, selectedPlan, jobId }) => {
+  const [loading, setLoading] = useState(false);
+  const [activePlan, setActivePlan] = useState(selectedPlan || PLANS[0]);
+  const C2 = { bg:"#04040C", card:"#0D0D1F", border:"rgba(0,229,255,.08)", muted:"rgba(255,255,255,.4)", surface:"#080816" };
+
+  const handlePay = async (plan) => {
+    if (!user) { onClose(); return onAuthRequired(); }
+    setLoading(true);
+    try {
+      // Load Razorpay script
+      if (!window.Razorpay) {
+        await new Promise((resolve, reject) => {
+          const script = document.createElement("script");
+          script.src = "https://checkout.razorpay.com/v1/checkout.js";
+          script.onload = resolve;
+          script.onerror = reject;
+          document.body.appendChild(script);
+        });
+      }
+
+      // Create order
+      const res = await fetch("/api/create-order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ amount: plan.price, receipt: `${plan.id}_${user.id}`, notes: { plan: plan.id, userId: user.id } })
+      });
+      const { order, key } = await res.json();
+
+      // Open Razorpay checkout
+      const rzp = new window.Razorpay({
+        key,
+        amount: order.amount,
+        currency: order.currency,
+        name: "UdyamPath",
+        description: plan.name,
+        order_id: order.id,
+        prefill: { email: user.email, name: user.user_metadata?.full_name || "" },
+        theme: { color: "#00E5FF" },
+        handler: async (response) => {
+          // Verify payment
+          const verifyRes = await fetch("/api/verify-payment", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              ...response,
+              plan: plan.id,
+              jobId: jobId || null,
+              userId: user.id
+            })
+          });
+          const data = await verifyRes.json();
+          if (data.success) {
+            alert("🎉 Payment successful! Your plan is now active!");
+            onClose();
+          }
+        }
+      });
+      rzp.open();
+    } catch(e) {
+      console.error(e);
+      alert("Payment failed: " + e.message);
+    } finally { setLoading(false); }
+  };
+
+  return (
+    <div style={{position:"fixed",inset:0,zIndex:400,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
+      <div onClick={onClose} style={{position:"absolute",inset:0,background:"rgba(0,0,0,.9)",backdropFilter:"blur(10px)"}}/>
+      <div style={{position:"relative",background:C2.card,borderRadius:28,maxWidth:900,width:"100%",maxHeight:"90vh",overflowY:"auto",border:"1px solid rgba(0,229,255,.12)"}}>
+        
+        {/* Header */}
+        <div style={{padding:"28px 28px 0",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+          <div>
+            <div style={{fontFamily:"'Syne',sans-serif",fontSize:28,fontWeight:900,color:"#fff"}}>💎 UPGRADE</div>
+            <div style={{color:"rgba(255,255,255,.4)",fontSize:13,marginTop:4}}>Boost your hiring or job search</div>
+          </div>
+          <div onClick={onClose} style={{width:36,height:36,borderRadius:10,background:C2.surface,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",color:"rgba(255,255,255,.4)",fontSize:18}}>✕</div>
+        </div>
+
+        {/* Plans */}
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(240px,1fr))",gap:16,padding:28}}>
+          {PLANS.map(plan => (
+            <div key={plan.id} onClick={()=>setActivePlan(plan)}
+              style={{background:activePlan.id===plan.id?`${plan.color}10`:C2.surface,borderRadius:20,padding:24,
+                border:`2px solid ${activePlan.id===plan.id?plan.color:"rgba(255,255,255,.06)"}`,cursor:"pointer",transition:"all .2s"}}>
+              <div style={{fontSize:36,marginBottom:12}}>{plan.icon}</div>
+              <div style={{fontFamily:"'Syne',sans-serif",fontWeight:800,fontSize:18,color:"#fff",marginBottom:4}}>{plan.name}</div>
+              <div style={{fontFamily:"'Syne',sans-serif",fontSize:32,fontWeight:900,color:plan.color,marginBottom:16}}>
+                ₹{plan.price.toLocaleString("en-IN")}<span style={{fontSize:13,color:"rgba(255,255,255,.3)",fontWeight:400}}>/mo</span>
+              </div>
+              <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:20}}>
+                {plan.features.map(f=>(
+                  <div key={f} style={{display:"flex",gap:8,alignItems:"center"}}>
+                    <span style={{color:plan.color,fontSize:14}}>✓</span>
+                    <span style={{color:"rgba(255,255,255,.6)",fontSize:13}}>{f}</span>
+                  </div>
+                ))}
+              </div>
+              <div onClick={(e)=>{e.stopPropagation();handlePay(plan);}}
+                style={{width:"100%",padding:"12px",borderRadius:12,background:`linear-gradient(135deg,${plan.color},${plan.color}88)`,
+                  color:"#000",fontFamily:"'Syne',sans-serif",fontWeight:900,fontSize:15,cursor:"pointer",textAlign:"center",
+                  opacity:loading?0.7:1}}>
+                {loading?"Processing...":"Pay with Razorpay →"}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div style={{textAlign:"center",padding:"0 28px 24px",color:"rgba(255,255,255,.3)",fontSize:12}}>
+          🔒 Secured by Razorpay · UPI, Cards, Net Banking accepted · 100% safe
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export default function App() {
   const [nav, setNav] = useState("jobs");
   const [user, setUser] = useState(null);
@@ -1208,6 +1336,8 @@ export default function App() {
   const [salaryFilter, setSalaryFilter] = useState("All");
   const [showResumeBuilder, setShowResumeBuilder] = useState(false);
   const [installPrompt, setInstallPrompt] = useState(null);
+  const [showPricing, setShowPricing] = useState(false);
+  const [pricingJobId, setPricingJobId] = useState(null);
   const [showInstallBanner, setShowInstallBanner] = useState(false);
   const [userSkills, setUserSkills] = useState([]);
 
@@ -1759,6 +1889,7 @@ export default function App() {
 
         {/* JOB DETAIL */}
         {selectedJob&&<JobDetail job={selectedJob} onClose={()=>setSelectedJob(null)} user={user} onAuthRequired={()=>setShowAuth(true)}/>}
+        {showPricing&&<PricingModal onClose={()=>setShowPricing(false)} user={user} onAuthRequired={()=>setShowAuth(true)} jobId={pricingJobId}/>}
 
         {/* AUTH MODAL */}
         {showAuth&&<AuthModal onClose={()=>setShowAuth(false)} onAuth={u=>{setUser(u);showToast(`Welcome, ${u.user_metadata?.full_name||u.email}! 🎉`,"success");}}/>}
