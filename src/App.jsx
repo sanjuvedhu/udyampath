@@ -18,9 +18,34 @@ const Styles = () => (
     @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Nunito:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap');
     *{box-sizing:border-box;margin:0;padding:0;}
     html{scroll-behavior:smooth;}
-    *{box-sizing:border-box;}
-    html,body{overflow-x:hidden;max-width:100vw;}
-    body{font-family:'Nunito',sans-serif;background:#09090F;color:#F0F0FF;overflow-x:hidden;}
+    *{box-sizing:border-box;-webkit-font-smoothing:antialiased;}
+    html,body{overflow-x:hidden;max-width:100vw;overflow-y:auto!important;height:auto!important;}
+    body{font-family:'Nunito',sans-serif;background:#04040C;color:#F0F0FF;overflow-x:hidden;
+      background-image:
+        radial-gradient(ellipse 80% 50% at 20% 0%, rgba(0,229,255,0.07) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 40% at 80% 10%, rgba(124,58,237,0.07) 0%, transparent 60%),
+        radial-gradient(ellipse 40% 30% at 50% 100%, rgba(0,229,255,0.04) 0%, transparent 60%);
+      background-attachment:fixed;
+    }
+    /* Apple Glass Cards */
+    .glass{
+      background:rgba(255,255,255,0.04)!important;
+      backdrop-filter:blur(20px) saturate(180%)!important;
+      -webkit-backdrop-filter:blur(20px) saturate(180%)!important;
+      border:1px solid rgba(255,255,255,0.08)!important;
+    }
+    .glass-strong{
+      background:rgba(255,255,255,0.07)!important;
+      backdrop-filter:blur(40px) saturate(200%)!important;
+      -webkit-backdrop-filter:blur(40px) saturate(200%)!important;
+      border:1px solid rgba(255,255,255,0.12)!important;
+    }
+    .glass-nav{
+      background:rgba(4,4,12,0.7)!important;
+      backdrop-filter:blur(30px) saturate(180%)!important;
+      -webkit-backdrop-filter:blur(30px) saturate(180%)!important;
+      border-bottom:1px solid rgba(255,255,255,0.06)!important;
+    }
     .bottom-nav{display:none;}
     .top-nav{display:flex;}
     @media(max-width:640px){
@@ -36,8 +61,10 @@ const Styles = () => (
       .mobile-pad{padding:12px!important;}
       .mobile-grid-1{grid-template-columns:1fr!important;}
     }
-    ::-webkit-scrollbar{width:4px;}
-    ::-webkit-scrollbar-thumb{background:#00E5FF;border-radius:99px;}
+    ::-webkit-scrollbar{width:6px;height:6px;}
+    ::-webkit-scrollbar-track{background:transparent;}
+    ::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.15);border-radius:99px;}
+    ::-webkit-scrollbar-thumb:hover{background:rgba(0,229,255,0.4);}
     @-webkit-keyframes fadeUp{from{opacity:0;-webkit-transform:translateY(20px);transform:translateY(20px)}to{opacity:1;-webkit-transform:translateY(0);transform:translateY(0)}}
     @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
     @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
@@ -1534,7 +1561,7 @@ export default function App() {
   return (
     <>
       <Styles/>
-      <div style={{minHeight:"100vh",background:C.bg,color:"#F0F0FF",fontFamily:"'Plus Jakarta Sans',sans-serif",overflowX:"hidden",width:"100%",maxWidth:"100vw"}}>
+      <div style={{minHeight:"100vh",background:"transparent",color:"#F0F0FF",fontFamily:"'Plus Jakarta Sans',sans-serif",overflowX:"hidden",width:"100%",maxWidth:"100vw",position:"relative"}}>
 
         {/* NAVBAR */}
         <nav style={{background:C.surface,borderBottom:`1px solid ${C.border}`,position:"sticky",top:0,zIndex:100,boxShadow:"0 4px 30px rgba(0,0,0,.3)"}}>
@@ -1548,7 +1575,7 @@ export default function App() {
             </div>
 
             {/* Live indicator */}
-            <div style={{display:"flex",alignItems:"center",gap:6,padding:"5px 12px",borderRadius:999,background:`${C.lime}12`,border:`1px solid ${C.lime}25`,flexShrink:0}}>
+            <div style={{display:"flex",alignItems:"center",gap:6,padding:"5px 12px",borderRadius:999,background:"rgba(0,229,255,0.08)",border:"1px solid rgba(0,229,255,0.2)",backdropFilter:"blur(10px)",flexShrink:0}}>
               <div style={{width:6,height:6,borderRadius:"50%",background:C.lime,animation:"pulse 1.5s infinite"}}/>
               <span style={{fontSize:11,fontWeight:800,color:C.lime,fontFamily:"'Space Mono',monospace"}}>{liveCount.toLocaleString("en-IN")} LIVE</span>
             </div>
@@ -1602,7 +1629,7 @@ export default function App() {
             <div style={{background:`linear-gradient(135deg,${C.bg},#0D1520,${C.bg})`,padding:"clamp(32px,8vw,60px) 16px 40px",position:"relative",overflow:"hidden"}} className="grid-pattern">
               <div style={{position:"absolute",top:-100,right:-100,width:400,height:400,borderRadius:"50%",background:`radial-gradient(circle,${C.lime}08,transparent)`,filter:"blur(60px)"}}/>
               <div style={{maxWidth:860,margin:"0 auto",textAlign:"center",position:"relative"}}>
-                <div className="fu" style={{display:"inline-flex",alignItems:"center",gap:8,padding:"6px 16px",borderRadius:999,background:`${C.lime}12`,border:`1px solid ${C.lime}25`,marginBottom:20}}>
+                <div className="fu" style={{display:"inline-flex",alignItems:"center",gap:8,padding:"6px 16px",borderRadius:999,background:"rgba(0,229,255,0.08)",border:"1px solid rgba(0,229,255,0.2)",backdropFilter:"blur(10px)",marginBottom:20}}>
                   <div style={{width:8,height:8,borderRadius:"50%",background:C.lime,animation:"pulse 1s infinite"}}/>
                   <span style={{fontSize:11,fontWeight:900,color:C.lime,letterSpacing:1}}>REAL-TIME · JOBS UPDATE LIVE · AUTO-REMOVED WHEN FILLED</span>
                 </div>
@@ -1612,7 +1639,7 @@ export default function App() {
                 <p className="fu2" style={{fontSize:15,color:"rgba(255,255,255,.45)",margin:"0 auto 36px",maxWidth:580,lineHeight:1.9}}>
                   Real jobs from Adzuna API · Real applications saved to database<br/>Real email alerts when jobs match · Real-time WebSocket updates
                 </p>
-                <div className="fu3" style={{display:"flex",gap:0,background:C.card,borderRadius:20,padding:5,boxShadow:`0 20px 80px rgba(0,0,0,.4)`,maxWidth:640,margin:"0 auto 20px",border:`1px solid ${C.border}`}}>
+                <div className="fu3" style={{display:"flex",gap:0,background:"rgba(255,255,255,0.06)",borderRadius:20,padding:5,boxShadow:"0 8px 32px rgba(0,0,0,.3), inset 0 1px 0 rgba(255,255,255,0.1)",maxWidth:640,margin:"0 auto 20px",border:"1px solid rgba(255,255,255,0.1)",backdropFilter:"blur(20px)",WebkitBackdropFilter:"blur(20px)"}}>
                   <div style={{flex:1,display:"flex",alignItems:"center",gap:12,padding:"8px 16px"}}>
                     <span style={{fontSize:18}}>🔍</span>
                     <input value={search} onChange={e=>setSearch(e.target.value)} onKeyDown={e=>e.key==="Enter"&&fetchJobs()}
@@ -1625,7 +1652,7 @@ export default function App() {
                 <div className="fu3" style={{display:"flex",gap:8,justifyContent:"center",flexWrap:"wrap"}}>
                   {["🔥 Fresher","🌍 Remote","🏠 WFH","💰 High Salary","🤖 AI / ML","🚀 Startup"].map(tag=>(
                     <div key={tag} onClick={()=>{setSearch(tag.split(" ").slice(1).join(" "));fetchJobs();}} className="btn"
-                      style={{padding:"7px 16px",borderRadius:999,background:"rgba(255,255,255,.05)",border:`1px solid rgba(255,255,255,.1)`,color:"rgba(255,255,255,.5)",fontSize:12,fontWeight:700}}>
+                      style={{padding:"7px 16px",borderRadius:999,background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.12)",backdropFilter:"blur(10px)",color:"rgba(255,255,255,.5)",fontSize:12,fontWeight:700}}>
                       {tag}
                     </div>
                   ))}
@@ -1634,7 +1661,7 @@ export default function App() {
             </div>
 
             {/* Stats */}
-            <div style={{background:C.surface,borderBottom:`1px solid ${C.border}`,padding:"14px 20px"}}>
+            <div style={{background:"rgba(255,255,255,0.03)",borderBottom:"1px solid rgba(255,255,255,0.06)",padding:"14px 20px",backdropFilter:"blur(20px)",WebkitBackdropFilter:"blur(20px)"}}>
               <div style={{maxWidth:1400,margin:"0 auto",display:"flex",gap:16,justifyContent:"center",flexWrap:"wrap"}}>
                 {[["💼",liveJobs.length,"Live Jobs",C.lime],["📫",filledJobs.length,"Filled Today",C.coral],["🔖",saved.size,"Saved",C.gold],["⚡","Live","WebSocket",C.sky]].map(([ic,val,lb,c])=>(
                   <div key={lb} style={{textAlign:"center"}}>
@@ -1647,7 +1674,7 @@ export default function App() {
 
             <div className="main-content" style={{maxWidth:1400,margin:"0 auto",padding:"24px 20px"}}>
               {/* Filters */}
-              <div style={{background:C.card,borderRadius:20,padding:18,border:`1px solid ${C.border}`,marginBottom:24}}>
+              <div style={{background:"rgba(255,255,255,0.03)",borderRadius:20,padding:18,border:"1px solid rgba(255,255,255,0.07)",backdropFilter:"blur(20px)",WebkitBackdropFilter:"blur(20px)",marginBottom:24}}>
                 <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14,flexWrap:"wrap",gap:8}}>
                   <div style={{fontWeight:800,fontSize:14,color:"rgba(255,255,255,.6)"}}>🎛️ Filter</div>
                   <div style={{display:"flex",gap:10,alignItems:"center"}}>
