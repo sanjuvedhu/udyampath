@@ -21,6 +21,13 @@ const Styles = () => (
     *{box-sizing:border-box;}
     html,body{overflow-x:hidden;max-width:100vw;}
     body{font-family:'Nunito',sans-serif;background:#09090F;color:#F0F0FF;overflow-x:hidden;}
+    .bottom-nav{display:none;}
+    .top-nav{display:flex;}
+    @media(max-width:640px){
+      .bottom-nav{display:flex!important;position:fixed;bottom:0;left:0;right:0;z-index:999;background:#04040C;border-top:1px solid rgba(0,229,255,.12);padding:6px 4px 18px;gap:2px;justify-content:space-around;backdrop-filter:blur(20px);}
+      .top-nav{display:none!important;}
+      .main-content{padding-bottom:80px!important;}
+    }
     @media(max-width:640px){
       .mobile-hide{display:none!important;}
       .mobile-full{width:100%!important;max-width:100%!important;}
@@ -1417,7 +1424,7 @@ export default function App() {
             </div>
 
             {/* Nav */}
-            <div style={{display:"flex",gap:1,flex:1,justifyContent:"center",overflowX:"auto",scrollbarWidth:"none",WebkitOverflowScrolling:"touch",msOverflowStyle:"none",padding:"0 4px"}}>
+            <div className="top-nav" style={{display:"flex",gap:1,flex:1,justifyContent:"center",overflowX:"auto",scrollbarWidth:"none",WebkitOverflowScrolling:"touch",msOverflowStyle:"none",padding:"0 4px"}}>
               {NAV.map(item=>(
                 <div key={item.id} onClick={()=>setNav(item.id)} className={`btn ${nav===item.id?"nav-active":""}`}
                   style={{padding:"6px 8px",borderRadius:8,fontSize:11,fontWeight:800,color:nav===item.id?C.lime:"rgba(255,255,255,.4)",background:nav===item.id?`${C.lime}10`:"transparent",display:"flex",flexDirection:"column",alignItems:"center",gap:1,transition:"all .2s",whiteSpace:"nowrap",flexShrink:0,minWidth:44}}>
@@ -1428,7 +1435,7 @@ export default function App() {
             </div>
 
             {/* Auth + Post */}
-            <div style={{display:"flex",gap:10,alignItems:"center",flexShrink:0}}>
+            <div style={{display:"flex",gap:6,alignItems:"center",flexShrink:0}}>
               {user ? (
                 <div style={{display:"flex",gap:10,alignItems:"center"}}>
                   <div style={{width:34,height:34,borderRadius:10,background:`linear-gradient(135deg,${C.lime},#00C8E0)`,display:"flex",alignItems:"center",justifyContent:"center",color:C.bg,fontWeight:900,fontSize:14}}>
@@ -1508,7 +1515,7 @@ export default function App() {
               </div>
             </div>
 
-            <div style={{maxWidth:1400,margin:"0 auto",padding:"24px 20px"}}>
+            <div className="main-content" style={{maxWidth:1400,margin:"0 auto",padding:"24px 20px"}}>
               {/* Filters */}
               <div style={{background:C.card,borderRadius:20,padding:18,border:`1px solid ${C.border}`,marginBottom:24}}>
                 <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14,flexWrap:"wrap",gap:8}}>
@@ -1764,6 +1771,20 @@ export default function App() {
 
         {/* AI CHATBOT */}
         <AIChatbot jobs={jobs} />
+
+        {/* BOTTOM NAV - Mobile only */}
+        <div className="bottom-nav">
+          {NAV.map(item=>(
+            <div key={item.id} onClick={()=>setNav(item.id)}
+              style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2,padding:"6px 8px",borderRadius:10,
+                color:nav===item.id?"#00E5FF":"rgba(255,255,255,.4)",
+                background:nav===item.id?"rgba(0,229,255,.08)":"transparent",
+                cursor:"pointer",flex:1,maxWidth:60}}>
+              <span style={{fontSize:18}}>{item.icon}</span>
+              <span style={{fontSize:8,fontWeight:700,letterSpacing:.3,textAlign:"center",lineHeight:1.2}}>{item.label.split(" ")[0]}</span>
+            </div>
+          ))}
+        </div>
 
         {/* FOOTER */}
         <footer style={{background:"#05050A",borderTop:`1px solid ${C.border}`,padding:"32px 20px 20px",marginTop:40}}>
