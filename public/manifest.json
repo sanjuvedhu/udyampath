@@ -1,0 +1,24 @@
+{
+  "name": "UdyamPath — उद्यम पथ",
+  "short_name": "UdyamPath",
+  "description": "India's AI-powered real-time career platform. Find jobs, mock interviews, salary insights.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#04040C",
+  "theme_color": "#00E5FF",
+  "orientation": "portrait-primary",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ],
+  "screenshots": [
+    { "src": "/screenshot.png", "sizes": "1280x720", "type": "image/png" }
+  ],
+  "categories": ["business", "productivity", "education"],
+  "lang": "en-IN",
+  "shortcuts": [
+    { "name": "Find Jobs", "url": "/?tab=jobs", "description": "Search 15,000+ jobs" },
+    { "name": "Mock Interview", "url": "/?tab=interview", "description": "Practice with AI" },
+    { "name": "Salary Insights", "url": "/?tab=salary", "description": "Check market salary" }
+  ]
+}

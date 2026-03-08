@@ -1190,6 +1190,8 @@ export default function App() {
   const [hasMore, setHasMore] = useState(false);
   const [salaryFilter, setSalaryFilter] = useState("All");
   const [showResumeBuilder, setShowResumeBuilder] = useState(false);
+  const [installPrompt, setInstallPrompt] = useState(null);
+  const [showInstallBanner, setShowInstallBanner] = useState(false);
   const [userSkills, setUserSkills] = useState([]);
 
   const showToast = (msg, type="success") => {
