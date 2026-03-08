@@ -351,8 +351,8 @@ const JobCard = ({job, onOpen, saved, onSave, user, onAuthRequired, isApplied, i
             background:"linear-gradient(135deg,#00E5FF,#7C3AED)",
             color:"#fff",fontWeight:700,fontSize:11,fontFamily:"'Syne',sans-serif",
             letterSpacing:.3,boxShadow:"0 4px 16px rgba(0,229,255,.2)"
-          }} onClick={e=>{e.stopPropagation();if(job.apply_url)window.open(job.apply_url,"_blank");else onOpen(job);}}>
-            {job.apply_url ? "APPLY ↗" : "APPLY →"}
+          }} onClick={e=>{e.stopPropagation();onOpen(job);}}>
+            APPLY →
           </div>
         )}
       </div>
@@ -448,6 +448,12 @@ const JobDetail = ({job, onClose, user, onAuthRequired}) => {
       }
 
       setApplied(true);
+      // Auto-open company apply page after 2 seconds
+      if (job.apply_url) {
+        setTimeout(() => {
+          window.open(job.apply_url, "_blank");
+        }, 2000);
+      }
     } catch (err) {
       console.error(err);
     } finally { setLoading(false); }
