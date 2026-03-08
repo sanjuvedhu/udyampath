@@ -19,7 +19,7 @@ const Styles = () => (
     *{box-sizing:border-box;margin:0;padding:0;}
     html{scroll-behavior:smooth;}
     *{box-sizing:border-box;-webkit-font-smoothing:antialiased;}
-    html,body{overflow-x:hidden;max-width:100vw;overflow-y:auto!important;height:auto!important;}
+    html,body{overflow-x:hidden;max-width:100vw;}
     body{font-family:'Nunito',sans-serif;background:#04040C;color:#F0F0FF;overflow-x:hidden;
       background-image:
         radial-gradient(ellipse 80% 50% at 20% 0%, rgba(0,229,255,0.07) 0%, transparent 60%),
