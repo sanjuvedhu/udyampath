@@ -1,6 +1,7 @@
 {
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/$1" }
+    { "source": "/jobs/:role", "destination": "/api/seo-jobs?role=:role" },
+    { "source": "/jobs/:role/:location", "destination": "/api/seo-jobs?role=:role&location=:location" }
   ],
   "headers": [
     {
