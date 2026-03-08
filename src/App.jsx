@@ -1790,6 +1790,35 @@ const CandidateProfile = ({ user, onAuthRequired }) => {
   const [form, setForm] = useState({ full_name:"", email:"", phone:"", location:"", linkedin:"", skills:"", experience:"", education:"", open_to_work:true });
   const [resumeFile, setResumeFile] = useState(null);
   const [saved2, setSaved2] = useState(false);
+  const [parsing, setParsing] = useState(false);
+  const [parseFile, setParseFile] = useState(null);
+
+  const parseResume = async () => {
+    if (!parseFile) return;
+    setParsing(true);
+    try {
+      const text = await parseFile.text();
+      const res = await fetch("/api/parse-resume", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ resumeText: text })
+      });
+      const { data } = await res.json();
+      if (data) {
+        setForm(f => ({ ...f,
+          full_name: data.full_name || f.full_name,
+          email: data.email || f.email,
+          phone: data.phone || f.phone,
+          location: data.location || f.location,
+          linkedin: data.linkedin || f.linkedin,
+          skills: data.skills || f.skills,
+          experience: data.experience || f.experience,
+          education: data.education || f.education,
+        }));
+      }
+    } catch(e) { console.error(e); }
+    finally { setParsing(false); }
+  };
 
   useEffect(() => {
     if (!user) { setLoading(false); return; }
@@ -1866,6 +1895,20 @@ const CandidateProfile = ({ user, onAuthRequired }) => {
           </div>
         </div>
         {form.open_to_work && <div style={{padding:"6px 14px",borderRadius:8,background:"rgba(0,214,143,.15)",color:"#00D68F",fontSize:11,fontWeight:700,border:"1px solid rgba(0,214,143,.2)"}}>🟢 OPEN TO WORK</div>}
+      </div>
+
+      {/* AI Resume Parser */}
+      <div style={{background:"linear-gradient(135deg,rgba(0,229,255,.06),rgba(124,58,237,.06))",borderRadius:16,padding:20,border:"1px solid rgba(0,229,255,.12)",marginBottom:20}}>
+        <div style={{fontFamily:"'Syne',sans-serif",fontWeight:800,color:"#fff",fontSize:15,marginBottom:4}}>🤖 AI Resume Parser</div>
+        <div style={{color:"rgba(255,255,255,.4)",fontSize:12,marginBottom:12}}>Upload your resume (TXT format) → AI auto-fills your profile!</div>
+        <div style={{display:"flex",gap:10,alignItems:"center",flexWrap:"wrap"}}>
+          <input type="file" accept=".txt,.md" onChange={e=>setParseFile(e.target.files[0])}
+            style={{flex:1,padding:"8px 12px",borderRadius:10,border:"1px solid rgba(0,229,255,.15)",background:"rgba(0,0,0,.3)",color:"rgba(255,255,255,.5)",fontSize:12,minWidth:0}}/>
+          <div onClick={parseResume} style={{padding:"10px 20px",borderRadius:10,background:parsing?"rgba(0,229,255,.2)":"linear-gradient(135deg,#00E5FF,#7C3AED)",color:"#fff",fontWeight:800,fontSize:13,cursor:"pointer",whiteSpace:"nowrap",flexShrink:0}}>
+            {parsing?"🤖 Parsing...":"⚡ Auto-Fill"}
+          </div>
+        </div>
+        {parsing && <div style={{marginTop:10,color:"#00E5FF",fontSize:12}}>🤖 AI is reading your resume...</div>}
       </div>
 
       <div style={{display:"flex",flexDirection:"column",gap:14}}>
@@ -2278,6 +2321,8 @@ const AnalyticsDashboard = ({ user }) => {
           {[
             ["sitemap.xml","https://udyampath.vercel.app/sitemap.xml","✅ Live"],
             ["robots.txt","https://udyampath.vercel.app/robots.txt","✅ Live"],
+            ["React Developer Jobs","https://udyampath.vercel.app/jobs/react-developer","🔗 SEO Page"],
+            ["Python Jobs Bangalore","https://udyampath.vercel.app/jobs/python-developer/bangalore","🔗 SEO Page"],
             ["Google Search Console","https://search.google.com/search-console","🔗 Submit sitemap"],
             ["Bing Webmaster","https://www.bing.com/webmasters","🔗 Submit sitemap"],
           ].map(([name,url,status])=>(
