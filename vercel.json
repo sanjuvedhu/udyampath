@@ -1,7 +1,8 @@
 {
   "rewrites": [
     { "source": "/jobs/:role", "destination": "/api/seo-jobs?role=:role" },
-    { "source": "/jobs/:role/:location", "destination": "/api/seo-jobs?role=:role&location=:location" }
+    { "source": "/jobs/:role/:location", "destination": "/api/seo-jobs?role=:role&location=:location" },
+    { "source": "/((?!sitemap.xml|robots.txt|manifest.json|sw.js|icon-.*\\.png|api/.*).*)", "destination": "/index.html" }
   ],
   "headers": [
     {
