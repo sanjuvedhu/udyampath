@@ -140,7 +140,7 @@ const SkeletonCard = () => (
 );
 
 const Toast = ({msg,type="success",onClose}) => (
-  <div className="pop" style={{position:"fixed",bottom:24,right:24,zIndex:999,padding:"14px 20px",borderRadius:16,
+  <div className="pop" style={{position:"fixed",bottom:"calc(90px + env(safe-area-inset-bottom,0px))",right:16,zIndex:1001,padding:"14px 20px",borderRadius:16,
     background:type==="success"?`${C.mint}18`:type==="error"?`${C.coral}18`:`${C.gold}18`,
     border:`1px solid ${type==="success"?C.mint:type==="error"?C.coral:C.gold}40`,
     display:"flex",gap:12,alignItems:"center",maxWidth:360,boxShadow:"0 20px 60px rgba(0,0,0,.4)"}}>
@@ -690,7 +690,7 @@ const ResumeBuilder = ({ user, onClose }) => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          model: "gemini-2.0-flash",
+          model: "llama-3.1-8b-instant",
           max_tokens: 2000,
           system: "You are a professional resume writer. Generate a clean, ATS-friendly resume in plain text format. Use clear sections with headers. Be professional and concise.",
           messages: [{ role: "user", content: `Create a professional resume for: Name: ${form.name}, Email: ${form.email}, Phone: ${form.phone}, Location: ${form.location}, LinkedIn: ${form.linkedin}, Summary: ${form.summary}, Skills: ${form.skills}, Experience: ${form.experience}, Education: ${form.education}, Projects: ${form.projects}` }]
@@ -760,7 +760,7 @@ const ResumeBuilder = ({ user, onClose }) => {
             <div onClick={generateResume} style={{padding:"14px",borderRadius:14,background:generating?"rgba(170,255,0,.3)":`linear-gradient(135deg,${C2.lime},#00C8E0)`,color:"#05050A",fontFamily:"'Syne',sans-serif",fontSize:20,letterSpacing:1,cursor:generating?"not-allowed":"pointer",textAlign:"center",fontWeight:900}}>
               {generating ? "✨ AI IS BUILDING YOUR RESUME..." : "🚀 GENERATE RESUME FREE WITH AI"}
             </div>
-            <div style={{textAlign:"center",fontSize:11,color:C2.muted}}>Powered by Gemini AI · Downloads instantly · 100% Free</div>
+            <div style={{textAlign:"center",fontSize:11,color:C2.muted}}>Powered by Groq AI · Lightning fast · 100% Free</div>
           </div>
         )}
       </div>
@@ -817,7 +817,7 @@ const AIChatbot = ({ jobs }) => {
     <>
       {/* Chat Button */}
       <div onClick={() => setOpen(!open)} style={{
-        position: "fixed", bottom: 24, right: 24, zIndex: 999,
+        position: "fixed", bottom: "calc(80px + env(safe-area-inset-bottom, 0px))", right: 16, zIndex: 1000,
         width: 60, height: 60, borderRadius: "50%",
         background: `linear-gradient(135deg, #00E5FF, #00C8E0)`,
         display: "flex", alignItems: "center", justifyContent: "center",
@@ -830,7 +830,7 @@ const AIChatbot = ({ jobs }) => {
       {/* Chat Window */}
       {open && (
         <div style={{
-          position: "fixed", bottom: 96, right: 24, zIndex: 998,
+          position: "fixed", bottom: "calc(150px + env(safe-area-inset-bottom, 0px))", right: 16, zIndex: 998,
           width: 340, height: 480, borderRadius: 20,
           background: "#0D0D1A", border: "1px solid rgba(170,255,0,0.2)",
           boxShadow: "0 20px 60px rgba(0,0,0,0.5)",
@@ -841,7 +841,7 @@ const AIChatbot = ({ jobs }) => {
             <span style={{ fontSize: 24 }}>🤖</span>
             <div>
               <div style={{ fontWeight: 900, fontSize: 15, color: "#05050A" }}>UdyamPath AI</div>
-              <div style={{ fontSize: 11, color: "#05050A", opacity: 0.7 }}>Powered by Gemini AI</div>
+              <div style={{ fontSize: 11, color: "#05050A", opacity: 0.7 }}>Powered by Groq AI</div>
             </div>
           </div>
 
