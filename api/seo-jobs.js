@@ -10,11 +10,20 @@ export default async function handler(req, res) {
   const { role, location } = req.query;
   if (!role) return res.status(400).json({ error: "role required" });
 
-  const { data: jobs } = await supabase.from("jobs")
+  const roleClean = role.replace(/-/g, " ");
+  const keyword = roleClean.split(" ")[0]; // e.g. "react" from "react developer"
+  
+  let query = supabase.from("jobs")
     .select("id,title,company_name,location,salary_range,work_type,description,apply_url")
-    .ilike("title", `%${role}%`)
-    .ilike("location", location ? `%${location}%` : "%")
+    .ilike("title", `%${keyword}%`)
     .limit(20);
+  
+  if (location) {
+    const loc = location.replace(/-/g, " ");
+    query = query.ilike("location", `%${loc}%`);
+  }
+  
+  const { data: jobs } = await query;
 
   const count = jobs?.length || 0;
   const roleTitle = role.replace(/-/g," ").replace(/\b\w/g,c=>c.toUpperCase());
