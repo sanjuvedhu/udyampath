@@ -1164,6 +1164,415 @@ Be specific and actionable. Format with emojis and clear sections.`}],
   );
 };
 
+const CandidateProfile = ({ user, onAuthRequired }) => {
+  const [profile, setProfile] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [form, setForm] = useState({ full_name:"", email:"", phone:"", location:"", linkedin:"", skills:"", experience:"", education:"", open_to_work:true });
+  const [resumeFile, setResumeFile] = useState(null);
+  const [saved2, setSaved2] = useState(false);
+
+  useEffect(() => {
+    if (!user) { setLoading(false); return; }
+    supabase.from("candidate_profiles").select("*").eq("user_id", user.id).single()
+      .then(({ data }) => {
+        if (data) { setProfile(data); setForm(data); }
+        else setForm(f => ({ ...f, full_name: user.user_metadata?.full_name||"", email: user.email||"" }));
+        setLoading(false);
+      });
+  }, [user]);
+
+  const save = async () => {
+    if (!user) return onAuthRequired();
+    setSaving(true);
+    try {
+      let resumeUrl = profile?.resume_url || null;
+      if (resumeFile) {
+        const ext = resumeFile.name.split(".").pop();
+        const fileName = `profile-${user.id}.${ext}`;
+        await supabase.storage.from("resumes").upload(fileName, resumeFile, { upsert: true });
+        const { data: urlData } = supabase.storage.from("resumes").getPublicUrl(fileName);
+        resumeUrl = urlData?.publicUrl;
+      }
+      const payload = { ...form, user_id: user.id, resume_url: resumeUrl };
+      const { error } = await supabase.from("candidate_profiles").upsert(payload, { onConflict: "user_id" });
+      if (error) throw error;
+      setSaved2(true);
+      setTimeout(() => setSaved2(false), 3000);
+    } catch(e) { console.error(e); }
+    finally { setSaving(false); }
+  };
+
+  const C2 = { bg:"#04040C", card:"#0D0D1F", border:"rgba(0,229,255,.08)", cyan:"#00E5FF", muted:"rgba(255,255,255,.4)", surface:"#080816" };
+  const inputStyle = { width:"100%", padding:"11px 14px", borderRadius:12, border:`1.5px solid ${C2.border}`, background:C2.surface, color:"#fff", fontSize:13, fontFamily:"'Plus Jakarta Sans',sans-serif", boxSizing:"border-box" };
+
+  if (!user) return (
+    <div style={{maxWidth:600,margin:"60px auto",padding:24,textAlign:"center"}}>
+      <div style={{fontSize:56,marginBottom:16}}>👤</div>
+      <div style={{fontFamily:"'Syne',sans-serif",fontSize:24,color:"#fff",marginBottom:12}}>Create Your Profile</div>
+      <div style={{color:C2.muted,fontSize:14,marginBottom:24}}>Sign in to build your candidate profile and get found by top companies!</div>
+      <div onClick={onAuthRequired} style={{display:"inline-block",padding:"14px 32px",borderRadius:14,background:"linear-gradient(135deg,#00E5FF,#7C3AED)",color:"#fff",fontWeight:800,fontSize:15,cursor:"pointer"}}>Sign In / Sign Up →</div>
+    </div>
+  );
+
+  if (loading) return <div style={{textAlign:"center",padding:60}}><div className="spin" style={{width:40,height:40,border:"3px solid rgba(0,229,255,.2)",borderTop:"3px solid #00E5FF",borderRadius:"50%",margin:"0 auto"}}/></div>;
+
+  return (
+    <div style={{maxWidth:800,margin:"0 auto",padding:"24px 20px"}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:24,flexWrap:"wrap",gap:12}}>
+        <div>
+          <div style={{fontFamily:"'Syne',sans-serif",fontWeight:800,fontSize:28,color:"#fff"}}>👤 MY PROFILE</div>
+          <div style={{color:C2.muted,fontSize:13}}>Get discovered by top companies hiring on UdyamPath</div>
+        </div>
+        <div style={{display:"flex",gap:10,alignItems:"center"}}>
+          <span style={{fontSize:12,color:C2.muted}}>Open to work</span>
+          <div onClick={()=>setForm(f=>({...f,open_to_work:!f.open_to_work}))} style={{width:44,height:24,borderRadius:99,background:form.open_to_work?"#00E5FF":"rgba(255,255,255,.1)",cursor:"pointer",position:"relative",transition:"all .3s"}}>
+            <div style={{position:"absolute",top:2,left:form.open_to_work?22:2,width:20,height:20,borderRadius:"50%",background:"#fff",transition:"all .3s"}}/>
+          </div>
+        </div>
+      </div>
+
+      {/* Profile preview card */}
+      <div style={{background:"linear-gradient(135deg,rgba(0,229,255,.1),rgba(124,58,237,.1))",borderRadius:20,padding:24,border:"1px solid rgba(0,229,255,.15)",marginBottom:24,display:"flex",gap:16,alignItems:"center"}}>
+        <div style={{width:64,height:64,borderRadius:20,background:"linear-gradient(135deg,#00E5FF,#7C3AED)",display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontWeight:900,fontSize:28,fontFamily:"'Syne',sans-serif",flexShrink:0}}>
+          {(form.full_name||user.email||"U")[0].toUpperCase()}
+        </div>
+        <div style={{flex:1}}>
+          <div style={{fontFamily:"'Syne',sans-serif",fontWeight:800,fontSize:20,color:"#fff"}}>{form.full_name||"Your Name"}</div>
+          <div style={{color:C2.muted,fontSize:13}}>{form.location||"Location"} · {form.experience||"Experience"}</div>
+          <div style={{marginTop:6,display:"flex",gap:6,flexWrap:"wrap"}}>
+            {(form.skills||"").split(",").slice(0,4).map(s=>s.trim()).filter(Boolean).map(s=>(
+              <span key={s} style={{padding:"2px 8px",borderRadius:4,background:"rgba(0,229,255,.1)",color:"#00E5FF",fontSize:10,fontFamily:"'Space Mono',monospace"}}>{s}</span>
+            ))}
+          </div>
+        </div>
+        {form.open_to_work && <div style={{padding:"6px 14px",borderRadius:8,background:"rgba(0,214,143,.15)",color:"#00D68F",fontSize:11,fontWeight:700,border:"1px solid rgba(0,214,143,.2)"}}>🟢 OPEN TO WORK</div>}
+      </div>
+
+      <div style={{display:"flex",flexDirection:"column",gap:14}}>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+          {[["FULL NAME","full_name","Sanjeev Kumar"],["EMAIL","email","you@email.com"],["PHONE","phone","+91 9999999999"],["LOCATION","location","Bangalore, India"],["LINKEDIN","linkedin","linkedin.com/in/yourname"],["EXPERIENCE","experience","3 years React Developer"]].map(([lb,key,ph])=>(
+            <div key={key}>
+              <div style={{fontSize:10,fontWeight:800,color:C2.muted,marginBottom:5,letterSpacing:.6}}>{lb}</div>
+              <input style={inputStyle} value={form[key]||""} onChange={e=>setForm(f=>({...f,[key]:e.target.value}))} placeholder={ph}/>
+            </div>
+          ))}
+        </div>
+        <div>
+          <div style={{fontSize:10,fontWeight:800,color:C2.muted,marginBottom:5,letterSpacing:.6}}>SKILLS (comma separated)</div>
+          <input style={inputStyle} value={form.skills||""} onChange={e=>setForm(f=>({...f,skills:e.target.value}))} placeholder="React, Node.js, Python, AWS..."/>
+        </div>
+        <div>
+          <div style={{fontSize:10,fontWeight:800,color:C2.muted,marginBottom:5,letterSpacing:.6}}>EDUCATION</div>
+          <input style={inputStyle} value={form.education||""} onChange={e=>setForm(f=>({...f,education:e.target.value}))} placeholder="B.Tech CSE, VIT (2020)"/>
+        </div>
+        <div>
+          <div style={{fontSize:10,fontWeight:800,color:C2.muted,marginBottom:5,letterSpacing:.6}}>UPLOAD RESUME (PDF)</div>
+          <input type="file" accept=".pdf,.doc,.docx" onChange={e=>setResumeFile(e.target.files[0])}
+            style={{...inputStyle,padding:"8px 14px",color:C2.muted}}/>
+          {(profile?.resume_url||form.resume_url) && <a href={profile?.resume_url||form.resume_url} target="_blank" rel="noreferrer" style={{fontSize:11,color:"#00E5FF",marginTop:4,display:"block"}}>📄 View current resume</a>}
+        </div>
+        <div onClick={save} style={{padding:14,borderRadius:14,background:saving?"rgba(0,229,255,.2)":"linear-gradient(135deg,#00E5FF,#7C3AED)",color:"#fff",fontFamily:"'Syne',sans-serif",fontSize:18,fontWeight:800,cursor:"pointer",textAlign:"center"}}>
+          {saving?"Saving...":saved2?"✅ Profile Saved!":"💾 SAVE PROFILE"}
+        </div>
+      </div>
+
+      {/* Share profile */}
+      <div style={{marginTop:20,padding:16,borderRadius:14,background:"rgba(0,229,255,.05)",border:"1px solid rgba(0,229,255,.1)",display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:10}}>
+        <div>
+          <div style={{fontWeight:800,color:"#fff",fontSize:13}}>📣 Share your profile</div>
+          <div style={{color:C2.muted,fontSize:12}}>Let companies find you on WhatsApp & LinkedIn</div>
+        </div>
+        <div style={{display:"flex",gap:8}}>
+          {[["WhatsApp","https://wa.me/?text=Check out my profile on UdyamPath! https://udyampath.vercel.app","#25D366"],
+            ["LinkedIn","https://www.linkedin.com/sharing/share-offsite/?url=https://udyampath.vercel.app","#0077B5"]].map(([name,url,color])=>(
+            <a key={name} href={url} target="_blank" rel="noreferrer" style={{padding:"8px 16px",borderRadius:10,background:color,color:"#fff",fontSize:12,fontWeight:700,textDecoration:"none"}}>{name}</a>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* ══════════════════════════════════════════════════
+   HR DASHBOARD
+══════════════════════════════════════════════════ */
+const HRDashboard = ({ user, onAuthRequired }) => {
+  const [tab, setTab] = useState("applications");
+  const [applications, setApplications] = useState([]);
+  const [myJobs, setMyJobs] = useState([]);
+  const [candidates, setCandidates] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [companyForm, setCompanyForm] = useState({ company_name:"", company_email:"", company_website:"", company_size:"1-10", industry:"Tech", about:"" });
+  const [company, setCompany] = useState(null);
+  const [savingCompany, setSavingCompany] = useState(false);
+  const [searchCandidates, setSearchCandidates] = useState("");
+
+  const C2 = { bg:"#04040C", card:"#0D0D1F", border:"rgba(0,229,255,.08)", cyan:"#00E5FF", muted:"rgba(255,255,255,.4)", surface:"#080816", violet:"#7C3AED" };
+
+  useEffect(() => {
+    if (!user) { setLoading(false); return; }
+    loadData();
+  }, [user]);
+
+  const loadData = async () => {
+    setLoading(true);
+    try {
+      // Load company profile
+      const { data: comp } = await supabase.from("company_profiles").select("*").eq("user_id", user.id).single();
+      if (comp) { setCompany(comp); setCompanyForm(comp); }
+
+      // Load my posted jobs
+      const { data: jobs } = await supabase.from("jobs").select("*").eq("posted_by", user.id).order("created_at", { ascending: false });
+      setMyJobs(jobs || []);
+
+      // Load applications for my jobs
+      if (jobs && jobs.length > 0) {
+        const jobIds = jobs.map(j => j.id);
+        const { data: apps } = await supabase.from("applications").select("*").in("job_id", jobIds).order("created_at", { ascending: false });
+        setApplications(apps || []);
+      }
+
+      // Load candidates open to work
+      const { data: cands } = await supabase.from("candidate_profiles").select("*").eq("open_to_work", true).order("created_at", { ascending: false });
+      setCandidates(cands || []);
+    } catch(e) { console.error(e); }
+    finally { setLoading(false); }
+  };
+
+  const updateStatus = async (appId, status) => {
+    await supabase.from("applications").update({ hr_status: status }).eq("id", appId);
+    setApplications(prev => prev.map(a => a.id === appId ? { ...a, hr_status: status } : a));
+  };
+
+  const saveCompany = async () => {
+    if (!user) return;
+    setSavingCompany(true);
+    try {
+      const payload = { ...companyForm, user_id: user.id };
+      const { error } = await supabase.from("company_profiles").upsert(payload, { onConflict: "user_id" });
+      if (!error) { setCompany(payload); alert("Company profile saved!"); }
+    } catch(e) { console.error(e); }
+    finally { setSavingCompany(false); }
+  };
+
+  const statusColor = { pending:"#FFB700", shortlisted:"#00D68F", rejected:"#FF3D71", hired:"#00E5FF" };
+
+  if (!user) return (
+    <div style={{maxWidth:600,margin:"60px auto",padding:24,textAlign:"center"}}>
+      <div style={{fontSize:56,marginBottom:16}}>🏢</div>
+      <div style={{fontFamily:"'Syne',sans-serif",fontSize:24,color:"#fff",marginBottom:12}}>HR Dashboard</div>
+      <div style={{color:C2.muted,fontSize:14,marginBottom:24}}>Sign in to post jobs, see applications and find candidates!</div>
+      <div onClick={onAuthRequired} style={{display:"inline-block",padding:"14px 32px",borderRadius:14,background:"linear-gradient(135deg,#00E5FF,#7C3AED)",color:"#fff",fontWeight:800,fontSize:15,cursor:"pointer"}}>Sign In →</div>
+    </div>
+  );
+
+  if (loading) return <div style={{textAlign:"center",padding:60}}><div className="spin" style={{width:40,height:40,border:"3px solid rgba(0,229,255,.2)",borderTop:"3px solid #00E5FF",borderRadius:"50%",margin:"0 auto"}}/></div>;
+
+  const filteredCandidates = candidates.filter(c =>
+    !searchCandidates || (c.skills||"").toLowerCase().includes(searchCandidates.toLowerCase()) ||
+    (c.full_name||"").toLowerCase().includes(searchCandidates.toLowerCase()) ||
+    (c.location||"").toLowerCase().includes(searchCandidates.toLowerCase())
+  );
+
+  return (
+    <div style={{maxWidth:1200,margin:"0 auto",padding:"24px 20px"}}>
+      {/* Header */}
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:24,flexWrap:"wrap",gap:12}}>
+        <div>
+          <div style={{fontFamily:"'Syne',sans-serif",fontWeight:800,fontSize:28,color:"#fff"}}>🏢 HR DASHBOARD</div>
+          <div style={{color:C2.muted,fontSize:13}}>{company?.company_name||"Set up your company"} · {myJobs.length} jobs · {applications.length} applications</div>
+        </div>
+        <div style={{display:"flex",gap:8}}>
+          {[["applications","📋 Applications"],["candidates","👥 Find Talent"],["jobs","💼 My Jobs"],["company","🏢 Company"]].map(([t,lb])=>(
+            <div key={t} onClick={()=>setTab(t)} className="btn" style={{padding:"8px 16px",borderRadius:10,background:tab===t?"linear-gradient(135deg,#00E5FF,#7C3AED)":"rgba(255,255,255,.05)",color:tab===t?"#fff":"rgba(255,255,255,.5)",fontSize:12,fontWeight:700,border:tab===t?"none":"1px solid rgba(255,255,255,.08)"}}>
+              {lb}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Stats */}
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(160px,1fr))",gap:12,marginBottom:24}}>
+        {[[applications.length,"Total Applications","📋","#00E5FF"],[applications.filter(a=>a.hr_status==="shortlisted").length,"Shortlisted","✅","#00D68F"],[applications.filter(a=>a.hr_status==="hired").length,"Hired","🎉","#FFB700"],[candidates.length,"Open Candidates","👥","#7C3AED"]].map(([val,lb,ic,color])=>(
+          <div key={lb} style={{background:C2.card,borderRadius:16,padding:20,border:`1px solid ${C2.border}`,textAlign:"center"}}>
+            <div style={{fontSize:28,marginBottom:4}}>{ic}</div>
+            <div style={{fontFamily:"'Syne',sans-serif",fontSize:28,fontWeight:800,color}}>{val}</div>
+            <div style={{fontSize:11,color:C2.muted,fontFamily:"'Space Mono',monospace"}}>{lb}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Applications Tab */}
+      {tab==="applications" && (
+        <div>
+          <div style={{fontFamily:"'Syne',sans-serif",fontSize:18,color:"#fff",fontWeight:800,marginBottom:16}}>📋 All Applications</div>
+          {applications.length === 0 ? (
+            <div style={{textAlign:"center",padding:60,background:C2.card,borderRadius:20,border:`1px solid ${C2.border}`}}>
+              <div style={{fontSize:48,marginBottom:12}}>📭</div>
+              <div style={{fontFamily:"'Syne',sans-serif",fontSize:20,color:"#fff",marginBottom:8}}>No applications yet</div>
+              <div style={{color:C2.muted,fontSize:13}}>Post a job with your HR email to start receiving applications!</div>
+            </div>
+          ) : (
+            <div style={{display:"flex",flexDirection:"column",gap:12}}>
+              {applications.map(app => {
+                const job = myJobs.find(j => j.id === app.job_id);
+                const status = app.hr_status || "pending";
+                return (
+                  <div key={app.id} style={{background:C2.card,borderRadius:16,padding:20,border:`1px solid ${C2.border}`,display:"flex",gap:16,alignItems:"flex-start",flexWrap:"wrap"}}>
+                    <div style={{width:44,height:44,borderRadius:12,background:"linear-gradient(135deg,#00E5FF,#7C3AED)",display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontWeight:800,fontSize:18,flexShrink:0}}>
+                      {(app.applicant_name||"?")[0].toUpperCase()}
+                    </div>
+                    <div style={{flex:1,minWidth:200}}>
+                      <div style={{fontFamily:"'Syne',sans-serif",fontWeight:700,color:"#fff",fontSize:15}}>{app.applicant_name}</div>
+                      <div style={{color:C2.muted,fontSize:12,marginBottom:4}}>{app.applicant_email}</div>
+                      <div style={{color:"rgba(0,229,255,.6)",fontSize:11,fontFamily:"'Space Mono',monospace"}}>{job?.title||"Job"} · {new Date(app.created_at).toLocaleDateString("en-IN")}</div>
+                      {app.cover_note && <div style={{color:C2.muted,fontSize:12,marginTop:6,lineHeight:1.5}}>{app.cover_note.substring(0,120)}...</div>}
+                    </div>
+                    <div style={{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap"}}>
+                      {app.resume_url && <a href={app.resume_url} target="_blank" rel="noreferrer" style={{padding:"6px 12px",borderRadius:8,background:"rgba(0,229,255,.1)",color:"#00E5FF",fontSize:11,fontWeight:700,textDecoration:"none"}}>📄 Resume</a>}
+                      <a href={`mailto:${app.applicant_email}`} style={{padding:"6px 12px",borderRadius:8,background:"rgba(255,183,0,.1)",color:"#FFB700",fontSize:11,fontWeight:700,textDecoration:"none"}}>✉️ Email</a>
+                      {["pending","shortlisted","rejected","hired"].map(s=>(
+                        <div key={s} onClick={()=>updateStatus(app.id,s)} style={{padding:"6px 12px",borderRadius:8,background:status===s?`${statusColor[s]}20`:"rgba(255,255,255,.05)",color:status===s?statusColor[s]:"rgba(255,255,255,.3)",fontSize:10,fontWeight:700,cursor:"pointer",border:`1px solid ${status===s?statusColor[s]+"30":"transparent"}`,textTransform:"uppercase",fontFamily:"'Space Mono',monospace"}}>
+                          {s}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Find Talent Tab */}
+      {tab==="candidates" && (
+        <div>
+          <div style={{display:"flex",gap:12,marginBottom:20,alignItems:"center"}}>
+            <div style={{fontFamily:"'Syne',sans-serif",fontSize:18,color:"#fff",fontWeight:800}}>👥 Find Talent</div>
+            <input value={searchCandidates} onChange={e=>setSearchCandidates(e.target.value)} placeholder="Search by skill, name, location..."
+              style={{flex:1,padding:"10px 14px",borderRadius:12,border:"1px solid rgba(0,229,255,.15)",background:C2.surface,color:"#fff",fontSize:13,fontFamily:"'Plus Jakarta Sans',sans-serif"}}/>
+          </div>
+          {filteredCandidates.length === 0 ? (
+            <div style={{textAlign:"center",padding:60,background:C2.card,borderRadius:20}}>
+              <div style={{fontSize:48,marginBottom:12}}>👥</div>
+              <div style={{color:C2.muted}}>No candidates found. Try different search terms.</div>
+            </div>
+          ) : (
+            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(300px,1fr))",gap:14}}>
+              {filteredCandidates.map(c=>(
+                <div key={c.id} style={{background:C2.card,borderRadius:16,padding:20,border:`1px solid ${C2.border}`}}>
+                  <div style={{display:"flex",gap:12,marginBottom:12}}>
+                    <div style={{width:44,height:44,borderRadius:12,background:"linear-gradient(135deg,#00E5FF,#7C3AED)",display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontWeight:800,fontSize:18,flexShrink:0}}>
+                      {(c.full_name||"?")[0].toUpperCase()}
+                    </div>
+                    <div>
+                      <div style={{fontFamily:"'Syne',sans-serif",fontWeight:700,color:"#fff",fontSize:14}}>{c.full_name||"Anonymous"}</div>
+                      <div style={{color:C2.muted,fontSize:12}}>{c.location||"Location not set"}</div>
+                    </div>
+                  </div>
+                  <div style={{color:C2.muted,fontSize:12,marginBottom:10}}>{c.experience||"Experience not set"}</div>
+                  <div style={{display:"flex",gap:4,flexWrap:"wrap",marginBottom:12}}>
+                    {(c.skills||"").split(",").slice(0,4).map(s=>s.trim()).filter(Boolean).map(s=>(
+                      <span key={s} style={{padding:"2px 8px",borderRadius:4,background:"rgba(0,229,255,.08)",color:"#00E5FF",fontSize:10,fontFamily:"'Space Mono',monospace"}}>{s}</span>
+                    ))}
+                  </div>
+                  <div style={{display:"flex",gap:8}}>
+                    {c.resume_url && <a href={c.resume_url} target="_blank" rel="noreferrer" style={{padding:"7px 14px",borderRadius:8,background:"rgba(0,229,255,.1)",color:"#00E5FF",fontSize:11,fontWeight:700,textDecoration:"none"}}>📄 Resume</a>}
+                    {c.linkedin && <a href={`https://${c.linkedin}`} target="_blank" rel="noreferrer" style={{padding:"7px 14px",borderRadius:8,background:"rgba(0,119,181,.2)",color:"#0077B5",fontSize:11,fontWeight:700,textDecoration:"none"}}>LinkedIn</a>}
+                    {c.email && <a href={`mailto:${c.email}`} style={{padding:"7px 14px",borderRadius:8,background:"rgba(255,183,0,.1)",color:"#FFB700",fontSize:11,fontWeight:700,textDecoration:"none"}}>✉️ Email</a>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* My Jobs Tab */}
+      {tab==="jobs" && (
+        <div>
+          <div style={{fontFamily:"'Syne',sans-serif",fontSize:18,color:"#fff",fontWeight:800,marginBottom:16}}>💼 My Posted Jobs</div>
+          {myJobs.length === 0 ? (
+            <div style={{textAlign:"center",padding:60,background:C2.card,borderRadius:20}}>
+              <div style={{fontSize:48,marginBottom:12}}>💼</div>
+              <div style={{color:C2.muted}}>No jobs posted yet. Click "+ POST JOB FREE" to start!</div>
+            </div>
+          ) : (
+            <div style={{display:"flex",flexDirection:"column",gap:12}}>
+              {myJobs.map(job=>{
+                const appCount = applications.filter(a=>a.job_id===job.id).length;
+                return (
+                  <div key={job.id} style={{background:C2.card,borderRadius:16,padding:20,border:`1px solid ${C2.border}`,display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:12}}>
+                    <div>
+                      <div style={{fontFamily:"'Syne',sans-serif",fontWeight:700,color:"#fff",fontSize:15}}>{job.title}</div>
+                      <div style={{color:C2.muted,fontSize:12}}>{job.location} · {job.work_type} · {job.salary_range}</div>
+                    </div>
+                    <div style={{display:"flex",gap:10,alignItems:"center"}}>
+                      <span style={{padding:"6px 14px",borderRadius:8,background:"rgba(0,229,255,.1)",color:"#00E5FF",fontSize:12,fontWeight:700}}>{appCount} applications</span>
+                      <span style={{padding:"6px 14px",borderRadius:8,background:job.is_active?"rgba(0,214,143,.1)":"rgba(255,61,113,.1)",color:job.is_active?"#00D68F":"#FF3D71",fontSize:12,fontWeight:700}}>{job.is_active?"● Active":"○ Inactive"}</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Company Profile Tab */}
+      {tab==="company" && (
+        <div style={{maxWidth:600}}>
+          <div style={{fontFamily:"'Syne',sans-serif",fontSize:18,color:"#fff",fontWeight:800,marginBottom:20}}>🏢 Company Profile</div>
+          <div style={{display:"flex",flexDirection:"column",gap:14}}>
+            {[["COMPANY NAME","company_name","e.g. TechCorp India"],["HR EMAIL","company_email","hr@company.com"],["WEBSITE","company_website","https://company.com"],["ABOUT","about","What does your company do?"]].map(([lb,key,ph])=>(
+              <div key={key}>
+                <div style={{fontSize:10,fontWeight:800,color:C2.muted,marginBottom:5,letterSpacing:.6}}>{lb}</div>
+                {key==="about"
+                  ? <textarea value={companyForm[key]||""} onChange={e=>setCompanyForm(f=>({...f,[key]:e.target.value}))} placeholder={ph} style={{width:"100%",padding:"11px 14px",borderRadius:12,border:"1.5px solid rgba(0,229,255,.08)",background:C2.surface,color:"#fff",fontSize:13,fontFamily:"'Plus Jakarta Sans',sans-serif",height:80,resize:"none",boxSizing:"border-box"}}/>
+                  : <input value={companyForm[key]||""} onChange={e=>setCompanyForm(f=>({...f,[key]:e.target.value}))} placeholder={ph} style={{width:"100%",padding:"11px 14px",borderRadius:12,border:"1.5px solid rgba(0,229,255,.08)",background:C2.surface,color:"#fff",fontSize:13,fontFamily:"'Plus Jakarta Sans',sans-serif",boxSizing:"border-box"}}/>
+                }
+              </div>
+            ))}
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+              {[["COMPANY SIZE","company_size",["1-10","11-50","51-200","201-500","500+"]],["INDUSTRY","industry",["Tech","Finance","Healthcare","Education","E-commerce","Manufacturing","Other"]]].map(([lb,key,opts])=>(
+                <div key={key}>
+                  <div style={{fontSize:10,fontWeight:800,color:C2.muted,marginBottom:5,letterSpacing:.6}}>{lb}</div>
+                  <select value={companyForm[key]||""} onChange={e=>setCompanyForm(f=>({...f,[key]:e.target.value}))} style={{width:"100%",padding:"11px 14px",borderRadius:12,border:"1.5px solid rgba(0,229,255,.08)",background:C2.surface,color:"#fff",fontSize:13,fontFamily:"'Plus Jakarta Sans',sans-serif",cursor:"pointer"}}>
+                    {opts.map(o=><option key={o}>{o}</option>)}
+                  </select>
+                </div>
+              ))}
+            </div>
+            <div onClick={saveCompany} style={{padding:14,borderRadius:14,background:savingCompany?"rgba(0,229,255,.2)":"linear-gradient(135deg,#00E5FF,#7C3AED)",color:"#fff",fontFamily:"'Syne',sans-serif",fontSize:18,fontWeight:800,cursor:"pointer",textAlign:"center"}}>
+              {savingCompany?"Saving...":"💾 SAVE COMPANY PROFILE"}
+            </div>
+          </div>
+
+          {/* Marketing Tools */}
+          <div style={{marginTop:24,padding:20,borderRadius:16,background:C2.card,border:`1px solid ${C2.border}`}}>
+            <div style={{fontFamily:"'Syne',sans-serif",fontWeight:800,color:"#fff",fontSize:16,marginBottom:16}}>📣 Share Your Jobs</div>
+            <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
+              {[
+                ["WhatsApp",`https://wa.me/?text=We're hiring! Check our jobs on UdyamPath: https://udyampath.vercel.app`,"#25D366"],
+                ["LinkedIn",`https://www.linkedin.com/sharing/share-offsite/?url=https://udyampath.vercel.app`,"#0077B5"],
+                ["Twitter",`https://twitter.com/intent/tweet?text=We're hiring! Check our jobs on UdyamPath&url=https://udyampath.vercel.app`,"#1DA1F2"],
+                ["Copy Link","copy","#7C3AED"],
+              ].map(([name,url,color])=>(
+                <div key={name} onClick={()=>url==="copy"?navigator.clipboard.writeText("https://udyampath.vercel.app"):window.open(url,"_blank")}
+                  style={{padding:"10px 18px",borderRadius:10,background:color,color:"#fff",fontSize:12,fontWeight:700,cursor:"pointer"}}>
+                  {name==="WhatsApp"?"📱 ":name==="LinkedIn"?"💼 ":name==="Twitter"?"🐦 ":"🔗 "}{name}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 export default function App() {
   const [nav, setNav] = useState("jobs");
   const [user, setUser] = useState(null);
@@ -1377,6 +1786,8 @@ export default function App() {
     {id:"skills",icon:"🏆",label:"Skills"},
     {id:"alerts",icon:"🔔",label:"Alerts"},
     {id:"saved",icon:"🔖",label:`Saved (${saved.size})`},
+    {id:"profile",icon:"👤",label:"Profile"},
+    {id:"hr",icon:"🏢",label:"HR"},
   ];
 
   return (
@@ -1632,9 +2043,8 @@ export default function App() {
         {nav==="salary"&&<SalaryInsights jobs={jobs}/>}
         {nav==="interview"&&<MockInterview/>}
         {nav==="skills"&&<SkillGapAnalyzer/>}
-        {nav==="salary"&&<SalaryInsights jobs={jobs}/>}
-        {nav==="interview"&&<MockInterview/>}
-        {nav==="skills"&&<SkillGapAnalyzer/>}
+        {nav==="profile"&&<CandidateProfile user={user} onAuthRequired={()=>setShowAuth(true)}/>}
+        {nav==="hr"&&<HRDashboard user={user} onAuthRequired={()=>setShowAuth(true)}/>}
 
         {nav==="saved"&&(
           <div style={{maxWidth:1100,margin:"0 auto",padding:"28px 20px"}}>
@@ -1761,3 +2171,7 @@ export default function App() {
     </>
   );
 }
+
+/* ══════════════════════════════════════════════════
+   CANDIDATE PROFILE PAGE
+══════════════════════════════════════════════════ */
