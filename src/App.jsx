@@ -19,6 +19,14 @@ const Styles = () => (
     *{box-sizing:border-box;margin:0;padding:0;}
     html{scroll-behavior:smooth;}
     body{font-family:'Nunito',sans-serif;background:#09090F;color:#F0F0FF;overflow-x:hidden;}
+    @media(max-width:640px){
+      .mobile-hide{display:none!important;}
+      .mobile-full{width:100%!important;max-width:100%!important;}
+      .mobile-col{flex-direction:column!important;}
+      .mobile-sm{font-size:12px!important;}
+      .mobile-pad{padding:12px!important;}
+      .mobile-grid-1{grid-template-columns:1fr!important;}
+    }
     ::-webkit-scrollbar{width:4px;}
     ::-webkit-scrollbar-thumb{background:#00E5FF;border-radius:99px;}
     @-webkit-keyframes fadeUp{from{opacity:0;-webkit-transform:translateY(20px);transform:translateY(20px)}to{opacity:1;-webkit-transform:translateY(0);transform:translateY(0)}}
@@ -1412,7 +1420,7 @@ export default function App() {
                 <div key={item.id} onClick={()=>setNav(item.id)} className={`btn ${nav===item.id?"nav-active":""}`}
                   style={{padding:"8px 12px",borderRadius:10,fontSize:12,fontWeight:800,color:nav===item.id?C.lime:"rgba(255,255,255,.4)",background:nav===item.id?`${C.lime}10`:"transparent",display:"flex",flexDirection:"column",alignItems:"center",gap:2,transition:"all .2s",whiteSpace:"nowrap",flexShrink:0,minWidth:52}}>
                   <span style={{fontSize:16}}>{item.icon}</span>
-                  <span style={{fontSize:9,letterSpacing:.3}}>{item.label}</span>
+                  <span style={{fontSize:9,letterSpacing:.3}} className="mobile-hide">{item.label}</span>
                 </div>
               ))}
             </div>
@@ -1452,7 +1460,7 @@ export default function App() {
         {nav==="jobs"&&(
           <>
             {/* Hero */}
-            <div style={{background:`linear-gradient(135deg,${C.bg},#0D1520,${C.bg})`,padding:"60px 20px 48px",position:"relative",overflow:"hidden"}} className="grid-pattern">
+            <div style={{background:`linear-gradient(135deg,${C.bg},#0D1520,${C.bg})`,padding:"clamp(32px,8vw,60px) 16px 40px",position:"relative",overflow:"hidden"}} className="grid-pattern">
               <div style={{position:"absolute",top:-100,right:-100,width:400,height:400,borderRadius:"50%",background:`radial-gradient(circle,${C.lime}08,transparent)`,filter:"blur(60px)"}}/>
               <div style={{maxWidth:860,margin:"0 auto",textAlign:"center",position:"relative"}}>
                 <div className="fu" style={{display:"inline-flex",alignItems:"center",gap:8,padding:"6px 16px",borderRadius:999,background:`${C.lime}12`,border:`1px solid ${C.lime}25`,marginBottom:20}}>
@@ -1488,7 +1496,7 @@ export default function App() {
 
             {/* Stats */}
             <div style={{background:C.surface,borderBottom:`1px solid ${C.border}`,padding:"14px 20px"}}>
-              <div style={{maxWidth:1400,margin:"0 auto",display:"flex",gap:32,justifyContent:"center",flexWrap:"wrap"}}>
+              <div style={{maxWidth:1400,margin:"0 auto",display:"flex",gap:16,justifyContent:"center",flexWrap:"wrap"}}>
                 {[["💼",liveJobs.length,"Live Jobs",C.lime],["📫",filledJobs.length,"Filled Today",C.coral],["🔖",saved.size,"Saved",C.gold],["⚡","Live","WebSocket",C.sky]].map(([ic,val,lb,c])=>(
                   <div key={lb} style={{textAlign:"center"}}>
                     <div style={{fontFamily:"'Syne',sans-serif",fontSize:22,color:c,letterSpacing:.5}}>{ic} {val}</div>
