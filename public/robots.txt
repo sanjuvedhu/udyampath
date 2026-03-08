@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://udyampath.vercel.app/sitemap.xml

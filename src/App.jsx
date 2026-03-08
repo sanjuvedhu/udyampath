@@ -1381,6 +1381,7 @@ export default function App() {
     {id:"saved",icon:"🔖",label:`Saved (${saved.size})`},
     {id:"profile",icon:"👤",label:"Profile"},
     {id:"hr",icon:"🏢",label:"HR"},
+    {id:"analytics",icon:"📊",label:"Stats"},
   ];
 
   return (
@@ -1598,6 +1599,18 @@ export default function App() {
         )}
 
         {nav==="alerts"&&<AlertSetup user={user} onAuthRequired={()=>setShowAuth(true)} onToast={showToast}/>}
+        {nav==="alerts"&&(
+          <div style={{maxWidth:600,margin:"20px auto",padding:"0 20px"}}>
+            <div style={{background:"rgba(37,211,102,.08)",borderRadius:16,padding:20,border:"1px solid rgba(37,211,102,.2)"}}>
+              <div style={{fontFamily:"'Syne',sans-serif",fontWeight:800,color:"#fff",fontSize:16,marginBottom:8}}>📱 WhatsApp Job Alerts</div>
+              <div style={{color:"rgba(255,255,255,.5)",fontSize:13,marginBottom:14}}>Get instant job alerts on WhatsApp! Share this link with yourself:</div>
+              <div onClick={()=>window.open(`https://wa.me/?text=${encodeURIComponent("🚀 I'm using UdyamPath for job search! Join me: https://udyampath.vercel.app")}`, "_blank")}
+                style={{padding:"12px 20px",borderRadius:12,background:"#25D366",color:"#fff",fontWeight:800,fontSize:14,cursor:"pointer",textAlign:"center"}}>
+                📲 Share UdyamPath on WhatsApp
+              </div>
+            </div>
+          </div>
+        )}
         {nav==="applied"&&(
           <div style={{maxWidth:1000,margin:"0 auto",padding:"24px 20px"}}>
             <div style={{fontFamily:"'Syne',sans-serif",fontWeight:800,fontSize:28,color:"#fff",marginBottom:20}}>📋 MY APPLICATIONS</div>
@@ -1634,6 +1647,12 @@ export default function App() {
             )}
           </div>
         )}
+        {nav==="salary"&&<SalaryInsights jobs={jobs}/>}
+        {nav==="interview"&&<MockInterview/>}
+        {nav==="skills"&&<SkillGapAnalyzer/>}
+        {nav==="profile"&&<CandidateProfile user={user} onAuthRequired={()=>setShowAuth(true)}/>}
+        {nav==="hr"&&<HRDashboard user={user} onAuthRequired={()=>setShowAuth(true)}/>}
+        {nav==="analytics"&&<AnalyticsDashboard user={user}/>}
         {nav==="salary"&&<SalaryInsights jobs={jobs}/>}
         {nav==="interview"&&<MockInterview/>}
         {nav==="skills"&&<SkillGapAnalyzer/>}
@@ -2174,6 +2193,106 @@ const HRDashboard = ({ user, onAuthRequired }) => {
           </div>
         </div>
       )}
+    </div>
+  );
+};
+
+/* ══════════════════════════════════════════════════
+   ANALYTICS DASHBOARD (Admin only)
+══════════════════════════════════════════════════ */
+const AnalyticsDashboard = ({ user }) => {
+  const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const ADMIN_EMAIL = "sanjeevnagaraj9003@gmail.com";
+
+  useEffect(() => {
+    fetch("/api/analytics").then(r => r.json()).then(data => { setStats(data); setLoading(false); }).catch(() => setLoading(false));
+  }, []);
+
+  const C2 = { card:"#0D0D1F", border:"rgba(0,229,255,.08)", muted:"rgba(255,255,255,.4)", surface:"#080816" };
+
+  if (!user || user.email !== ADMIN_EMAIL) return (
+    <div style={{maxWidth:500,margin:"80px auto",textAlign:"center",padding:24}}>
+      <div style={{fontSize:56,marginBottom:16}}>🔒</div>
+      <div style={{fontFamily:"'Syne',sans-serif",fontSize:22,color:"#fff"}}>Admin Only</div>
+      <div style={{color:C2.muted,fontSize:13,marginTop:8}}>Analytics dashboard is only accessible to admins.</div>
+    </div>
+  );
+
+  if (loading) return <div style={{textAlign:"center",padding:60}}><div className="spin" style={{width:40,height:40,border:"3px solid rgba(0,229,255,.2)",borderTop:"3px solid #00E5FF",borderRadius:"50%",margin:"0 auto"}}/></div>;
+
+  return (
+    <div style={{maxWidth:1000,margin:"0 auto",padding:"24px 20px"}}>
+      <div style={{fontFamily:"'Syne',sans-serif",fontWeight:800,fontSize:28,color:"#fff",marginBottom:8}}>📊 ANALYTICS</div>
+      <div style={{color:C2.muted,fontSize:13,marginBottom:24}}>Real-time platform stats</div>
+
+      {/* Key metrics */}
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(180px,1fr))",gap:14,marginBottom:28}}>
+        {[
+          [stats?.totalViews||0,"Page Views","👁️","#00E5FF"],
+          [stats?.totalApps||0,"Applications","📋","#00D68F"],
+          [stats?.totalJobs||0,"Live Jobs","💼","#FFB700"],
+          [`${stats?.mobilePercent||0}%`,"Mobile Users","📱","#7C3AED"],
+        ].map(([val,lb,ic,color])=>(
+          <div key={lb} style={{background:C2.card,borderRadius:18,padding:22,border:`1px solid ${C2.border}`,textAlign:"center"}}>
+            <div style={{fontSize:28,marginBottom:6}}>{ic}</div>
+            <div style={{fontFamily:"'Syne',sans-serif",fontSize:32,fontWeight:900,color}}>{val}</div>
+            <div style={{fontSize:11,color:C2.muted,marginTop:4,fontFamily:"'Space Mono',monospace"}}>{lb}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Event breakdown */}
+      <div style={{background:C2.card,borderRadius:18,padding:24,border:`1px solid ${C2.border}`,marginBottom:20}}>
+        <div style={{fontFamily:"'Syne',sans-serif",fontWeight:800,color:"#fff",fontSize:16,marginBottom:16}}>🎯 Events Breakdown</div>
+        <div style={{display:"flex",flexWrap:"wrap",gap:10}}>
+          {Object.entries(stats?.eventCounts||{}).map(([event,count])=>(
+            <div key={event} style={{padding:"10px 16px",borderRadius:12,background:C2.surface,border:`1px solid ${C2.border}`}}>
+              <div style={{fontFamily:"'Space Mono',monospace",fontSize:10,color:C2.muted,marginBottom:4}}>{event}</div>
+              <div style={{fontFamily:"'Syne',sans-serif",fontWeight:800,color:"#00E5FF",fontSize:20}}>{count}</div>
+            </div>
+          ))}
+          {Object.keys(stats?.eventCounts||{}).length===0 && <div style={{color:C2.muted,fontSize:13}}>No events yet — events will appear as users interact.</div>}
+        </div>
+      </div>
+
+      {/* Recent activity */}
+      <div style={{background:C2.card,borderRadius:18,padding:24,border:`1px solid ${C2.border}`}}>
+        <div style={{fontFamily:"'Syne',sans-serif",fontWeight:800,color:"#fff",fontSize:16,marginBottom:16}}>⚡ Recent Activity</div>
+        {(stats?.recentEvents||[]).length===0 ? (
+          <div style={{color:C2.muted,fontSize:13}}>No activity yet.</div>
+        ) : (
+          <div style={{display:"flex",flexDirection:"column",gap:8}}>
+            {(stats?.recentEvents||[]).map((e,i)=>(
+              <div key={i} style={{display:"flex",justifyContent:"space-between",padding:"10px 14px",borderRadius:10,background:C2.surface,alignItems:"center"}}>
+                <div style={{display:"flex",gap:10,alignItems:"center"}}>
+                  <span style={{fontSize:16}}>{e.is_mobile?"📱":"💻"}</span>
+                  <span style={{fontFamily:"'Space Mono',monospace",fontSize:11,color:"#00E5FF"}}>{e.event}</span>
+                </div>
+                <span style={{fontSize:11,color:C2.muted}}>{new Date(e.created_at).toLocaleTimeString("en-IN")}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* SEO Status */}
+      <div style={{background:C2.card,borderRadius:18,padding:24,border:`1px solid ${C2.border}`,marginTop:20}}>
+        <div style={{fontFamily:"'Syne',sans-serif",fontWeight:800,color:"#fff",fontSize:16,marginBottom:16}}>🔍 SEO Status</div>
+        <div style={{display:"flex",flexDirection:"column",gap:10}}>
+          {[
+            ["sitemap.xml","https://udyampath.vercel.app/sitemap.xml","✅ Live"],
+            ["robots.txt","https://udyampath.vercel.app/robots.txt","✅ Live"],
+            ["Google Search Console","https://search.google.com/search-console","🔗 Submit sitemap"],
+            ["Bing Webmaster","https://www.bing.com/webmasters","🔗 Submit sitemap"],
+          ].map(([name,url,status])=>(
+            <div key={name} style={{display:"flex",justifyContent:"space-between",padding:"10px 14px",borderRadius:10,background:C2.surface,alignItems:"center"}}>
+              <span style={{color:"#fff",fontSize:13,fontWeight:700}}>{name}</span>
+              <a href={url} target="_blank" rel="noreferrer" style={{color:"#00E5FF",fontSize:12,textDecoration:"none"}}>{status} →</a>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 };
