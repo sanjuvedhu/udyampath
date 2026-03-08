@@ -1653,11 +1653,6 @@ export default function App() {
         {nav==="profile"&&<CandidateProfile user={user} onAuthRequired={()=>setShowAuth(true)}/>}
         {nav==="hr"&&<HRDashboard user={user} onAuthRequired={()=>setShowAuth(true)}/>}
         {nav==="analytics"&&<AnalyticsDashboard user={user}/>}
-        {nav==="salary"&&<SalaryInsights jobs={jobs}/>}
-        {nav==="interview"&&<MockInterview/>}
-        {nav==="skills"&&<SkillGapAnalyzer/>}
-        {nav==="profile"&&<CandidateProfile user={user} onAuthRequired={()=>setShowAuth(true)}/>}
-        {nav==="hr"&&<HRDashboard user={user} onAuthRequired={()=>setShowAuth(true)}/>}
 
         {nav==="saved"&&(
           <div style={{maxWidth:1100,margin:"0 auto",padding:"28px 20px"}}>
