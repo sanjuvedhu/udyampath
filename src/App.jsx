@@ -49,10 +49,17 @@ const Styles = () => (
     .bottom-nav{display:none;}
     .top-nav{display:flex;}
     @media(max-width:640px){
-      .bottom-nav{display:flex!important;position:fixed;bottom:0;left:0;right:0;z-index:999;background:#04040C;border-top:1px solid rgba(0,229,255,.12);padding:6px 4px 18px;gap:2px;justify-content:space-around;backdrop-filter:blur(20px);}
+      .bottom-nav{display:flex!important;position:fixed;bottom:0;left:0;right:0;z-index:999;background:rgba(4,4,12,0.95);border-top:1px solid rgba(255,255,255,0.08);padding:8px 4px 20px;gap:2px;justify-content:space-around;backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);}
       .top-nav{display:none!important;}
-      .main-content{padding-bottom:80px!important;}
+      .main-content{padding-bottom:90px!important;}
+      .mobile-hide{display:none!important;}
+      .mobile-only{display:flex!important;}
+      .logo-text{display:none!important;}
+      .live-badge{display:none!important;}
+      .sign-out-btn{display:none!important;}
+      .post-job-btn{display:none!important;}
     }
+    .mobile-only{display:none;}
     @media(max-width:640px){
       .mobile-hide{display:none!important;}
       .mobile-full{width:100%!important;max-width:100%!important;}
@@ -1568,14 +1575,14 @@ export default function App() {
           <div style={{maxWidth:1400,margin:"0 auto",padding:"0 12px",display:"flex",alignItems:"center",height:56,gap:8,width:"100%",boxSizing:"border-box"}}>
             <div style={{display:"flex",alignItems:"center",gap:10,cursor:"pointer",flexShrink:0}} onClick={()=>setNav("jobs")}>
               <div style={{width:38,height:38,borderRadius:12,background:`linear-gradient(135deg,${C.lime},#00C8E0)`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,boxShadow:`0 4px 16px ${C.lime}30`}}>🚀</div>
-              <div>
+              <div className="logo-text">
                 <div style={{fontFamily:"'Syne',sans-serif",fontSize:20,color:"#fff",letterSpacing:1,lineHeight:1}}>UDYAM PATH</div>
                 <div style={{fontSize:8,color:C.lime,letterSpacing:1.5,textTransform:"uppercase",fontWeight:700}}>Real-Time · उद्यम पथ</div>
               </div>
             </div>
 
             {/* Live indicator */}
-            <div style={{display:"flex",alignItems:"center",gap:6,padding:"5px 12px",borderRadius:999,background:"rgba(0,229,255,0.08)",border:"1px solid rgba(0,229,255,0.2)",backdropFilter:"blur(10px)",flexShrink:0}}>
+            <div className="live-badge" style={{display:"flex",alignItems:"center",gap:6,padding:"5px 12px",borderRadius:999,background:"rgba(0,229,255,0.08)",border:"1px solid rgba(0,229,255,0.2)",backdropFilter:"blur(10px)",flexShrink:0}}>
               <div style={{width:6,height:6,borderRadius:"50%",background:C.lime,animation:"pulse 1.5s infinite"}}/>
               <span style={{fontSize:11,fontWeight:800,color:C.lime,fontFamily:"'Space Mono',monospace"}}>{liveCount.toLocaleString("en-IN")} LIVE</span>
             </div>
@@ -1598,7 +1605,7 @@ export default function App() {
                   <div style={{width:34,height:34,borderRadius:10,background:`linear-gradient(135deg,${C.lime},#00C8E0)`,display:"flex",alignItems:"center",justifyContent:"center",color:C.bg,fontWeight:900,fontSize:14}}>
                     {(user.user_metadata?.full_name||user.email||"U")[0].toUpperCase()}
                   </div>
-                  <div onClick={handleSignOut} className="btn" style={{padding:"8px 14px",borderRadius:10,background:C.card,border:`1px solid ${C.border}`,fontSize:11,fontWeight:700,color:C.muted}}>Sign Out</div>
+                  <div onClick={handleSignOut} className="btn sign-out-btn" style={{padding:"8px 14px",borderRadius:10,background:C.card,border:`1px solid ${C.border}`,fontSize:11,fontWeight:700,color:C.muted}}>Sign Out</div>
                 </div>
               ) : (
                 <div onClick={()=>setShowAuth(true)} className="btn" style={{padding:"10px 20px",borderRadius:12,background:C.card,border:`1px solid ${C.border}`,fontSize:13,fontWeight:800,color:"rgba(255,255,255,.6)"}}>Sign In</div>
@@ -1607,7 +1614,7 @@ export default function App() {
                 style={{padding:"10px 14px",borderRadius:12,background:"linear-gradient(135deg,#FFB700,#FF6B00)",color:"#000",border:"none",fontWeight:900,fontSize:13,cursor:"pointer"}}>
                 💎
               </button>
-              <button onClick={()=>setShowPost(true)} className="btn glow-pulse"
+              <button onClick={()=>setShowPost(true)} className="btn glow-pulse post-job-btn"
                 style={{padding:"10px 18px",borderRadius:12,background:`linear-gradient(135deg,${C.lime},#00C8E0)`,color:C.bg,border:"none",fontWeight:900,fontSize:12,cursor:"pointer",letterSpacing:.5}}>
                 + POST JOB FREE
               </button>
@@ -1938,14 +1945,20 @@ export default function App() {
         <div className="bottom-nav">
           {NAV.map(item=>(
             <div key={item.id} onClick={()=>setNav(item.id)}
-              style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2,padding:"6px 8px",borderRadius:10,
-                color:nav===item.id?"#00E5FF":"rgba(255,255,255,.4)",
+              style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2,padding:"6px 6px",borderRadius:10,
+                color:nav===item.id?"#00E5FF":"rgba(255,255,255,.35)",
                 background:nav===item.id?"rgba(0,229,255,.08)":"transparent",
-                cursor:"pointer",flex:1,maxWidth:60}}>
-              <span style={{fontSize:18}}>{item.icon}</span>
-              <span style={{fontSize:8,fontWeight:700,letterSpacing:.3,textAlign:"center",lineHeight:1.2}}>{item.label.split(" ")[0]}</span>
+                cursor:"pointer",flex:1,maxWidth:52,transition:"all .2s"}}>
+              <span style={{fontSize:20}}>{item.icon}</span>
+              <span style={{fontSize:7,fontWeight:700,letterSpacing:.2,textAlign:"center",lineHeight:1.2}}>{item.label.split(" ")[0]}</span>
             </div>
           ))}
+          <div onClick={()=>setShowPricing(true)}
+            style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2,padding:"6px 6px",borderRadius:10,
+              background:"rgba(255,183,0,0.1)",cursor:"pointer",flex:1,maxWidth:52}}>
+            <span style={{fontSize:20}}>💎</span>
+            <span style={{fontSize:7,fontWeight:700,color:"#FFB700",letterSpacing:.2}}>PRO</span>
+          </div>
         </div>
 
         {/* FOOTER */}
