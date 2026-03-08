@@ -18,6 +18,8 @@ const Styles = () => (
     @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Nunito:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap');
     *{box-sizing:border-box;margin:0;padding:0;}
     html{scroll-behavior:smooth;}
+    *{box-sizing:border-box;}
+    html,body{overflow-x:hidden;max-width:100vw;}
     body{font-family:'Nunito',sans-serif;background:#09090F;color:#F0F0FF;overflow-x:hidden;}
     @media(max-width:640px){
       .mobile-hide{display:none!important;}
@@ -55,7 +57,7 @@ const Styles = () => (
     .tag{display:inline-flex;align-items:center;padding:3px 10px;border-radius:99px;font-size:10px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;}
     .shimmer-bg{background:linear-gradient(90deg,#1A1A2E 0%,#2A2A3E 50%,#1A1A2E 100%);background-size:200% 100%;-webkit-animation:shimmer 1.5s infinite;animation:shimmer 1.5s infinite;}
     .grid-pattern{background-image:linear-gradient(rgba(170,255,0,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(170,255,0,.03) 1px,transparent 1px);background-size:40px 40px;}
-    .marquee-wrap{overflow:hidden;width:100%;}
+    .marquee-wrap{overflow:hidden;width:100%;max-width:100vw;}
     .marquee-inner{display:-webkit-flex;display:flex;-webkit-animation:marquee 35s linear infinite;animation:marquee 35s linear infinite;width:-webkit-max-content;width:max-content;}
     .pop{-webkit-animation:popIn .4s ease both;animation:popIn .4s ease both;}
     .glow-pulse{-webkit-animation:glow 2s ease-in-out infinite;animation:glow 2s ease-in-out infinite;}
@@ -1399,7 +1401,7 @@ export default function App() {
 
         {/* NAVBAR */}
         <nav style={{background:C.surface,borderBottom:`1px solid ${C.border}`,position:"sticky",top:0,zIndex:100,boxShadow:"0 4px 30px rgba(0,0,0,.3)"}}>
-          <div style={{maxWidth:1400,margin:"0 auto",padding:"0 20px",display:"flex",alignItems:"center",height:64,gap:20}}>
+          <div style={{maxWidth:1400,margin:"0 auto",padding:"0 12px",display:"flex",alignItems:"center",height:56,gap:8,width:"100%",boxSizing:"border-box"}}>
             <div style={{display:"flex",alignItems:"center",gap:10,cursor:"pointer",flexShrink:0}} onClick={()=>setNav("jobs")}>
               <div style={{width:38,height:38,borderRadius:12,background:`linear-gradient(135deg,${C.lime},#00C8E0)`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,boxShadow:`0 4px 16px ${C.lime}30`}}>🚀</div>
               <div>

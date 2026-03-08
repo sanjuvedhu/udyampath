@@ -2,18 +2,62 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚀</text></svg>" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="UdyamPath — India's Real-Time Career Platform. Real jobs, real applications, real email alerts." />
-    <meta name="theme-color" content="#09090F" />
-    <title>UdyamPath — उद्यम पथ | Real-Time Jobs Portal</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+
+    <!-- PWA -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#00E5FF" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="UdyamPath" />
+
+    <!-- Icons -->
+    <link rel="icon" href="/icon-192.png" />
+    <link rel="apple-touch-icon" href="/icon-192.png" />
+    <link rel="apple-touch-icon" sizes="192x192" href="/icon-192.png" />
+    <link rel="apple-touch-icon" sizes="512x512" href="/icon-512.png" />
+
+    <!-- SEO -->
+    <title>UdyamPath — उद्यम पथ | India's AI Career Platform</title>
+    <meta name="description" content="Find 15,000+ real jobs across India & abroad. AI Mock Interviews, Salary Insights, Skill Gap Analyzer. Apply directly to companies. Free forever." />
+    <meta name="keywords" content="jobs india, naukri alternative, fresher jobs, remote jobs, AI interview, salary insights, job portal india" />
+    <meta name="author" content="Sanjeev & Vedha Nikitha" />
+    <meta name="robots" content="index, follow" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://udyampath.vercel.app" />
+    <meta property="og:title" content="UdyamPath — India's AI Career Platform" />
+    <meta property="og:description" content="15,000+ real jobs. AI Mock Interview. Salary Insights. Apply directly to companies. Free forever." />
+    <meta property="og:image" content="https://udyampath.vercel.app/icon-512.png" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="UdyamPath — India's AI Career Platform" />
+    <meta name="twitter:description" content="15,000+ real jobs. AI Mock Interview. Salary Insights. Free forever." />
+    <meta name="twitter:image" content="https://udyampath.vercel.app/icon-512.png" />
+
     <style>
-      body { margin: 0; background: #09090F; }
-      #root { min-height: 100vh; }
+      * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+      html, body { overflow-x: hidden; max-width: 100vw; margin: 0; padding: 0; }
+      body { background: #04040C; overscroll-behavior: none; }
+      #root { min-height: 100vh; min-height: 100dvh; overflow-x: hidden; }
     </style>
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
+
+    <!-- Register Service Worker -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then(reg => console.log('SW registered:', reg.scope))
+            .catch(err => console.log('SW error:', err));
+        });
+      }
+    </script>
   </body>
 </html>
