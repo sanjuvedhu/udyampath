@@ -6,3 +6,4 @@ dist/
 fetch_all_jobs.js
 auto_fetch.sh
 *.backup
+.vercel
