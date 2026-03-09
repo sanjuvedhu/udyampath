@@ -1431,7 +1431,7 @@ const ResumeBuilderPage = ({ user, onAuthRequired }) => {
       + "<h1>" + (form.name||"Your Name") + "</h1>"
       + "<p>" + [form.email,form.phone,form.location].filter(Boolean).join(" | ") + "</p>"
       + (form.summary ? "<h2>Summary</h2><p>" + form.summary + "</p>" : "")
-      + (form.experience ? "<h2>Experience</h2><p style='white-space:pre-line'>" + form.experience + "</p>" : "")
+      + (form.experience ? "<h2>Experience</h2><p style=white-space:pre-line>" + form.experience + "</p>" : "")
       + (form.education ? "<h2>Education</h2><p>" + form.education + "</p>" : "")
       + (form.skills ? "<h2>Skills</h2>" + form.skills.split(",").map(s=>"<span class=skill>"+s.trim()+"</span>").join("") : "")
       + "</body></html>";
