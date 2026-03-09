@@ -55,7 +55,7 @@ const Styles = () => (
       footer{padding-bottom:calc(90px + env(safe-area-inset-bottom,0px))!important;}
       .mobile-hide{display:none!important;}
       .mobile-only{display:flex!important;}
-      .logo-text{display:none!important;}
+      .logo-text{display:block!important;font-size:12px!important;}
       .live-badge{display:none!important;}
       .sign-out-btn{display:none!important;}
       .post-job-btn{display:none!important;}
