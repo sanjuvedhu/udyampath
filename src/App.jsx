@@ -1419,6 +1419,58 @@ const ApplicationTracker = ({ user, onAuthRequired }) => {
   );
 };
 
+
+const ResumeBuilderPage = ({ user, onAuthRequired }) => {
+  const [form, setForm] = useState({ name:"", email:"", phone:"", location:"", summary:"", skills:"", experience:"", education:"" });
+  const set = (k,v) => setForm(f=>({...f,[k]:v}));
+  const pct = Math.round((Object.values(form).filter(v=>v.trim()).length / Object.keys(form).length)*100);
+  const inp = {width:"100%",padding:"12px 14px",borderRadius:12,border:"1px solid rgba(255,255,255,0.08)",background:"rgba(255,255,255,0.03)",color:"#fff",fontSize:13,fontFamily:"inherit",outline:"none",boxSizing:"border-box"};
+
+  const download = () => {
+    const html = "<!DOCTYPE html><html><head><meta charset=UTF-8><style>body{font-family:Arial,sans-serif;max-width:800px;margin:40px auto;padding:40px;color:#111;line-height:1.6;}h1{font-size:28px;}h2{font-size:13px;text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid #ddd;padding-bottom:4px;margin-top:20px;}.skill{display:inline-block;background:#f0f0f0;padding:2px 8px;border-radius:4px;font-size:12px;margin:2px;}</style></head><body>"
+      + "<h1>" + (form.name||"Your Name") + "</h1>"
+      + "<p>" + [form.email,form.phone,form.location].filter(Boolean).join(" | ") + "</p>"
+      + (form.summary ? "<h2>Summary</h2><p>" + form.summary + "</p>" : "")
+      + (form.experience ? "<h2>Experience</h2><p style='white-space:pre-line'>" + form.experience + "</p>" : "")
+      + (form.education ? "<h2>Education</h2><p>" + form.education + "</p>" : "")
+      + (form.skills ? "<h2>Skills</h2>" + form.skills.split(",").map(s=>"<span class=skill>"+s.trim()+"</span>").join("") : "")
+      + "</body></html>";
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([html],{type:"text/html"}));
+    a.download = (form.name||"resume").replace(/ /g,"_") + "_resume.html";
+    a.click();
+  };
+
+  return (
+    <div style={{maxWidth:700,margin:"0 auto",padding:"24px 16px"}}>
+      <div style={{fontSize:28,fontWeight:900,color:"#fff",marginBottom:4,fontFamily:"Syne,sans-serif"}}>RESUME BUILDER</div>
+      <div style={{color:"rgba(255,255,255,.4)",fontSize:13,marginBottom:16}}>Build and download your resume for free</div>
+      <div style={{background:"rgba(255,255,255,0.03)",borderRadius:16,padding:16,border:"1px solid rgba(255,255,255,0.08)",marginBottom:16}}>
+        <div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}>
+          <span style={{fontSize:12,fontWeight:700,color:"#fff"}}>Completeness</span>
+          <span style={{fontSize:12,fontWeight:900,color:pct===100?"#AAFF00":"#00E5FF"}}>{pct}%</span>
+        </div>
+        <div style={{height:6,borderRadius:99,background:"rgba(255,255,255,.06)"}}>
+          <div style={{height:"100%",borderRadius:99,width:pct+"%",background:"linear-gradient(90deg,#00E5FF,#AAFF00)",transition:"width .3s"}}/>
+        </div>
+      </div>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:10}}>
+        {[["name","Full Name *"],["email","Email *"],["phone","Phone"],["location","City, State"]].map(([k,p])=>(
+          <input key={k} value={form[k]} onChange={e=>set(k,e.target.value)} placeholder={p} style={inp}/>
+        ))}
+      </div>
+      {[["summary","Professional Summary..."],["experience","Work Experience (company, role, dates, achievements)"],["education","Education (degree, college, year)"],["skills","Skills (comma separated: React, Python, SQL)"]].map(([k,p])=>(
+        <textarea key={k} value={form[k]} onChange={e=>set(k,e.target.value)} placeholder={p} rows={3} style={{...inp,resize:"vertical",marginBottom:10}}/>
+      ))}
+      <button onClick={download} disabled={!form.name||!form.email}
+        style={{width:"100%",padding:14,borderRadius:14,background:form.name&&form.email?"linear-gradient(135deg,#AAFF00,#00E5FF)":"rgba(255,255,255,.1)",
+          color:form.name&&form.email?"#000":"rgba(255,255,255,.3)",border:"none",fontFamily:"Syne,sans-serif",fontWeight:900,fontSize:17,cursor:form.name&&form.email?"pointer":"not-allowed"}}>
+        DOWNLOAD RESUME
+      </button>
+      <div style={{textAlign:"center",fontSize:11,color:"rgba(255,255,255,.2)",marginTop:6}}>Downloads as HTML - open in Chrome then Print to PDF</div>
+    </div>
+  );
+};
 export default function App() {
   const [nav, setNav] = useState("jobs");
   const [user, setUser] = useState(null);
