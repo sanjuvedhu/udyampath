@@ -2008,7 +2008,7 @@ export default function App() {
             </div>
 
             {/* Nav */}
-            <div className="top-nav" style={{display:"flex",gap:1,flex:1,justifyContent:"center",overflowX:"auto",scrollbarWidth:"none",WebkitOverflowScrolling:"touch",msOverflowStyle:"none",padding:"0 4px"}}>
+            <div className="top-nav" style={{display:"flex",gap:1,flex:1,justifyContent:"center",overflowX:"auto",scrollbarWidth:"none",WebkitOverflowScrolling:"touch",scrollbarWidth:"none",WebkitOverflowScrolling:"touch",WebkitOverflowScrolling:"touch",msOverflowStyle:"none",padding:"0 4px"}}>
               {NAV.map(item=>(
                 <div key={item.id} onClick={()=>setNav(item.id)} className={`btn ${nav===item.id?"nav-active":""}`}
                   style={{padding:"6px 8px",borderRadius:8,fontSize:11,fontWeight:800,color:nav===item.id?C.lime:"rgba(255,255,255,.4)",background:nav===item.id?`${C.lime}10`:"transparent",display:"flex",flexDirection:"column",alignItems:"center",gap:1,transition:"all .2s",whiteSpace:"nowrap",flexShrink:0,minWidth:44}}>
