@@ -56,7 +56,7 @@ const Styles = () => (
       .mobile-hide{display:none!important;}
       .mobile-only{display:flex!important;}
       .logo-text{display:block!important;font-size:12px!important;}
-      .live-badge{display:none!important;}
+      .live-badge{display:flex!important;padding:3px 8px!important;}
       .sign-out-btn{display:none!important;}
       .post-job-btn{display:none!important;}
     }
