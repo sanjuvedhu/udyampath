@@ -1683,6 +1683,8 @@ export default function App() {
 
   const NAV = [
     {id:"jobs",icon:"💼",label:"Jobs"},
+    {id:"companies",icon:"🏛️",label:"Companies"},
+    {id:"foryou",icon:"⭐",label:"For You"},
     {id:"resume",icon:"📄",label:"Resume"},
     {id:"tracker",icon:"📊",label:"Tracker"},
     {id:"salary",icon:"📊",label:"Salary"},
@@ -1964,6 +1966,8 @@ export default function App() {
         )}
         {nav==="resume"&&<ResumeBuilderPage user={user} onAuthRequired={()=>setShowAuth(true)}/>}
         {nav==="tracker"&&<ApplicationTracker user={user} onAuthRequired={()=>setShowAuth(true)}/>}
+        {nav==="companies"&&<CompanyReviews user={user} onAuthRequired={()=>setShowAuth(true)} jobs={jobs}/>}
+        {nav==="foryou"&&<JobRecommendations user={user} onAuthRequired={()=>setShowAuth(true)} jobs={jobs}/>}
         {nav==="salary"&&<SalaryInsights jobs={jobs}/>}
         {nav==="interview"&&<MockInterview/>}
         {nav==="skills"&&<SkillGapAnalyzer/>}
