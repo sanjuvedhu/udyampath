@@ -49,7 +49,7 @@ const Styles = () => (
     .bottom-nav{display:none;}
     .top-nav{display:flex;}
     @media(max-width:640px){
-      .bottom-nav{display:flex!important;position:fixed;bottom:0;left:0;right:0;z-index:999;background:rgba(4,4,12,0.95);border-top:1px solid rgba(255,255,255,0.08);padding:8px 4px 20px;gap:2px;justify-content:space-around;backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);}
+      .bottom-nav{display:flex!important;position:fixed;bottom:0;left:0;right:0;z-index:999;background:rgba(4,4,12,0.95);border-top:1px solid rgba(255,255,255,0.08);padding:8px 4px 20px;gap:2px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);}.bottom-nav::-webkit-scrollbar{display:none;}
       .top-nav{display:none!important;}
       .main-content{padding-bottom:20px!important;}
       footer{padding-bottom:calc(90px + env(safe-area-inset-bottom,0px))!important;}
