@@ -11,7 +11,7 @@ export default async function handler(req, res) {
   // ── PUSH NOTIFICATION ──
   if (type === "push") {
     const { subscription, title, body, url } = req.body;
-    if (!subscription) return res.status(400).json({ error: "Subscription required" });
+    if (!subscription) return res.status(200).json({ success: false, message: "Subscription required" });
     try {
       const webpush = await import('web-push');
       webpush.setVapidDetails(
@@ -34,7 +34,7 @@ export default async function handler(req, res) {
 
   // ── WHATSAPP ALERT ──
   const { phone, jobTitle, company, location, salary, applyUrl } = req.body || {};
-  if (!phone) return res.status(400).json({ error: "Phone required" });
+  if (!phone) return res.status(200).json({ success: false, message: "Phone required for WhatsApp" });
 
   const message = `🚀 *New Job Alert from UdyamPath!*\n\n💼 *${jobTitle}*\n🏢 ${company}\n📍 ${location}\n💰 ${salary}\n\n${applyUrl ? `🔗 Apply: ${applyUrl}` : '🔗 Apply: https://udyampath.vercel.app'}\n\n_Find more jobs at udyampath.vercel.app_`;
   const waLink = `https://wa.me/${phone.replace(/[^0-9]/g,'')}?text=${encodeURIComponent(message)}`;
