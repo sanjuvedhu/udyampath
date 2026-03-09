@@ -96,7 +96,7 @@ export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
   if (req.method === "OPTIONS") return res.status(200).end();
-  if (req.method !== "POST") return res.status(405).end("Method not allowed");
+  if (req.method !== "POST" && req.method !== "GET") return res.status(405).end("Method not allowed");
 
   const { title, company, region, workType } = req.body || {};
   if (!title) return res.status(400).json({ error: "Job title required" });
