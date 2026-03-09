@@ -1631,6 +1631,131 @@ const JobRecommendations = ({ user, onAuthRequired, jobs }) => {
     </div>
   );
 };
+
+/* Profile Completeness Helper */
+const ProfileCompletenessBar = ({ user, profile, onNav }) => {
+  if(!user || !profile) return null;
+  const fields = [profile.full_name, profile.email, profile.phone, profile.location, profile.skills, profile.experience, profile.education, profile.resume_url];
+  const filled = fields.filter(Boolean).length;
+  const pct = Math.round((filled / fields.length) * 100);
+  if(pct === 100) return null;
+  return (
+    <div onClick={()=>onNav("profile")} style={{background:"rgba(255,183,0,0.08)",border:"1px solid rgba(255,183,0,0.2)",borderRadius:14,padding:"10px 16px",margin:"0 16px 12px",cursor:"pointer",display:"flex",alignItems:"center",gap:10}}>
+      <span style={{fontSize:18}}>⚠️</span>
+      <div style={{flex:1}}>
+        <div style={{fontSize:12,fontWeight:800,color:"#FFB700"}}>Complete your profile to get better job matches! ({pct}% done)</div>
+        <div style={{height:4,borderRadius:99,background:"rgba(255,255,255,.06)",marginTop:4}}>
+          <div style={{height:"100%",borderRadius:99,width:pct+"%",background:"linear-gradient(90deg,#FFB700,#AAFF00)",transition:"width .4s"}}/>
+        </div>
+      </div>
+      <span style={{fontSize:11,fontWeight:900,color:"#FFB700"}}>Complete →</span>
+    </div>
+  );
+};
+
+/* Referral System */
+const ReferralCard = ({ user, onToast }) => {
+  const referralCode = user ? "UDYAM-" + user.id.slice(0,6).toUpperCase() : "";
+  const referralLink = "https://udyampath.vercel.app?ref=" + referralCode;
+  const C2 = {card:"rgba(255,255,255,0.03)",border:"rgba(255,255,255,0.08)",muted:"rgba(255,255,255,.4)",lime:"#AAFF00",sky:"#00E5FF"};
+
+  const copy = () => {
+    navigator.clipboard.writeText(referralLink);
+    if(onToast) onToast("Referral link copied!", "success");
+  };
+
+  const share = () => {
+    const text = "I use UdyamPath for job hunting in India - 19000+ real jobs + AI features! Join free: " + referralLink;
+    if(navigator.share) navigator.share({title:"UdyamPath",text,url:referralLink});
+    else { navigator.clipboard.writeText(text); if(onToast) onToast("Copied to clipboard!", "success"); }
+  };
+
+  if(!user) return null;
+
+  return (
+    <div style={{background:"linear-gradient(135deg,rgba(170,255,0,0.06),rgba(0,229,255,0.06))",borderRadius:16,padding:20,border:"1px solid rgba(170,255,0,0.15)",marginTop:16}}>
+      <div style={{fontFamily:"Syne,sans-serif",fontWeight:800,color:"#fff",fontSize:16,marginBottom:4}}>Refer Friends - Earn Rewards</div>
+      <div style={{color:C2.muted,fontSize:12,marginBottom:14}}>Share UdyamPath and help your friends find jobs!</div>
+      <div style={{background:"rgba(0,0,0,0.3)",borderRadius:10,padding:"10px 14px",marginBottom:12,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+        <span style={{fontSize:12,color:C2.sky,fontFamily:"monospace"}}>{referralCode}</span>
+        <span onClick={copy} style={{fontSize:11,color:C2.lime,cursor:"pointer",fontWeight:700}}>COPY CODE</span>
+      </div>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+        <button onClick={copy} style={{padding:"10px",borderRadius:10,background:"rgba(170,255,0,0.1)",color:"#AAFF00",border:"1px solid rgba(170,255,0,0.2)",fontWeight:700,fontSize:13,cursor:"pointer"}}>Copy Link</button>
+        <button onClick={share} style={{padding:"10px",borderRadius:10,background:"linear-gradient(135deg,#AAFF00,#00E5FF)",color:"#000",border:"none",fontWeight:900,fontSize:13,cursor:"pointer"}}>Share Now</button>
+      </div>
+    </div>
+  );
+};
+
+/* Company Pages */
+const CompanyPages = ({ jobs, onAuthRequired, user }) => {
+  const [selected, setSelected] = useState(null);
+  const [search, setSearch] = useState("");
+  const C2 = {card:"rgba(255,255,255,0.03)",border:"rgba(255,255,255,0.08)",muted:"rgba(255,255,255,.4)",lime:"#AAFF00",sky:"#00E5FF"};
+
+  const companiesData = jobs.reduce((acc, job) => {
+    if(!job.company_name) return acc;
+    if(!acc[job.company_name]) acc[job.company_name] = { name:job.company_name, jobs:[], location:job.location };
+    acc[job.company_name].jobs.push(job);
+    return acc;
+  }, {});
+
+  const companies = Object.values(companiesData).sort((a,b)=>b.jobs.length-a.jobs.length);
+  const filtered = companies.filter(c=>c.name.toLowerCase().includes(search.toLowerCase()));
+  const inp = {width:"100%",padding:"11px 14px",borderRadius:12,border:"1px solid rgba(255,255,255,0.08)",background:"rgba(255,255,255,0.03)",color:"#fff",fontSize:13,fontFamily:"inherit",outline:"none",boxSizing:"border-box"};
+
+  if(selected) {
+    const co = companiesData[selected];
+    return (
+      <div style={{maxWidth:900,margin:"0 auto",padding:"24px 16px"}}>
+        <div onClick={()=>setSelected(null)} style={{color:C2.sky,fontSize:13,cursor:"pointer",marginBottom:16}}>Back to companies</div>
+        <div style={{background:C2.card,borderRadius:20,padding:24,border:"1px solid rgba(255,255,255,0.08)",marginBottom:20}}>
+          <div style={{display:"flex",gap:16,alignItems:"center",marginBottom:12}}>
+            <div style={{width:64,height:64,borderRadius:16,background:"linear-gradient(135deg,#7C3AED,#00E5FF)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:28}}>🏢</div>
+            <div>
+              <div style={{fontFamily:"Syne,sans-serif",fontSize:24,color:"#fff",fontWeight:900}}>{selected}</div>
+              <div style={{color:C2.muted,fontSize:13}}>{co.location}</div>
+              <div style={{color:C2.lime,fontSize:12,fontWeight:700,marginTop:4}}>{co.jobs.length} open positions</div>
+            </div>
+          </div>
+        </div>
+        <div style={{fontFamily:"Syne,sans-serif",fontSize:18,color:"#fff",fontWeight:800,marginBottom:12}}>Open Positions</div>
+        {co.jobs.map(job=>(
+          <div key={job.id} style={{background:C2.card,borderRadius:14,padding:16,border:"1px solid rgba(255,255,255,0.08)",marginBottom:10,display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:10}}>
+            <div>
+              <div style={{fontWeight:800,color:"#fff",fontSize:14}}>{job.title}</div>
+              <div style={{fontSize:12,color:C2.muted}}>{job.location} - {job.work_type} - {job.salary_range||"Competitive"}</div>
+            </div>
+            <div onClick={()=>job.apply_url&&window.open(job.apply_url,"_blank")}
+              style={{padding:"8px 16px",borderRadius:10,background:"linear-gradient(135deg,#AAFF00,#00E5FF)",color:"#000",fontSize:12,fontWeight:900,cursor:"pointer"}}>
+              APPLY
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <div style={{maxWidth:900,margin:"0 auto",padding:"24px 16px"}}>
+      <div style={{fontFamily:"Syne,sans-serif",fontSize:28,fontWeight:900,color:"#fff",marginBottom:4}}>COMPANY PAGES</div>
+      <div style={{color:C2.muted,fontSize:13,marginBottom:16}}>{companies.length} companies hiring on UdyamPath</div>
+      <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search company..." style={{...inp,marginBottom:16}}/>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(200px,1fr))",gap:10}}>
+        {filtered.slice(0,48).map(c=>(
+          <div key={c.name} onClick={()=>setSelected(c.name)}
+            style={{background:C2.card,borderRadius:14,padding:16,border:"1px solid rgba(255,255,255,0.08)",cursor:"pointer"}}>
+            <div style={{fontSize:32,marginBottom:8}}>🏢</div>
+            <div style={{fontWeight:800,color:"#fff",fontSize:13,marginBottom:4}}>{c.name}</div>
+            <div style={{fontSize:11,color:C2.muted,marginBottom:6}}>{c.location}</div>
+            <div style={{fontSize:11,color:C2.lime,fontWeight:700}}>{c.jobs.length} open jobs</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
 export default function App() {
   const [nav, setNav] = useState("jobs");
   const [user, setUser] = useState(null);
@@ -1656,6 +1781,7 @@ export default function App() {
   const [appliedJobs, setAppliedJobs] = useState(new Set());
   const [hasMore, setHasMore] = useState(false);
   const [salaryFilter, setSalaryFilter] = useState("All");
+  const [skillFilter, setSkillFilter] = useState("");
   const [showResumeBuilder, setShowResumeBuilder] = useState(false);
   const [installPrompt, setInstallPrompt] = useState(null);
   const [showPricing, setShowPricing] = useState(false);
@@ -1828,6 +1954,7 @@ export default function App() {
 
   // ── Filter jobs ───────────────────────────────────
   const liveJobs  = jobs.filter(j=>!j.filled_seats||(j.filled_seats<(j.total_seats||10))).filter(j=>{
+    if(skillFilter && !(job.title+" "+(job.skills_tags||[]).join(" ")+" "+job.description).toLowerCase().includes(skillFilter.toLowerCase())) return false;
     if(salaryFilter==="All") return true;
     const s = (j.salary_range||"").toLowerCase();
     if(salaryFilter==="Competitive") return s.includes("competitive");
@@ -1843,7 +1970,8 @@ export default function App() {
 
   const NAV = [
     {id:"jobs",icon:"💼",label:"Jobs"},
-    {id:"companies",icon:"🏛️",label:"Companies"},
+    {id:"companies",icon:"🏛️",label:"Reviews"},
+    {id:"companyPages",icon:"🏢",label:"Companies"},
     {id:"foryou",icon:"⭐",label:"For You"},
     {id:"resume",icon:"📄",label:"Resume"},
     {id:"tracker",icon:"📊",label:"Tracker"},
@@ -2005,7 +2133,12 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Job Grid */}
+              {/* Skill Filter */}
+            <div style={{padding:"0 16px 8px"}}>
+              <input value={skillFilter} onChange={e=>setSkillFilter(e.target.value)} placeholder="Filter by skill e.g. React, Python, SQL..."
+                style={{width:"100%",padding:"10px 14px",borderRadius:12,border:"1px solid rgba(255,255,255,0.08)",background:"rgba(255,255,255,0.03)",color:"#fff",fontSize:13,fontFamily:"inherit",outline:"none",boxSizing:"border-box"}}/>
+            </div>
+            {/* Job Grid */}
               <div style={{fontFamily:"Syne,sans-serif",fontSize:24,color:"#fff",letterSpacing:.5,marginBottom:16}}>
                 {loading?"LOADING LIVE JOBS...":`${liveJobs.length} LIVE JOBS`}
                 <span style={{fontSize:11,fontFamily:"Plus Jakarta Sans,sans-serif",fontWeight:600,letterSpacing:0,color:"rgba(255,255,255,.25)",marginLeft:12}}>
@@ -2127,11 +2260,13 @@ export default function App() {
         {nav==="resume"&&<ResumeBuilderPage user={user} onAuthRequired={()=>setShowAuth(true)}/>}
         {nav==="tracker"&&<ApplicationTracker user={user} onAuthRequired={()=>setShowAuth(true)}/>}
         {nav==="companies"&&<CompanyReviews user={user} onAuthRequired={()=>setShowAuth(true)} jobs={jobs}/>}
+        {nav==="companyPages"&&<CompanyPages jobs={jobs} user={user} onAuthRequired={()=>setShowAuth(true)}/>}
         {nav==="foryou"&&<JobRecommendations user={user} onAuthRequired={()=>setShowAuth(true)} jobs={jobs}/>}
         {nav==="salary"&&<SalaryInsights jobs={jobs}/>}
         {nav==="interview"&&<MockInterview/>}
         {nav==="skills"&&<SkillGapAnalyzer/>}
-        {nav==="profile"&&<CandidateProfile user={user} onAuthRequired={()=>setShowAuth(true)}/>}
+        {nav==="profile"&&<CandidateProfile user={user} onAuthRequired={()=>setShowAuth(true)} onToast={showToast}/>}
+        {nav==="profile"&&user&&<div style={{maxWidth:900,margin:"0 auto",padding:"0 16px 24px"}}><ReferralCard user={user} onToast={showToast}/></div>}
         {nav==="hr"&&<HRDashboard user={user} onAuthRequired={()=>setShowAuth(true)}/>}
         {nav==="analytics"&&<AnalyticsDashboard user={user}/>}
 
