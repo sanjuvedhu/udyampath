@@ -2180,6 +2180,14 @@ export default function App() {
                     📋 LOAD MORE JOBS
                   </div>
                   <div style={{fontSize:12,color:C.muted,marginTop:8}}>Showing {liveJobs.length} of {liveCount} jobs</div>
+                  <div onClick={()=>window.scrollTo({top:0,behavior:"smooth"})} className="btn" style={{
+                    display:"inline-flex",alignItems:"center",gap:8,marginTop:12,
+                    padding:"10px 24px",borderRadius:12,
+                    background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",
+                    color:"rgba(255,255,255,.6)",fontWeight:700,fontSize:13,cursor:"pointer"
+                  }}>
+                    ↑ Back to Top
+                  </div>
                 </div>
               )}
 
