@@ -2042,6 +2042,11 @@ export default function App() {
           </div>
         </nav>
 
+        {/* Mobile Action Buttons */}
+        <div className="mobile-only" style={{padding:"8px 12px",gap:8,background:"rgba(4,4,12,0.95)",borderBottom:"1px solid rgba(255,255,255,0.06)"}}>
+          <button onClick={()=>setShowPricing(true)} style={{flex:1,padding:"8px",borderRadius:10,background:"linear-gradient(135deg,#FFB700,#FF6B00)",color:"#000",border:"none",fontWeight:900,fontSize:13,cursor:"pointer"}}>💎 PRO</button>
+          <button onClick={()=>setShowPost(true)} style={{flex:1,padding:"8px",borderRadius:10,background:"linear-gradient(135deg,#AAFF00,#00C8E0)",color:"#000",border:"none",fontWeight:900,fontSize:12,cursor:"pointer"}}>+ POST JOB FREE</button>
+        </div>
         {/* TICKER */}
         <div style={{background:`${C.lime}10`,borderBottom:`1px solid ${C.lime}12`,padding:"8px 0",overflow:"hidden"}}>
           <div className="marquee-inner">
