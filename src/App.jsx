@@ -674,7 +674,7 @@ const AlertSetup = ({user, onAuthRequired, onToast}) => {
 ══════════════════════════════════════════════════════ */
 
 /* ── Resume Builder ──────────────────────────────── */
-const ResumeBuilder = ({ user, onClose }) => {
+const ResumeBuilder = ({ user, onClose, onAuthRequired }) => {
   const [form, setForm] = useState({
     name: user?.user_metadata?.full_name || "",
     email: user?.email || "",
@@ -1352,12 +1352,12 @@ const PricingModal = ({ onClose, user, onAuthRequired, selectedPlan, jobId }) =>
 
 /* Application Tracker */
 const ApplicationTracker = ({ user, onAuthRequired }) => {
-  const [apps, setApps] = React.useState([]);
-  const [loading, setLoading] = React.useState(true);
-  const [filter, setFilter] = React.useState("all");
+  const [apps, setApps] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState("all");
   const C2 = {card:"rgba(255,255,255,0.03)",border:"rgba(255,255,255,0.08)",muted:"rgba(255,255,255,.4)"};
 
-  React.useEffect(()=>{
+  useEffect(()=>{
     if(!user){ setLoading(false); return; }
     supabase.from("applications").select("*,jobs(title,company_name,location,apply_url)").eq("user_id",user.id).order("created_at",{ascending:false})
       .then(({data})=>{ setApps(data||[]); setLoading(false); });
@@ -1910,7 +1910,7 @@ export default function App() {
             )}
           </div>
         )}
-        {nav==="resume"&&<ResumeBuilder user={user} onAuthRequired={()=>setShowAuth(true)}/>}
+        {nav==="resume"&&<ResumeBuilderPage user={user} onAuthRequired={()=>setShowAuth(true)}/>}
         {nav==="tracker"&&<ApplicationTracker user={user} onAuthRequired={()=>setShowAuth(true)}/>}
         {nav==="salary"&&<SalaryInsights jobs={jobs}/>}
         {nav==="interview"&&<MockInterview/>}
