@@ -13,7 +13,8 @@ export default async function handler(req, res) {
     const { subscription, title, body, url } = req.body;
     if (!subscription) return res.status(200).json({ success: false, message: "Subscription required" });
     try {
-      const webpush = await import('web-push');
+      const webpushModule = await import('web-push');
+      const webpush = webpushModule.default || webpushModule;
       webpush.setVapidDetails(
         'mailto:udyampath@gmail.com',
         process.env.VAPID_PUBLIC_KEY,
