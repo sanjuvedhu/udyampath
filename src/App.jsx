@@ -1422,52 +1422,230 @@ const ApplicationTracker = ({ user, onAuthRequired }) => {
 
 const ResumeBuilderPage = ({ user, onAuthRequired }) => {
   const [form, setForm] = useState({ name:"", email:"", phone:"", location:"", linkedin:"", github:"", summary:"", skills:"", experience:"", education:"", projects:"", certifications:"", languages:"" });
+  const [template, setTemplate] = useState("classic");
+  const [tab, setTab] = useState("build");
   const set = (k,v) => setForm(f=>({...f,[k]:v}));
   const pct = Math.round((Object.values(form).filter(v=>v.trim()).length / Object.keys(form).length)*100);
   const inp = {width:"100%",padding:"12px 14px",borderRadius:12,border:"1px solid rgba(255,255,255,0.08)",background:"rgba(255,255,255,0.03)",color:"#fff",fontSize:13,fontFamily:"inherit",outline:"none",boxSizing:"border-box"};
+  const C2 = {card:"rgba(255,255,255,0.03)",muted:"rgba(255,255,255,.4)",lime:"#AAFF00",sky:"#00E5FF"};
 
-  const download = () => {
-    const html = "<!DOCTYPE html><html><head><meta charset=UTF-8><style>body{font-family:Arial,sans-serif;max-width:800px;margin:40px auto;padding:40px;color:#111;line-height:1.6;}h1{font-size:28px;}h2{font-size:13px;text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid #ddd;padding-bottom:4px;margin-top:20px;}.skill{display:inline-block;background:#f0f0f0;padding:2px 8px;border-radius:4px;font-size:12px;margin:2px;}</style></head><body>"
-      + "<h1>" + (form.name||"Your Name") + "</h1>"
-      + "<p>" + [form.email,form.phone,form.location].filter(Boolean).join(" | ") + "</p>"
-      + (form.summary ? "<h2>Summary</h2><p>" + form.summary + "</p>" : "")
-      + (form.experience ? "<h2>Experience</h2><p>" + form.experience + "</p>" : "")
-      + (form.education ? "<h2>Education</h2><p>" + form.education + "</p>" : "")
-      + (form.skills ? "<h2>Skills</h2>" + form.skills.split(",").map(s=>"<span class=skill>"+s.trim()+"</span>").join("") : "")
-      + "</body></html>";
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(new Blob([html],{type:"text/html"}));
-    a.download = (form.name||"resume").replace(/ /g,"_") + "_resume.html";
-    a.click();
+  const templates = {
+    classic: {
+      name:"Classic ATS", desc:"Traditional, safe for all ATS",
+      css:`body{font-family:Times New Roman,serif;max-width:800px;margin:0 auto;padding:40px;color:#111;line-height:1.6;font-size:11pt;}h1{font-size:20pt;margin:0;text-align:center;}
+      .contact{text-align:center;font-size:10pt;color:#333;margin:4px 0 16px;}h2{font-size:11pt;text-transform:uppercase;letter-spacing:1px;border-bottom:2px solid #111;padding-bottom:2px;margin:16px 0 8px;}
+      p{margin:4px 0;font-size:11pt;}.skill{display:inline-block;margin:2px 4px;font-size:10pt;}.skills-wrap{margin:4px 0;}hr{border:none;border-top:1px solid #ddd;}`
+    },
+    modern: {
+      name:"Modern ATS", desc:"Clean two-column, tech roles",
+      css:`body{font-family:Calibri,Arial,sans-serif;max-width:800px;margin:0 auto;padding:0;color:#111;font-size:10pt;line-height:1.5;}
+      .header{background:#1a1a2e;color:#fff;padding:24px 32px;}.header h1{margin:0;font-size:20pt;color:#fff;}
+      .contact{font-size:9pt;color:#ccc;margin-top:4px;}.body{padding:24px 32px;}
+      h2{font-size:11pt;color:#1a1a2e;text-transform:uppercase;letter-spacing:1px;border-left:4px solid #1a1a2e;padding-left:8px;margin:16px 0 8px;}
+      p{margin:4px 0;}.skill{display:inline-block;background:#e8f4fd;padding:2px 8px;border-radius:4px;font-size:9pt;margin:2px;}`
+    },
+    minimal: {
+      name:"Minimal ATS", desc:"Ultra clean, maximum readability",
+      css:`body{font-family:Arial,Helvetica,sans-serif;max-width:780px;margin:0 auto;padding:40px;color:#222;font-size:10.5pt;line-height:1.7;}
+      h1{font-size:22pt;font-weight:700;margin:0;letter-spacing:-0.5px;}
+      .contact{font-size:9.5pt;color:#555;margin:4px 0 20px;border-bottom:1px solid #eee;padding-bottom:12px;}
+      h2{font-size:9.5pt;text-transform:uppercase;letter-spacing:2px;color:#888;margin:20px 0 6px;}
+      p{margin:4px 0;font-size:10.5pt;}.skill{display:inline-block;border:1px solid #ddd;padding:1px 8px;border-radius:3px;font-size:9pt;margin:2px;}`
+    }
   };
 
+  const getResumeHTML = (t) => {
+    const tpl = templates[t];
+    const isModern = t === "modern";
+    return "<!DOCTYPE html><html><head><meta charset=UTF-8><title>" + (form.name||"Resume") + "</title><style>" + tpl.css + "@media print{@page{margin:10mm;}body{padding:0;}}</style></head><body>"
+      + (isModern
+        ? "<div class=header><h1>" + (form.name||"Your Name") + "</h1><div class=contact>" + [form.email,form.phone,form.location,form.linkedin].filter(Boolean).join(" | ") + "</div></div><div class=body>"
+        : "<h1>" + (form.name||"Your Name") + "</h1><div class=contact>" + [form.email,form.phone,form.location,form.linkedin].filter(Boolean).join(" | ") + "</div>")
+      + (form.summary ? "<h2>Professional Summary</h2><p>" + form.summary + "</p>" : "")
+      + (form.experience ? "<h2>Work Experience</h2><p style=white-space:pre-line>" + form.experience + "</p>" : "")
+      + (form.education ? "<h2>Education</h2><p style=white-space:pre-line>" + form.education + "</p>" : "")
+      + (form.skills ? "<h2>Skills</h2><div class=skills-wrap>" + form.skills.split(",").map(s=>"<span class=skill>"+s.trim()+"</span>").join("") + "</div>" : "")
+      + (form.projects ? "<h2>Projects</h2><p style=white-space:pre-line>" + form.projects + "</p>" : "")
+      + (form.certifications ? "<h2>Certifications</h2><p>" + form.certifications + "</p>" : "")
+      + (form.languages ? "<h2>Languages</h2><p>" + form.languages + "</p>" : "")
+      + (isModern ? "</div>" : "")
+      + "</body></html>";
+  };
+
+  const downloadPDF = () => {
+    const html = getResumeHTML(template);
+    const w = window.open("","_blank");
+    w.document.write(html);
+    w.document.close();
+    w.onload = () => { w.focus(); w.print(); };
+  };
+
+  const atsScore = () => {
+    let score = 0; const issues = []; const tips = [];
+    if(form.name) score+=10; else issues.push("Add your full name");
+    if(form.email) score+=10; else issues.push("Add email address");
+    if(form.phone) score+=5; else issues.push("Add phone number");
+    if(form.location) score+=5; else issues.push("Add location");
+    if(form.summary && form.summary.length > 50) score+=15; else issues.push("Add a professional summary (50+ words)");
+    if(form.experience && form.experience.length > 100) score+=20; else issues.push("Add detailed work experience");
+    if(form.education) score+=10; else issues.push("Add education details");
+    if(form.skills && form.skills.split(",").length >= 5) score+=15; else { score += form.skills ? 5 : 0; issues.push("Add at least 5 skills"); }
+    if(form.projects) score+=5; else tips.push("Add projects to stand out");
+    if(form.linkedin) score+=5; else tips.push("Add LinkedIn URL");
+    const keywords = ["managed","developed","led","improved","achieved","created","designed","built","increased","reduced"];
+    const expLower = form.experience.toLowerCase();
+    const kwMatches = keywords.filter(k=>expLower.includes(k)).length;
+    if(kwMatches >= 3) score+=10; else tips.push("Use action verbs like: managed, developed, led, improved");
+    return { score: Math.min(score,100), issues, tips, kwMatches };
+  };
+
+  const scoreData = atsScore();
+  const scoreColor = scoreData.score >= 80 ? "#AAFF00" : scoreData.score >= 60 ? "#FFB700" : "#FF6B6B";
+
   return (
-    <div style={{maxWidth:700,margin:"0 auto",padding:"24px 16px"}}>
-      <div style={{fontSize:28,fontWeight:900,color:"#fff",marginBottom:4,fontFamily:"Syne,sans-serif"}}>RESUME BUILDER</div>
-      <div style={{color:"rgba(255,255,255,.4)",fontSize:13,marginBottom:16}}>Build and download your resume for free</div>
-      <div style={{background:"rgba(255,255,255,0.03)",borderRadius:16,padding:16,border:"1px solid rgba(255,255,255,0.08)",marginBottom:16}}>
-        <div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}>
-          <span style={{fontSize:12,fontWeight:700,color:"#fff"}}>Completeness</span>
-          <span style={{fontSize:12,fontWeight:900,color:pct===100?"#AAFF00":"#00E5FF"}}>{pct}%</span>
-        </div>
-        <div style={{height:6,borderRadius:99,background:"rgba(255,255,255,.06)"}}>
-          <div style={{height:"100%",borderRadius:99,width:pct+"%",background:"linear-gradient(90deg,#00E5FF,#AAFF00)",transition:"width .3s"}}/>
-        </div>
-      </div>
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:10}}>
-        {[["name","Full Name *"],["email","Email *"],["phone","Phone"],["location","City, State"],["linkedin","LinkedIn URL"],["github","GitHub URL"]].map(([k,p])=>(
-          <input key={k} value={form[k]} onChange={e=>set(k,e.target.value)} placeholder={p} style={inp}/>
+    <div style={{maxWidth:900,margin:"0 auto",padding:"24px 16px"}}>
+      <div style={{fontFamily:"Syne,sans-serif",fontSize:28,fontWeight:900,color:"#fff",marginBottom:4}}>RESUME BUILDER</div>
+      <div style={{color:C2.muted,fontSize:13,marginBottom:20}}>Build ATS-optimised resume - download as PDF</div>
+
+      {/* Tabs */}
+      <div style={{display:"flex",gap:8,marginBottom:20}}>
+        {[["build","Build"],["score","ATS Score"],["preview","Preview"]].map(([id,label])=>(
+          <div key={id} onClick={()=>setTab(id)}
+            style={{padding:"8px 18px",borderRadius:10,fontSize:13,fontWeight:700,cursor:"pointer",
+              background:tab===id?"linear-gradient(135deg,#AAFF00,#00E5FF)":"rgba(255,255,255,0.05)",
+              color:tab===id?"#000":"rgba(255,255,255,.5)"}}>
+            {label}
+          </div>
         ))}
       </div>
-      {[["summary","Professional Summary - 2-3 lines about yourself"],["experience","Work Experience (Company | Role | Duration\nKey achievements...)"],["education","Education (B.Tech Computer Science | VIT | 2020-2024 | CGPA: 8.5)"],["projects","Projects (Project Name | Tech Stack | Description | GitHub link)"],["certifications","Certifications (AWS Cloud Practitioner | Google | 2024)"],["skills","Skills (comma separated: React, Python, SQL, AWS...)"],["languages","Languages (English, Tamil, Hindi)"]].map(([k,p])=>(
-        <textarea key={k} value={form[k]} onChange={e=>set(k,e.target.value)} placeholder={p} rows={3} style={{...inp,resize:"vertical",marginBottom:10}}/>
-      ))}
-      <button onClick={download} disabled={!form.name||!form.email}
-        style={{width:"100%",padding:14,borderRadius:14,background:form.name&&form.email?"linear-gradient(135deg,#AAFF00,#00E5FF)":"rgba(255,255,255,.1)",
-          color:form.name&&form.email?"#000":"rgba(255,255,255,.3)",border:"none",fontFamily:"Syne,sans-serif",fontWeight:900,fontSize:17,cursor:form.name&&form.email?"pointer":"not-allowed"}}>
-        DOWNLOAD RESUME
-      </button>
-      <div style={{textAlign:"center",fontSize:11,color:"rgba(255,255,255,.2)",marginTop:6}}>Downloads as HTML - open in Chrome then Print to PDF</div>
+
+      {tab === "build" && (
+        <>
+          {/* Template Selector */}
+          <div style={{marginBottom:20}}>
+            <div style={{fontSize:11,color:C2.muted,fontWeight:800,marginBottom:10,textTransform:"uppercase",letterSpacing:.6}}>Choose Template</div>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:10}}>
+              {Object.entries(templates).map(([id,t])=>(
+                <div key={id} onClick={()=>setTemplate(id)}
+                  style={{padding:"12px",borderRadius:12,cursor:"pointer",textAlign:"center",
+                    border:template===id?"2px solid #AAFF00":"1px solid rgba(255,255,255,0.08)",
+                    background:template===id?"rgba(170,255,0,0.06)":"rgba(255,255,255,0.02)"}}>
+                  <div style={{fontSize:11,fontWeight:800,color:template===id?"#AAFF00":"#fff",marginBottom:2}}>{t.name}</div>
+                  <div style={{fontSize:10,color:C2.muted}}>{t.desc}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Progress */}
+          <div style={{marginBottom:16}}>
+            <div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}>
+              <span style={{fontSize:12,color:C2.muted}}>Profile completeness</span>
+              <span style={{fontSize:12,fontWeight:700,color:pct>70?"#AAFF00":"#FFB700"}}>{pct}%</span>
+            </div>
+            <div style={{height:4,borderRadius:99,background:"rgba(255,255,255,.06)"}}>
+              <div style={{height:"100%",borderRadius:99,width:pct+"%",background:"linear-gradient(90deg,#AAFF00,#00E5FF)",transition:"width .4s"}}/>
+            </div>
+          </div>
+
+          {/* Form Fields */}
+          {[["name","Full Name *"],["email","Email *"],["phone","Phone"],["location","Location"],["linkedin","LinkedIn URL"],["github","GitHub URL"]].map(([k,label])=>(
+            <div key={k} style={{marginBottom:10}}>
+              <label style={{fontSize:11,color:C2.muted,fontWeight:800,display:"block",marginBottom:5,textTransform:"uppercase",letterSpacing:.6}}>{label}</label>
+              <input value={form[k]} onChange={e=>set(k,e.target.value)} placeholder={label} style={inp}/>
+            </div>
+          ))}
+          {[["summary","Professional Summary","Summarize your experience and key strengths...",3],
+            ["experience","Work Experience","Company Name - Role (Year-Year)\nKey achievements and responsibilities...\n\nCompany Name - Role (Year-Year)\nKey achievements...",5],
+            ["education","Education","University Name - Degree (Year)\nGPA, Achievements...",2],
+            ["projects","Projects (optional)","Project Name - Tech Stack\nDescription and impact...",3],
+            ["certifications","Certifications (optional)","AWS Certified, Google Analytics...",1],
+            ["languages","Languages (optional)","English (Fluent), Hindi (Native)...",1]
+          ].map(([k,label,ph,rows])=>(
+            <div key={k} style={{marginBottom:10}}>
+              <label style={{fontSize:11,color:C2.muted,fontWeight:800,display:"block",marginBottom:5,textTransform:"uppercase",letterSpacing:.6}}>{label}</label>
+              <textarea value={form[k]} onChange={e=>set(k,e.target.value)} placeholder={ph} rows={rows} style={{...inp,resize:"vertical"}}/>
+            </div>
+          ))}
+          <div style={{marginBottom:20}}>
+            <label style={{fontSize:11,color:C2.muted,fontWeight:800,display:"block",marginBottom:5,textTransform:"uppercase",letterSpacing:.6}}>Skills (comma separated) *</label>
+            <input value={form.skills} onChange={e=>set("skills",e.target.value)} placeholder="React, Python, SQL, AWS, Node.js..." style={inp}/>
+          </div>
+
+          <button onClick={downloadPDF} disabled={!form.name||!form.email}
+            style={{width:"100%",padding:14,borderRadius:14,background:form.name&&form.email?"linear-gradient(135deg,#AAFF00,#00E5FF)":"rgba(255,255,255,.1)",
+              color:form.name&&form.email?"#000":"rgba(255,255,255,.3)",border:"none",fontFamily:"Syne,sans-serif",fontWeight:900,fontSize:16,cursor:"pointer",marginBottom:8}}>
+            ⬇️ DOWNLOAD PDF
+          </button>
+          <div style={{textAlign:"center",fontSize:11,color:"rgba(255,255,255,.2)"}}>Opens print dialog - select Save as PDF</div>
+        </>
+      )}
+
+      {tab === "score" && (
+        <div>
+          <div style={{background:"rgba(255,255,255,0.03)",borderRadius:20,padding:24,border:"1px solid rgba(255,255,255,0.08)",marginBottom:16,textAlign:"center"}}>
+            <div style={{fontSize:64,fontWeight:900,color:scoreColor,fontFamily:"Syne,sans-serif"}}>{scoreData.score}</div>
+            <div style={{fontSize:14,color:"rgba(255,255,255,.5)",marginBottom:12}}>ATS Score out of 100</div>
+            <div style={{height:8,borderRadius:99,background:"rgba(255,255,255,.06)",maxWidth:300,margin:"0 auto"}}>
+              <div style={{height:"100%",borderRadius:99,width:scoreData.score+"%",background:scoreColor,transition:"width .6s"}}/>
+            </div>
+            <div style={{marginTop:10,fontSize:13,color:scoreData.score>=80?"#AAFF00":scoreData.score>=60?"#FFB700":"#FF6B6B",fontWeight:700}}>
+              {scoreData.score>=80?"Excellent! ATS-ready":scoreData.score>=60?"Good - a few improvements needed":"Needs work - follow the checklist below"}
+            </div>
+          </div>
+
+          {scoreData.issues.length > 0 && (
+            <div style={{background:"rgba(255,107,107,0.06)",borderRadius:16,padding:16,border:"1px solid rgba(255,107,107,0.15)",marginBottom:12}}>
+              <div style={{fontWeight:800,color:"#FF6B6B",marginBottom:10}}>Required Fixes</div>
+              {scoreData.issues.map((iss,i)=>(
+                <div key={i} style={{fontSize:13,color:"rgba(255,255,255,.7)",marginBottom:6,display:"flex",gap:8}}>
+                  <span style={{color:"#FF6B6B"}}>✗</span>{iss}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {scoreData.tips.length > 0 && (
+            <div style={{background:"rgba(255,183,0,0.06)",borderRadius:16,padding:16,border:"1px solid rgba(255,183,0,0.15)",marginBottom:12}}>
+              <div style={{fontWeight:800,color:"#FFB700",marginBottom:10}}>Tips to Improve</div>
+              {scoreData.tips.map((tip,i)=>(
+                <div key={i} style={{fontSize:13,color:"rgba(255,255,255,.7)",marginBottom:6,display:"flex",gap:8}}>
+                  <span style={{color:"#FFB700"}}>→</span>{tip}
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div style={{background:"rgba(170,255,0,0.06)",borderRadius:16,padding:16,border:"1px solid rgba(170,255,0,0.15)"}}>
+            <div style={{fontWeight:800,color:"#AAFF00",marginBottom:10}}>ATS Tips</div>
+            {["Use standard section headings: Experience, Education, Skills","Avoid tables, columns, headers/footers in your resume","Use keywords from the job description","Quantify achievements: increased sales by 30%","Save as PDF - most ATS accept PDF format"].map((tip,i)=>(
+              <div key={i} style={{fontSize:13,color:"rgba(255,255,255,.7)",marginBottom:6,display:"flex",gap:8}}>
+                <span style={{color:"#AAFF00"}}>✓</span>{tip}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {tab === "preview" && (
+        <div>
+          <div style={{marginBottom:12,display:"flex",gap:8,flexWrap:"wrap"}}>
+            {Object.entries(templates).map(([id,t])=>(
+              <div key={id} onClick={()=>setTemplate(id)}
+                style={{padding:"6px 14px",borderRadius:8,fontSize:12,fontWeight:700,cursor:"pointer",
+                  background:template===id?"#AAFF00":"rgba(255,255,255,0.06)",color:template===id?"#000":"rgba(255,255,255,.5)"}}>
+                {t.name}
+              </div>
+            ))}
+          </div>
+          <div style={{borderRadius:16,overflow:"hidden",border:"1px solid rgba(255,255,255,0.1)"}}>
+            <iframe srcDoc={getResumeHTML(template)} style={{width:"100%",height:600,border:"none",background:"#fff"}}/>
+          </div>
+          <button onClick={downloadPDF} style={{width:"100%",marginTop:12,padding:14,borderRadius:14,background:"linear-gradient(135deg,#AAFF00,#00E5FF)",color:"#000",border:"none",fontFamily:"Syne,sans-serif",fontWeight:900,fontSize:16,cursor:"pointer"}}>
+            ⬇️ DOWNLOAD PDF
+          </button>
+        </div>
+      )}
     </div>
   );
 };
