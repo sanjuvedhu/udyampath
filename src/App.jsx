@@ -58,7 +58,7 @@ const Styles = () => (
       .logo-text{display:block!important;font-size:12px!important;}
       .live-badge{display:flex!important;padding:3px 8px!important;}
       .sign-out-btn{display:none!important;}
-      .post-job-btn{display:flex!important;padding:6px 10px!important;font-size:10px!important;}.pro-btn{display:flex!important;}
+      .post-job-btn{display:flex!important;padding:6px 8px!important;font-size:9px!important;letter-spacing:0!important;}.pro-btn{display:flex!important;}
     }
     .mobile-only{display:none;}
     @media(max-width:640px){
