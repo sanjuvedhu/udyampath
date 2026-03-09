@@ -1421,7 +1421,7 @@ const ApplicationTracker = ({ user, onAuthRequired }) => {
 
 
 const ResumeBuilderPage = ({ user, onAuthRequired }) => {
-  const [form, setForm] = useState({ name:"", email:"", phone:"", location:"", summary:"", skills:"", experience:"", education:"" });
+  const [form, setForm] = useState({ name:"", email:"", phone:"", location:"", linkedin:"", github:"", summary:"", skills:"", experience:"", education:"", projects:"", certifications:"", languages:"" });
   const set = (k,v) => setForm(f=>({...f,[k]:v}));
   const pct = Math.round((Object.values(form).filter(v=>v.trim()).length / Object.keys(form).length)*100);
   const inp = {width:"100%",padding:"12px 14px",borderRadius:12,border:"1px solid rgba(255,255,255,0.08)",background:"rgba(255,255,255,0.03)",color:"#fff",fontSize:13,fontFamily:"inherit",outline:"none",boxSizing:"border-box"};
@@ -1455,11 +1455,11 @@ const ResumeBuilderPage = ({ user, onAuthRequired }) => {
         </div>
       </div>
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:10}}>
-        {[["name","Full Name *"],["email","Email *"],["phone","Phone"],["location","City, State"]].map(([k,p])=>(
+        {[["name","Full Name *"],["email","Email *"],["phone","Phone"],["location","City, State"],["linkedin","LinkedIn URL"],["github","GitHub URL"]].map(([k,p])=>(
           <input key={k} value={form[k]} onChange={e=>set(k,e.target.value)} placeholder={p} style={inp}/>
         ))}
       </div>
-      {[["summary","Professional Summary..."],["experience","Work Experience (company, role, dates, achievements)"],["education","Education (degree, college, year)"],["skills","Skills (comma separated: React, Python, SQL)"]].map(([k,p])=>(
+      {[["summary","Professional Summary - 2-3 lines about yourself"],["experience","Work Experience (Company | Role | Duration\nKey achievements...)"],["education","Education (B.Tech Computer Science | VIT | 2020-2024 | CGPA: 8.5)"],["projects","Projects (Project Name | Tech Stack | Description | GitHub link)"],["certifications","Certifications (AWS Cloud Practitioner | Google | 2024)"],["skills","Skills (comma separated: React, Python, SQL, AWS...)"],["languages","Languages (English, Tamil, Hindi)"]].map(([k,p])=>(
         <textarea key={k} value={form[k]} onChange={e=>set(k,e.target.value)} placeholder={p} rows={3} style={{...inp,resize:"vertical",marginBottom:10}}/>
       ))}
       <button onClick={download} disabled={!form.name||!form.email}
