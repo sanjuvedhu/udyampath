@@ -58,7 +58,7 @@ const Styles = () => (
       .logo-text{display:block!important;font-size:12px!important;}
       .live-badge{display:flex!important;padding:3px 8px!important;}
       .sign-out-btn{display:none!important;}
-      .post-job-btn{display:none!important;}
+      .post-job-btn{display:flex!important;padding:6px 10px!important;font-size:10px!important;}.pro-btn{display:flex!important;}
     }
     .mobile-only{display:none;}
     @media(max-width:640px){
@@ -2395,7 +2395,7 @@ export default function App() {
           <div onClick={()=>setShowPricing(true)}
             style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2,padding:"6px 6px",borderRadius:10,
               background:"rgba(255,183,0,0.1)",cursor:"pointer",flex:1,maxWidth:52}}>
-            <span style={{fontSize:20}}>💎</span>
+            <span style={{fontSize:16}}>💎</span>
             <span style={{fontSize:7,fontWeight:700,color:"#FFB700",letterSpacing:.2}}>PRO</span>
           </div>
         </div>
