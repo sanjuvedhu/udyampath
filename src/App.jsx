@@ -1349,6 +1349,76 @@ const PricingModal = ({ onClose, user, onAuthRequired, selectedPlan, jobId }) =>
   );
 };
 
+
+/* Application Tracker */
+const ApplicationTracker = ({ user, onAuthRequired }) => {
+  const [apps, setApps] = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
+  const [filter, setFilter] = React.useState("all");
+  const C2 = {card:"rgba(255,255,255,0.03)",border:"rgba(255,255,255,0.08)",muted:"rgba(255,255,255,.4)"};
+
+  React.useEffect(()=>{
+    if(!user){ setLoading(false); return; }
+    supabase.from("applications").select("*,jobs(title,company_name,location,apply_url)").eq("user_id",user.id).order("created_at",{ascending:false})
+      .then(({data})=>{ setApps(data||[]); setLoading(false); });
+  },[user]);
+
+  if(!user) return (
+    <div style={{textAlign:"center",padding:"60px 16px"}}>
+      <div style={{fontSize:48,marginBottom:12}}>📊</div>
+      <div style={{fontFamily:"Syne,sans-serif",fontSize:22,color:"#fff",marginBottom:8}}>Track Your Applications</div>
+      <div style={{color:"rgba(255,255,255,.4)",marginBottom:20}}>Sign in to see all your job applications</div>
+      <button onClick={onAuthRequired} style={{padding:"12px 32px",borderRadius:12,background:"linear-gradient(135deg,#AAFF00,#00E5FF)",color:"#000",fontWeight:900,fontSize:15,border:"none",cursor:"pointer"}}>Sign In</button>
+    </div>
+  );
+
+  const statusColor = s => s==="hired"?"#AAFF00":s==="shortlisted"?"#00E5FF":s==="rejected"?"#FF6B6B":s==="viewed"?"#FFB700":"rgba(255,255,255,.4)";
+  const filtered = filter==="all" ? apps : apps.filter(a=>(a.hr_status||"pending")===filter);
+  const counts = ["all","pending","viewed","shortlisted","hired","rejected"].reduce((acc,s)=>({...acc,[s]:s==="all"?apps.length:apps.filter(a=>(a.hr_status||"pending")===s).length}),{});
+
+  return (
+    <div style={{maxWidth:900,margin:"0 auto",padding:"24px 16px"}}>
+      <div style={{fontSize:28,fontWeight:900,color:"#fff",marginBottom:4,fontFamily:"Syne,sans-serif"}}>APPLICATION TRACKER</div>
+      <div style={{color:"rgba(255,255,255,.4)",fontSize:13,marginBottom:16}}>Track all your job applications</div>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(90px,1fr))",gap:8,marginBottom:16}}>
+        {[["Total",counts.all,"#fff"],["Pending",counts.pending,"#FFB700"],["Viewed",counts.viewed,"#00E5FF"],["Shortlisted",counts.shortlisted,"#AAFF00"],["Hired",counts.hired,"#AAFF00"],["Rejected",counts.rejected,"#FF6B6B"]].map(([l,v,c])=>(
+          <div key={l} style={{background:C2.card,borderRadius:12,padding:"12px 8px",border:"1px solid rgba(255,255,255,0.08)",textAlign:"center"}}>
+            <div style={{fontFamily:"Syne,sans-serif",fontSize:22,fontWeight:900,color:c}}>{v}</div>
+            <div style={{fontSize:10,color:C2.muted,textTransform:"uppercase"}}>{l}</div>
+          </div>
+        ))}
+      </div>
+      <div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:14}}>
+        {["all","pending","viewed","shortlisted","hired","rejected"].map(s=>(
+          <div key={s} onClick={()=>setFilter(s)} style={{padding:"5px 12px",borderRadius:99,fontSize:11,fontWeight:700,cursor:"pointer",
+            background:filter===s?"rgba(0,229,255,.15)":"rgba(255,255,255,.04)",color:filter===s?"#00E5FF":"rgba(255,255,255,.4)",
+            border:"1px solid "+(filter===s?"rgba(0,229,255,.3)":"rgba(255,255,255,.08)")}}>
+            {s.charAt(0).toUpperCase()+s.slice(1)} ({counts[s]||0})
+          </div>
+        ))}
+      </div>
+      {loading ? <div style={{textAlign:"center",padding:40,color:"rgba(255,255,255,.3)"}}>Loading...</div>
+      : filtered.length===0 ? (
+        <div style={{textAlign:"center",padding:60,color:"rgba(255,255,255,.3)"}}>
+          <div style={{fontSize:48,marginBottom:12}}>📭</div>
+          <div>No applications yet. Start applying to jobs!</div>
+        </div>
+      ) : filtered.map(app=>(
+        <div key={app.id} style={{background:C2.card,borderRadius:14,padding:14,border:"1px solid rgba(255,255,255,0.08)",display:"flex",gap:12,alignItems:"center",flexWrap:"wrap",marginBottom:8}}>
+          <div style={{flex:1,minWidth:160}}>
+            <div style={{fontWeight:800,color:"#fff",fontSize:14}}>{app.jobs?.title||"Job"}</div>
+            <div style={{fontSize:12,color:C2.muted}}>{app.jobs?.company_name} - {app.jobs?.location}</div>
+            <div style={{fontSize:11,color:"rgba(255,255,255,.2)",marginTop:2}}>{new Date(app.created_at).toLocaleDateString("en-IN")}</div>
+          </div>
+          <div style={{padding:"4px 10px",borderRadius:99,fontSize:11,fontWeight:700,background:statusColor(app.hr_status)+"20",color:statusColor(app.hr_status),border:"1px solid "+statusColor(app.hr_status)+"30"}}>
+            {(app.hr_status||"pending").toUpperCase()}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
+
 export default function App() {
   const [nav, setNav] = useState("jobs");
   const [user, setUser] = useState(null);
@@ -1561,6 +1631,8 @@ export default function App() {
 
   const NAV = [
     {id:"jobs",icon:"💼",label:"Jobs"},
+    {id:"resume",icon:"📄",label:"Resume"},
+    {id:"tracker",icon:"📊",label:"Tracker"},
     {id:"salary",icon:"📊",label:"Salary"},
     {id:"interview",icon:"🎤",label:"Interview"},
     {id:"skills",icon:"🏆",label:"Skills"},
@@ -1838,6 +1910,8 @@ export default function App() {
             )}
           </div>
         )}
+        {nav==="resume"&&<ResumeBuilder user={user} onAuthRequired={()=>setShowAuth(true)}/>}
+        {nav==="tracker"&&<ApplicationTracker user={user} onAuthRequired={()=>setShowAuth(true)}/>}
         {nav==="salary"&&<SalaryInsights jobs={jobs}/>}
         {nav==="interview"&&<MockInterview/>}
         {nav==="skills"&&<SkillGapAnalyzer/>}
