@@ -1471,6 +1471,166 @@ const ResumeBuilderPage = ({ user, onAuthRequired }) => {
     </div>
   );
 };
+
+
+const CompanyReviews = ({ user, onAuthRequired, jobs }) => {
+  const [reviews, setReviews] = useState([]);
+  const [companies, setCompanies] = useState([]);
+  const [selected, setSelected] = useState(null);
+  const [form, setForm] = useState({ rating:5, title:"", pros:"", cons:"", role:"" });
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [search, setSearch] = useState("");
+  const C2 = {card:"rgba(255,255,255,0.03)",border:"rgba(255,255,255,0.08)",muted:"rgba(255,255,255,.4)",lime:"#AAFF00",sky:"#00E5FF"};
+
+  useEffect(()=>{ const unique = [...new Set(jobs.map(j=>j.company_name).filter(Boolean))].sort(); setCompanies(unique); },[jobs]);
+  useEffect(()=>{ if(!selected) return; supabase.from("company_reviews").select("*").eq("company_name",selected).order("created_at",{ascending:false}).then(({data})=>setReviews(data||[])); },[selected]);
+
+  const submit = async () => {
+    if(!user){ onAuthRequired(); return; }
+    if(!form.title||!form.pros) return;
+    setSubmitting(true);
+    await supabase.from("company_reviews").insert({ company_name:selected, user_id:user.id, rating:form.rating, title:form.title, pros:form.pros, cons:form.cons, role:form.role });
+    setSubmitted(true); setSubmitting(false);
+    const {data} = await supabase.from("company_reviews").select("*").eq("company_name",selected).order("created_at",{ascending:false});
+    setReviews(data||[]);
+  };
+
+  const avgRating = reviews.length ? (reviews.reduce((a,r)=>a+r.rating,0)/reviews.length).toFixed(1) : null;
+  const filtered = companies.filter(c=>c.toLowerCase().includes(search.toLowerCase()));
+  const inp = {width:"100%",padding:"11px 14px",borderRadius:12,border:"1px solid rgba(255,255,255,0.08)",background:"rgba(255,255,255,0.03)",color:"#fff",fontSize:13,fontFamily:"inherit",outline:"none",boxSizing:"border-box"};
+
+  return (
+    <div style={{maxWidth:900,margin:"0 auto",padding:"24px 16px"}}>
+      <div style={{fontFamily:"Syne,sans-serif",fontSize:28,fontWeight:900,color:"#fff",marginBottom:4}}>COMPANY REVIEWS</div>
+      <div style={{color:C2.muted,fontSize:13,marginBottom:20}}>Rate companies - help others make better career decisions</div>
+      {!selected ? (
+        <>
+          <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search company..." style={{...inp,marginBottom:16}}/>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(180px,1fr))",gap:10}}>
+            {filtered.slice(0,48).map(c=>(
+              <div key={c} onClick={()=>setSelected(c)} style={{background:C2.card,borderRadius:14,padding:"14px 16px",border:"1px solid rgba(255,255,255,0.08)",cursor:"pointer"}}>
+                <div style={{fontSize:28,marginBottom:6}}>🏢</div>
+                <div style={{fontWeight:800,color:"#fff",fontSize:12,marginBottom:2}}>{c}</div>
+                <div style={{fontSize:10,color:C2.muted}}>Click to review</div>
+              </div>
+            ))}
+          </div>
+        </>
+      ) : (
+        <div>
+          <div onClick={()=>setSelected(null)} style={{color:C2.sky,fontSize:13,cursor:"pointer",marginBottom:16}}>Back to companies</div>
+          <div style={{background:C2.card,borderRadius:16,padding:20,border:"1px solid rgba(255,255,255,0.08)",marginBottom:20}}>
+            <div style={{fontFamily:"Syne,sans-serif",fontSize:22,color:"#fff",fontWeight:900}}>{selected}</div>
+            {avgRating && <div style={{color:"#FFB700",fontSize:15,fontWeight:700,marginTop:4}}>{"★".repeat(Math.round(avgRating))} {avgRating}/5 ({reviews.length} reviews)</div>}
+          </div>
+          {!submitted ? (
+            <div style={{background:C2.card,borderRadius:16,padding:20,border:"1px solid rgba(255,255,255,0.08)",marginBottom:20}}>
+              <div style={{fontFamily:"Syne,sans-serif",fontSize:16,color:"#fff",fontWeight:800,marginBottom:16}}>Write a Review</div>
+              <div style={{display:"flex",gap:8,marginBottom:12}}>
+                {[1,2,3,4,5].map(n=>(<div key={n} onClick={()=>setForm(f=>({...f,rating:n}))} style={{fontSize:24,cursor:"pointer",opacity:n<=form.rating?1:0.3}}>★</div>))}
+              </div>
+              <input value={form.role} onChange={e=>setForm(f=>({...f,role:e.target.value}))} placeholder="Your role e.g. Software Engineer" style={{...inp,marginBottom:10}}/>
+              <input value={form.title} onChange={e=>setForm(f=>({...f,title:e.target.value}))} placeholder="Review title *" style={{...inp,marginBottom:10}}/>
+              <textarea value={form.pros} onChange={e=>setForm(f=>({...f,pros:e.target.value}))} placeholder="Pros - what was good? *" rows={2} style={{...inp,resize:"none",marginBottom:10}}/>
+              <textarea value={form.cons} onChange={e=>setForm(f=>({...f,cons:e.target.value}))} placeholder="Cons - what could be better?" rows={2} style={{...inp,resize:"none",marginBottom:12}}/>
+              <button onClick={submit} disabled={submitting||!form.title||!form.pros}
+                style={{width:"100%",padding:12,borderRadius:12,background:form.title&&form.pros?"linear-gradient(135deg,#AAFF00,#00E5FF)":"rgba(255,255,255,.1)",color:form.title&&form.pros?"#000":"rgba(255,255,255,.3)",border:"none",fontFamily:"Syne,sans-serif",fontWeight:900,fontSize:15,cursor:"pointer"}}>
+                {submitting?"Submitting...":"SUBMIT REVIEW"}
+              </button>
+            </div>
+          ) : (
+            <div style={{background:"rgba(170,255,0,.08)",borderRadius:16,padding:20,border:"1px solid rgba(170,255,0,.2)",marginBottom:20,textAlign:"center"}}>
+              <div style={{fontSize:40,marginBottom:8}}>🎉</div>
+              <div style={{color:"#AAFF00",fontWeight:800}}>Review submitted! Thank you.</div>
+            </div>
+          )}
+          {reviews.map(r=>(
+            <div key={r.id} style={{background:C2.card,borderRadius:14,padding:16,border:"1px solid rgba(255,255,255,0.08)",marginBottom:10}}>
+              <div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}>
+                <div style={{color:"#FFB700",fontSize:14}}>{"★".repeat(r.rating)}{"☆".repeat(5-r.rating)}</div>
+                <div style={{fontSize:11,color:C2.muted}}>{new Date(r.created_at).toLocaleDateString("en-IN")}</div>
+              </div>
+              <div style={{fontWeight:800,color:"#fff",marginBottom:4}}>{r.title}</div>
+              {r.role&&<div style={{fontSize:11,color:C2.sky,marginBottom:6}}>{r.role}</div>}
+              <div style={{fontSize:13,color:"rgba(170,255,0,.8)",marginBottom:4}}>+ {r.pros}</div>
+              {r.cons&&<div style={{fontSize:13,color:"rgba(255,107,107,.8)"}}>- {r.cons}</div>}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+const JobRecommendations = ({ user, onAuthRequired, jobs }) => {
+  const [profile, setProfile] = useState(null);
+  const [recommended, setRecommended] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const C2 = {card:"rgba(255,255,255,0.03)",border:"rgba(255,255,255,0.08)",muted:"rgba(255,255,255,.4)",lime:"#AAFF00",sky:"#00E5FF"};
+
+  useEffect(()=>{
+    if(!user){ setLoading(false); return; }
+    supabase.from("candidate_profiles").select("*").eq("user_id",user.id).single()
+      .then(({data})=>{
+        setProfile(data);
+        if(data?.skills){
+          const userSkills = data.skills.toLowerCase().split(",").map(s=>s.trim()).filter(Boolean);
+          const scored = jobs.map(job=>{
+            const jobText = (job.title+" "+job.description+" "+(job.skills_tags||[]).join(" ")).toLowerCase();
+            const matches = userSkills.filter(s=>jobText.includes(s));
+            return {...job, matchScore:matches.length};
+          }).filter(j=>j.matchScore>0).sort((a,b)=>b.matchScore-a.matchScore).slice(0,20);
+          setRecommended(scored);
+        }
+        setLoading(false);
+      });
+  },[user,jobs]);
+
+  if(!user) return (
+    <div style={{textAlign:"center",padding:"60px 16px"}}>
+      <div style={{fontSize:48,marginBottom:12}}>⭐</div>
+      <div style={{fontFamily:"Syne,sans-serif",fontSize:22,color:"#fff",marginBottom:8}}>Jobs For You</div>
+      <div style={{color:"rgba(255,255,255,.4)",marginBottom:20}}>Sign in to get personalised job recommendations</div>
+      <button onClick={onAuthRequired} style={{padding:"12px 32px",borderRadius:12,background:"linear-gradient(135deg,#AAFF00,#00E5FF)",color:"#000",fontWeight:900,fontSize:15,border:"none",cursor:"pointer"}}>Sign In</button>
+    </div>
+  );
+
+  if(loading) return <div style={{textAlign:"center",padding:60,color:"rgba(255,255,255,.3)"}}>Loading recommendations...</div>;
+
+  if(!profile?.skills) return (
+    <div style={{textAlign:"center",padding:"60px 16px"}}>
+      <div style={{fontSize:48,marginBottom:12}}>👤</div>
+      <div style={{fontFamily:"Syne,sans-serif",fontSize:22,color:"#fff",marginBottom:8}}>Add your skills first</div>
+      <div style={{color:"rgba(255,255,255,.4)",marginBottom:20}}>Go to Profile tab and add your skills to get personalised job recommendations</div>
+    </div>
+  );
+
+  return (
+    <div style={{maxWidth:900,margin:"0 auto",padding:"24px 16px"}}>
+      <div style={{fontFamily:"Syne,sans-serif",fontSize:28,fontWeight:900,color:"#fff",marginBottom:4}}>JOBS FOR YOU</div>
+      <div style={{color:C2.muted,fontSize:13,marginBottom:20}}>Based on your skills: <span style={{color:C2.sky}}>{profile.skills}</span></div>
+      {recommended.length===0 ? (
+        <div style={{textAlign:"center",padding:60,color:C2.muted}}>
+          <div style={{fontSize:48,marginBottom:12}}>🔍</div>
+          <div>No matches found. Try updating your skills in Profile.</div>
+        </div>
+      ) : recommended.map(job=>(
+        <div key={job.id} style={{background:C2.card,borderRadius:16,padding:16,border:"1px solid rgba(255,255,255,0.08)",display:"flex",gap:14,alignItems:"center",flexWrap:"wrap",marginBottom:10}}>
+          <div style={{flex:1,minWidth:200}}>
+            <div style={{fontWeight:800,color:"#fff",fontSize:15}}>{job.title}</div>
+            <div style={{fontSize:12,color:C2.muted}}>{job.company_name} - {job.location}</div>
+            <div style={{fontSize:11,color:"#FFB700",marginTop:4}}>{job.matchScore} skill{job.matchScore!==1?"s":""} matched</div>
+          </div>
+          <div onClick={()=>job.apply_url&&window.open(job.apply_url,"_blank")}
+            style={{padding:"8px 16px",borderRadius:10,background:"linear-gradient(135deg,#AAFF00,#00E5FF)",color:"#000",fontSize:12,fontWeight:900,cursor:"pointer"}}>
+            APPLY
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
 export default function App() {
   const [nav, setNav] = useState("jobs");
   const [user, setUser] = useState(null);
