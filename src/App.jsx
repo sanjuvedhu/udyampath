@@ -2017,7 +2017,7 @@ const LandingExtras = ({ jobs, onSearch, onNav }) => {
         <div style={{padding:"40px 16px",maxWidth:1200,margin:"0 auto"}}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20,flexWrap:"wrap",gap:8}}>
             <div style={{fontFamily:"Syne,sans-serif",fontSize:24,fontWeight:900,color:"#fff"}}>🔥 Featured Jobs</div>
-            <div onClick={()=>{onNav("jobs");window.scrollTo({top:0,behavior:"smooth"});}} style={{fontSize:13,color:C2.sky,cursor:"pointer",fontWeight:700}}>View all jobs →</div>
+            <div onClick={()=>window.scrollTo({top:0,behavior:"smooth"})} style={{fontSize:13,color:C2.sky,cursor:"pointer",fontWeight:700}}>View all jobs →</div>
           </div>
           <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))",gap:14}}>
             {featuredJobs.map(job=>(
