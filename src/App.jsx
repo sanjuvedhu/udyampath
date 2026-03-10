@@ -2090,7 +2090,7 @@ const LandingExtras = ({ jobs, onSearch, onNav, onJobClick }) => {
             <div style={{fontSize:48,marginBottom:12}}>🌟</div>
             <div style={{fontFamily:"Syne,sans-serif",fontSize:20,color:"#fff",fontWeight:900,marginBottom:8}}>Be the First to Share Your Story</div>
             <div style={{color:"rgba(255,255,255,.4)",fontSize:13,marginBottom:16}}>Found a job through UdyamPath? Share your success story!</div>
-            <a href="mailto:kannansanjay86@gmail.com?subject=My UdyamPath Success Story" style={{padding:"10px 24px",borderRadius:12,background:"linear-gradient(135deg,#AAFF00,#00E5FF)",color:"#000",fontWeight:900,fontSize:13,textDecoration:"none",display:"inline-block"}}>Share Your Story</a>
+            <a href="https://forms.gle/udyampath" target="_blank" style={{padding:"10px 24px",borderRadius:12,background:"linear-gradient(135deg,#AAFF00,#00E5FF)",color:"#000",fontWeight:900,fontSize:13,textDecoration:"none",display:"inline-block"}}>Share Your Story</a>
           </div>
         </div>
       </div>
@@ -2696,7 +2696,7 @@ export default function App() {
               </div>
             </div>
 
-            {!search&&region==="All"&&workType==="All"&&category==="All"&&<LandingExtras jobs={jobs} onSearch={s=>{setSearch(s);fetchJobs();}} onNav={setNav} onJobClick={job=>setSelectedJob(job)}/>}
+            {!search&&!skillFilter&&region==="All"&&workType==="All"&&category==="All"&&<LandingExtras jobs={jobs} onSearch={s=>{setSearch(s);fetchJobs();}} onNav={setNav} onJobClick={job=>setSelectedJob(job)}/>}
             <div className="main-content" style={{maxWidth:1400,margin:"0 auto",padding:"24px 20px"}}>
               {/* Filters */}
               <div style={{background:"rgba(255,255,255,0.03)",borderRadius:20,padding:18,border:"1px solid rgba(255,255,255,0.07)",backdropFilter:"blur(20px)",WebkitBackdropFilter:"blur(20px)",marginBottom:24}}>
