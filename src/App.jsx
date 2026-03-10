@@ -2690,7 +2690,7 @@ export default function App() {
               </div>
             </div>
 
-            <LandingExtras jobs={jobs} onSearch={s=>{setSearch(s);fetchJobs();}} onNav={setNav}/>
+            {!search&&region==="All"&&workType==="All"&&category==="All"&&<LandingExtras jobs={jobs} onSearch={s=>{setSearch(s);fetchJobs();}} onNav={setNav}/>}
             <div className="main-content" style={{maxWidth:1400,margin:"0 auto",padding:"24px 20px"}}>
               {/* Filters */}
               <div style={{background:"rgba(255,255,255,0.03)",borderRadius:20,padding:18,border:"1px solid rgba(255,255,255,0.07)",backdropFilter:"blur(20px)",WebkitBackdropFilter:"blur(20px)",marginBottom:24}}>
