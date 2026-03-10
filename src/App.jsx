@@ -2539,7 +2539,7 @@ export default function App() {
 
   // ── Filter jobs ───────────────────────────────────
   const liveJobs  = jobs.filter(j=>!j.filled_seats||(j.filled_seats<(j.total_seats||10))).filter(j=>{
-    if(skillFilter && !(job.title+" "+(job.skills_tags||[]).join(" ")+" "+job.description).toLowerCase().includes(skillFilter.toLowerCase())) return false;
+    if(skillFilter && !((job.title||"")+" "+(job.description||"")+" "+(job.category||"")).toLowerCase().includes(skillFilter.toLowerCase())) return false;
     if(salaryFilter==="All") return true;
     const s = (j.salary_range||"").toLowerCase();
     if(salaryFilter==="Competitive") return s.includes("competitive");
