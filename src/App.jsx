@@ -2086,11 +2086,7 @@ const LandingExtras = ({ jobs, onSearch, onNav, onJobClick }) => {
           <div style={{color:C2.muted,fontSize:14,marginTop:6}}>Real people, real jobs found on UdyamPath</div>
         </div>
         <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))",gap:16}}>
-          <div style={{textAlign:"center",padding:"40px 20px",background:"rgba(255,255,255,0.02)",borderRadius:16,border:"1px solid rgba(255,255,255,0.06)"}}>
-            <div style={{fontSize:48,marginBottom:12}}>🌟</div>
-            <div style={{fontFamily:"Syne,sans-serif",fontSize:20,color:"#fff",fontWeight:900,marginBottom:8}}>Success Stories Coming Soon</div>
-            <div style={{color:"rgba(255,255,255,.4)",fontSize:13}}>We are collecting real success stories from UdyamPath users. Check back soon!</div>
-          </div>
+          <SuccessStories/>
         </div>
       </div>
 
@@ -2341,6 +2337,99 @@ const AboutPage = () => {
   );
 };
 
+
+const SuccessStories = () => {
+  const [stories, setStories] = useState([]);
+  const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState({name:"",role:"",company:"",story:"",rating:5});
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const C2 = {card:"rgba(255,255,255,0.03)",muted:"rgba(255,255,255,.4)",lime:"#AAFF00",sky:"#00E5FF"};
+  const inp = {width:"100%",padding:"11px 14px",borderRadius:12,border:"1px solid rgba(255,255,255,0.08)",background:"rgba(255,255,255,0.03)",color:"#fff",fontSize:13,fontFamily:"inherit",outline:"none",boxSizing:"border-box"};
+
+  useEffect(()=>{
+    supabase.from("success_stories").select("*").eq("approved",true).order("created_at",{ascending:false})
+      .then(({data})=>setStories(data||[]));
+  },[]);
+
+  const submit = async () => {
+    if(!form.name||!form.story) return;
+    setSubmitting(true);
+    await supabase.from("success_stories").insert({
+      name:form.name, role:form.role, company:form.company,
+      story:form.story, rating:form.rating
+    });
+    setSubmitted(true);
+    setSubmitting(false);
+  };
+
+  return (
+    <div>
+      {stories.length > 0 ? (
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))",gap:16,marginBottom:20}}>
+          {stories.map(s=>(
+            <div key={s.id} style={{background:C2.card,borderRadius:16,padding:20,border:"1px solid rgba(255,255,255,0.08)"}}>
+              <div style={{color:"#FFB700",fontSize:16,marginBottom:10}}>{"★".repeat(s.rating||5)}</div>
+              <div style={{fontSize:13,color:"rgba(255,255,255,.7)",lineHeight:1.7,marginBottom:14}}>{s.story}</div>
+              <div style={{display:"flex",alignItems:"center",gap:10}}>
+                <div style={{width:36,height:36,borderRadius:"50%",background:"linear-gradient(135deg,#AAFF00,#00E5FF)",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900,color:"#000",fontSize:14}}>{s.name[0]}</div>
+                <div>
+                  <div style={{fontWeight:800,color:"#fff",fontSize:13}}>{s.name}</div>
+                  <div style={{fontSize:11,color:C2.muted}}>{s.role}{s.company?" at "+s.company:""}</div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div style={{textAlign:"center",padding:"32px 20px",background:"rgba(255,255,255,0.02)",borderRadius:16,border:"1px solid rgba(255,255,255,0.06)",marginBottom:20}}>
+          <div style={{fontSize:40,marginBottom:8}}>🌟</div>
+          <div style={{fontFamily:"Syne,sans-serif",fontSize:18,color:"#fff",fontWeight:900,marginBottom:6}}>Success Stories Coming Soon</div>
+          <div style={{color:C2.muted,fontSize:13}}>Be the first to share your job success story!</div>
+        </div>
+      )}
+
+      {!showForm && !submitted && (
+        <div style={{textAlign:"center"}}>
+          <button onClick={()=>setShowForm(true)}
+            style={{padding:"10px 28px",borderRadius:12,background:"linear-gradient(135deg,#AAFF00,#00E5FF)",color:"#000",border:"none",fontWeight:900,fontSize:14,cursor:"pointer"}}>
+            + Share Your Story
+          </button>
+        </div>
+      )}
+
+      {showForm && !submitted && (
+        <div style={{background:C2.card,borderRadius:16,padding:20,border:"1px solid rgba(255,255,255,0.08)",marginTop:16}}>
+          <div style={{fontFamily:"Syne,sans-serif",fontSize:16,color:"#fff",fontWeight:800,marginBottom:16}}>Share Your Success Story</div>
+          <input value={form.name} onChange={e=>setForm(f=>({...f,name:e.target.value}))} placeholder="Your name *" style={{...inp,marginBottom:10}}/>
+          <input value={form.role} onChange={e=>setForm(f=>({...f,role:e.target.value}))} placeholder="Your role e.g. Software Engineer" style={{...inp,marginBottom:10}}/>
+          <input value={form.company} onChange={e=>setForm(f=>({...f,company:e.target.value}))} placeholder="Company name" style={{...inp,marginBottom:10}}/>
+          <textarea value={form.story} onChange={e=>setForm(f=>({...f,story:e.target.value}))} placeholder="How did UdyamPath help you find a job? *" rows={3} style={{...inp,resize:"none",marginBottom:10}}/>
+          <div style={{display:"flex",gap:8,marginBottom:14,alignItems:"center"}}>
+            <span style={{fontSize:12,color:C2.muted}}>Rating:</span>
+            {[1,2,3,4,5].map(n=>(
+              <span key={n} onClick={()=>setForm(f=>({...f,rating:n}))} style={{fontSize:22,cursor:"pointer",opacity:n<=form.rating?1:0.3}}>★</span>
+            ))}
+          </div>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+            <button onClick={()=>setShowForm(false)} style={{padding:12,borderRadius:12,background:"rgba(255,255,255,0.05)",color:"rgba(255,255,255,.5)",border:"1px solid rgba(255,255,255,0.08)",fontWeight:700,cursor:"pointer"}}>Cancel</button>
+            <button onClick={submit} disabled={submitting||!form.name||!form.story}
+              style={{padding:12,borderRadius:12,background:form.name&&form.story?"linear-gradient(135deg,#AAFF00,#00E5FF)":"rgba(255,255,255,.1)",color:form.name&&form.story?"#000":"rgba(255,255,255,.3)",border:"none",fontWeight:900,cursor:"pointer"}}>
+              {submitting?"Submitting...":"Submit Story"}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {submitted && (
+        <div style={{textAlign:"center",padding:24,background:"rgba(170,255,0,0.06)",borderRadius:16,border:"1px solid rgba(170,255,0,0.15)"}}>
+          <div style={{fontSize:36,marginBottom:8}}>🎉</div>
+          <div style={{color:"#AAFF00",fontWeight:800,fontSize:15}}>Thank you! Your story will appear after review.</div>
+        </div>
+      )}
+    </div>
+  );
+};
 export default function App() {
   const [nav, setNav] = useState("jobs");
   const [selectedJob, setSelectedJob] = useState(null);
