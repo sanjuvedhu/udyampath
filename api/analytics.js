@@ -8,8 +8,8 @@ const supabase = createClient(
 
 export default async function handler(req, res) {
   const origin = req.headers.origin || "";
-  const allowed = ["https://udyampath.vercel.app","http://localhost:5173","http://localhost:3000"];
-  res.setHeader("Access-Control-Allow-Origin", allowed.includes(origin) ? origin : "https://udyampath.vercel.app");
+  const allowedOrigins = ["https://udyampath.vercel.app","http://localhost:5173","http://localhost:3000"];
+  res.setHeader("Access-Control-Allow-Origin", allowedOrigins.includes(origin) ? origin : "https://udyampath.vercel.app");
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
   if (req.method === "OPTIONS") return res.status(200).end();
 
