@@ -1432,25 +1432,42 @@ const ResumeBuilderPage = ({ user, onAuthRequired }) => {
   const templates = {
     classic: {
       name:"Classic ATS", desc:"Traditional, safe for all ATS",
-      css:`body{font-family:Times New Roman,serif;max-width:800px;margin:0 auto;padding:40px;color:#111;line-height:1.6;font-size:11pt;}h1{font-size:20pt;margin:0;text-align:center;}
-      .contact{text-align:center;font-size:10pt;color:#333;margin:4px 0 16px;}h2{font-size:11pt;text-transform:uppercase;letter-spacing:1px;border-bottom:2px solid #111;padding-bottom:2px;margin:16px 0 8px;}
-      p{margin:4px 0;font-size:11pt;}.skill{display:inline-block;margin:2px 4px;font-size:10pt;}.skills-wrap{margin:4px 0;}hr{border:none;border-top:1px solid #ddd;}`
+      css:`body{font-family:Georgia,Times New Roman,serif;max-width:820px;margin:0 auto;padding:48px;color:#1a1a1a;line-height:1.65;font-size:11pt;}
+      h1{font-size:22pt;margin:0 0 4px;letter-spacing:-0.5px;color:#111;}
+      .contact{font-size:10pt;color:#444;margin:0 0 18px;padding-bottom:12px;border-bottom:2px solid #111;}
+      h2{font-size:10.5pt;text-transform:uppercase;letter-spacing:2px;border-bottom:1.5px solid #111;padding-bottom:3px;margin:20px 0 8px;color:#111;}
+      p{margin:5px 0;font-size:11pt;}
+      .skill{display:inline-block;margin:2px 6px 2px 0;font-size:10pt;}
+      .skills-wrap{margin:6px 0;line-height:2;}`
     },
     modern: {
-      name:"Modern ATS", desc:"Clean two-column, tech roles",
-      css:`body{font-family:Calibri,Arial,sans-serif;max-width:800px;margin:0 auto;padding:0;color:#111;font-size:10pt;line-height:1.5;}
-      .header{background:#1a1a2e;color:#fff;padding:24px 32px;}.header h1{margin:0;font-size:20pt;color:#fff;}
-      .contact{font-size:9pt;color:#ccc;margin-top:4px;}.body{padding:24px 32px;}
-      h2{font-size:11pt;color:#1a1a2e;text-transform:uppercase;letter-spacing:1px;border-left:4px solid #1a1a2e;padding-left:8px;margin:16px 0 8px;}
-      p{margin:4px 0;}.skill{display:inline-block;background:#e8f4fd;padding:2px 8px;border-radius:4px;font-size:9pt;margin:2px;}`
+      name:"Modern ATS", desc:"Professional dark header, tech roles",
+      css:`body{font-family:Calibri,Arial,sans-serif;max-width:820px;margin:0 auto;padding:0;color:#1a1a1a;font-size:10.5pt;line-height:1.6;}
+      .header{background:linear-gradient(135deg,#0f172a,#1e3a5f);color:#fff;padding:28px 36px;}
+      .header h1{margin:0 0 4px;font-size:22pt;color:#fff;letter-spacing:-0.5px;}
+      .contact{font-size:9.5pt;color:#94a3b8;margin-top:6px;}
+      .body{padding:28px 36px;}
+      h2{font-size:10pt;color:#1e3a5f;text-transform:uppercase;letter-spacing:1.5px;border-left:4px solid #1e3a5f;padding-left:10px;margin:20px 0 8px;font-weight:700;}
+      p{margin:5px 0;}
+      .skill{display:inline-block;background:#eff6ff;border:1px solid #bfdbfe;padding:2px 10px;border-radius:20px;font-size:9pt;margin:3px 3px 3px 0;color:#1e40af;font-weight:500;}`
     },
     minimal: {
       name:"Minimal ATS", desc:"Ultra clean, maximum readability",
-      css:`body{font-family:Arial,Helvetica,sans-serif;max-width:780px;margin:0 auto;padding:40px;color:#222;font-size:10.5pt;line-height:1.7;}
-      h1{font-size:22pt;font-weight:700;margin:0;letter-spacing:-0.5px;}
-      .contact{font-size:9.5pt;color:#555;margin:4px 0 20px;border-bottom:1px solid #eee;padding-bottom:12px;}
-      h2{font-size:9.5pt;text-transform:uppercase;letter-spacing:2px;color:#888;margin:20px 0 6px;}
-      p{margin:4px 0;font-size:10.5pt;}.skill{display:inline-block;border:1px solid #ddd;padding:1px 8px;border-radius:3px;font-size:9pt;margin:2px;}`
+      css:`body{font-family:Inter,Arial,Helvetica,sans-serif;max-width:800px;margin:0 auto;padding:48px;color:#111;font-size:10.5pt;line-height:1.75;}
+      h1{font-size:24pt;font-weight:800;margin:0 0 6px;letter-spacing:-1px;color:#000;}
+      .contact{font-size:10pt;color:#666;margin:0 0 24px;padding-bottom:16px;border-bottom:1px solid #e5e7eb;display:flex;gap:16px;flex-wrap:wrap;}
+      h2{font-size:9pt;text-transform:uppercase;letter-spacing:3px;color:#6b7280;margin:24px 0 8px;font-weight:600;}
+      p{margin:4px 0;font-size:10.5pt;color:#374151;}
+      .skill{display:inline-block;border:1.5px solid #e5e7eb;padding:3px 12px;border-radius:999px;font-size:9pt;margin:3px;color:#374151;font-weight:500;}`
+    },
+    executive: {
+      name:"Executive ATS", desc:"Premium look for senior roles",
+      css:`body{font-family:Palatino,Georgia,serif;max-width:820px;margin:0 auto;padding:48px;color:#1a1a1a;font-size:11pt;line-height:1.7;}
+      h1{font-size:26pt;font-weight:700;margin:0 0 2px;color:#1a1a1a;letter-spacing:-1px;}
+      .contact{font-size:10pt;color:#555;margin:4px 0 20px;padding-bottom:14px;border-bottom:3px double #1a1a1a;}
+      h2{font-size:11pt;text-transform:uppercase;letter-spacing:2px;color:#1a1a1a;margin:22px 0 8px;padding-bottom:4px;border-bottom:1px solid #ccc;}
+      p{margin:5px 0;font-size:11pt;}
+      .skill{display:inline-block;margin:2px 8px 2px 0;font-size:10.5pt;font-style:italic;}`
     }
   };
 
@@ -1960,11 +1977,7 @@ const LandingExtras = ({ jobs, onSearch, onNav, onJobClick }) => {
 
   const companies = ["TCS","Infosys","Wipro","HCL","Accenture","Google","Microsoft","Amazon","Flipkart","Swiggy","Zomato","Razorpay"];
 
-  const testimonials = [
-    {name:"Priya Sharma",role:"Software Engineer at TCS",text:"Found my dream job in 3 days! The AI recommendations were spot on.",avatar:"P"},
-    {name:"Rahul Gupta",role:"Data Analyst at Flipkart",text:"Best job portal for freshers. The resume builder helped me get noticed.",avatar:"R"},
-    {name:"Anjali Nair",role:"Product Manager at Swiggy",text:"The mock interview feature prepared me perfectly for my final round.",avatar:"A"},
-  ];
+  const testimonials = [];
 
   const subscribe = async () => {
     if(!email) return;
@@ -2073,19 +2086,12 @@ const LandingExtras = ({ jobs, onSearch, onNav, onJobClick }) => {
           <div style={{color:C2.muted,fontSize:14,marginTop:6}}>Real people, real jobs found on UdyamPath</div>
         </div>
         <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))",gap:16}}>
-          {testimonials.map(t=>(
-            <div key={t.name} style={{background:C2.card,borderRadius:16,padding:20,border:"1px solid rgba(255,255,255,0.08)"}}>
-              <div style={{color:"#FFB700",fontSize:16,marginBottom:10}}>★★★★★</div>
-              <div style={{fontSize:13,color:"rgba(255,255,255,.7)",lineHeight:1.7,marginBottom:14}}>{t.text}</div>
-              <div style={{display:"flex",alignItems:"center",gap:10}}>
-                <div style={{width:36,height:36,borderRadius:"50%",background:"linear-gradient(135deg,#AAFF00,#00E5FF)",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900,color:"#000",fontSize:14}}>{t.avatar}</div>
-                <div>
-                  <div style={{fontWeight:800,color:"#fff",fontSize:13}}>{t.name}</div>
-                  <div style={{fontSize:11,color:C2.muted}}>{t.role}</div>
-                </div>
-              </div>
-            </div>
-          ))}
+          <div style={{textAlign:"center",padding:"40px 20px",background:"rgba(255,255,255,0.02)",borderRadius:16,border:"1px solid rgba(255,255,255,0.06)"}}>
+            <div style={{fontSize:48,marginBottom:12}}>🌟</div>
+            <div style={{fontFamily:"Syne,sans-serif",fontSize:20,color:"#fff",fontWeight:900,marginBottom:8}}>Be the First to Share Your Story</div>
+            <div style={{color:"rgba(255,255,255,.4)",fontSize:13,marginBottom:16}}>Found a job through UdyamPath? Share your success story!</div>
+            <a href="mailto:kannansanjay86@gmail.com?subject=My UdyamPath Success Story" style={{padding:"10px 24px",borderRadius:12,background:"linear-gradient(135deg,#AAFF00,#00E5FF)",color:"#000",fontWeight:900,fontSize:13,textDecoration:"none",display:"inline-block"}}>Share Your Story</a>
+          </div>
         </div>
       </div>
 
