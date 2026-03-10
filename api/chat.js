@@ -7,6 +7,10 @@ export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
   if (req.method === "OPTIONS") return res.status(200).end();
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
+
+  // Sanitize inputs
+  const sanitize = (str) => typeof str === "string" ? str.replace(/<[^>]*>/g, "").slice(0, 500) : str;
+
   try {
     const { messages, jobSummary } = req.body;
     const lastMessage = messages[messages.length - 1]?.content || "";
