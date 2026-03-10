@@ -21,7 +21,9 @@ export default async function handler(req, res) {
   const {allowed} = rateLimit(getIp(req));
   if(!allowed) return res.status(429).json({error:"Too many requests"});
   // CORS headers
-  res.setHeader("Access-Control-Allow-Origin", "*");
+  const origin = req.headers.origin || "";
+  const allowed = ["https://udyampath.vercel.app","http://localhost:5173","http://localhost:3000"];
+  res.setHeader("Access-Control-Allow-Origin", allowed.includes(origin) ? origin : "https://udyampath.vercel.app");
   res.setHeader("Access-Control-Allow-Methods", "GET");
   if (req.method !== "GET") return res.status(405).end("Method not allowed");
 
