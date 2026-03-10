@@ -1221,11 +1221,11 @@ Be specific and actionable. Format with emojis and clear sections.`}],
    PRICING & PAYMENT
 ══════════════════════════════════════════════════ */
 const PLANS = [
-  { id:"featured_job", name:"Featured Job", price:99, icon:"⭐", color:"#FFB700",
+  { id:"featured_job", name:"Featured Job", price:1, icon:"⭐", color:"#FFB700",
     features:["Top of search results","Featured badge","3x more views","30 days active","Email to matched candidates"] },
-  { id:"premium_candidate", name:"Premium Profile", price:29, icon:"🚀", color:"#00E5FF",
+  { id:"premium_candidate", name:"Premium Profile", price:5, icon:"🚀", color:"#00E5FF",
     features:["Top of HR search","Boosted badge","Unlimited applications","Priority profile","30 days active"] },
-  { id:"company_subscription", name:"Company Plan", price:299, icon:"🏢", color:"#7C3AED",
+  { id:"company_subscription", name:"Company Plan", price:10, icon:"🏢", color:"#7C3AED",
     features:["Unlimited job posts","Full candidate database","Featured listings included","Priority support","30 days active"] },
 ];
 
