@@ -2088,9 +2088,8 @@ const LandingExtras = ({ jobs, onSearch, onNav, onJobClick }) => {
         <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))",gap:16}}>
           <div style={{textAlign:"center",padding:"40px 20px",background:"rgba(255,255,255,0.02)",borderRadius:16,border:"1px solid rgba(255,255,255,0.06)"}}>
             <div style={{fontSize:48,marginBottom:12}}>🌟</div>
-            <div style={{fontFamily:"Syne,sans-serif",fontSize:20,color:"#fff",fontWeight:900,marginBottom:8}}>Be the First to Share Your Story</div>
-            <div style={{color:"rgba(255,255,255,.4)",fontSize:13,marginBottom:16}}>Found a job through UdyamPath? Share your success story!</div>
-            <a href="https://forms.gle/udyampath" target="_blank" style={{padding:"10px 24px",borderRadius:12,background:"linear-gradient(135deg,#AAFF00,#00E5FF)",color:"#000",fontWeight:900,fontSize:13,textDecoration:"none",display:"inline-block"}}>Share Your Story</a>
+            <div style={{fontFamily:"Syne,sans-serif",fontSize:20,color:"#fff",fontWeight:900,marginBottom:8}}>Success Stories Coming Soon</div>
+            <div style={{color:"rgba(255,255,255,.4)",fontSize:13}}>We are collecting real success stories from UdyamPath users. Check back soon!</div>
           </div>
         </div>
       </div>
