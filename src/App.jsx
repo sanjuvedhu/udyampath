@@ -1934,12 +1934,414 @@ const CompanyPages = ({ jobs, onAuthRequired, user }) => {
     </div>
   );
 };
+
+/* ══════════════════════════════════════════════════════
+   LANDING PAGE SECTIONS
+══════════════════════════════════════════════════════ */
+const LandingExtras = ({ jobs, onSearch, onNav }) => {
+  const [email, setEmail] = useState("");
+  const [subscribed, setSubscribed] = useState(false);
+  const C2 = {card:"rgba(255,255,255,0.03)",border:"rgba(255,255,255,0.08)",muted:"rgba(255,255,255,.4)",lime:"#AAFF00",sky:"#00E5FF",gold:"#FFB700"};
+
+  const categories = [
+    {icon:"💻",label:"Software / IT",count:"8,200+"},
+    {icon:"📊",label:"Data & Analytics",count:"2,100+"},
+    {icon:"🎨",label:"Design / UX",count:"900+"},
+    {icon:"📈",label:"Marketing",count:"1,400+"},
+    {icon:"🏦",label:"Banking / Finance",count:"1,800+"},
+    {icon:"🌍",label:"Remote Jobs",count:"4,500+"},
+    {icon:"🎓",label:"Fresher Jobs",count:"3,200+"},
+    {icon:"🏢",label:"Internships",count:"1,100+"},
+    {icon:"🤖",label:"AI / ML",count:"1,600+"},
+    {icon:"🛒",label:"Sales",count:"2,300+"},
+    {icon:"⚙️",label:"Operations",count:"1,700+"},
+    {icon:"🩺",label:"Healthcare",count:"800+"},
+  ];
+
+  const companies = ["TCS","Infosys","Wipro","HCL","Accenture","Google","Microsoft","Amazon","Flipkart","Swiggy","Zomato","Razorpay"];
+
+  const testimonials = [
+    {name:"Priya Sharma",role:"Software Engineer at TCS",text:"Found my dream job in 3 days! The AI recommendations were spot on.",avatar:"P"},
+    {name:"Rahul Gupta",role:"Data Analyst at Flipkart",text:"Best job portal for freshers. The resume builder helped me get noticed.",avatar:"R"},
+    {name:"Anjali Nair",role:"Product Manager at Swiggy",text:"The mock interview feature prepared me perfectly for my final round.",avatar:"A"},
+  ];
+
+  const subscribe = async () => {
+    if(!email) return;
+    await fetch("/api/setup-alert", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email,keyword:"",region:"India"})});
+    setSubscribed(true);
+  };
+
+  const topCompanies = [...new Set(jobs.map(j=>j.company_name).filter(Boolean))].slice(0,12);
+  const featuredJobs = jobs.filter(j=>j.is_hot).slice(0,6);
+
+  return (
+    <div>
+      {/* Job Categories */}
+      <div style={{padding:"40px 16px",maxWidth:1200,margin:"0 auto"}}>
+        <div style={{textAlign:"center",marginBottom:28}}>
+          <div style={{fontFamily:"Syne,sans-serif",fontSize:28,fontWeight:900,color:"#fff"}}>Browse by Category</div>
+          <div style={{color:C2.muted,fontSize:14,marginTop:6}}>Explore jobs across top industries</div>
+        </div>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(160px,1fr))",gap:12}}>
+          {categories.map(cat=>(
+            <div key={cat.label} onClick={()=>{onSearch(cat.label.split(" /")[0].split(" /")[0]);onNav("jobs");}}
+              style={{background:C2.card,borderRadius:16,padding:"16px 12px",border:"1px solid rgba(255,255,255,0.07)",cursor:"pointer",textAlign:"center",transition:"all .2s"}}>
+              <div style={{fontSize:28,marginBottom:8}}>{cat.icon}</div>
+              <div style={{fontSize:12,fontWeight:800,color:"#fff",marginBottom:4}}>{cat.label}</div>
+              <div style={{fontSize:11,color:C2.lime,fontWeight:700}}>{cat.count} jobs</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Featured Companies */}
+      <div style={{padding:"32px 16px",background:"rgba(255,255,255,0.02)",borderTop:"1px solid rgba(255,255,255,0.06)",borderBottom:"1px solid rgba(255,255,255,0.06)"}}>
+        <div style={{maxWidth:1200,margin:"0 auto"}}>
+          <div style={{textAlign:"center",marginBottom:20}}>
+            <div style={{fontSize:13,color:C2.muted,fontWeight:700,textTransform:"uppercase",letterSpacing:1}}>Top Companies Hiring Now</div>
+          </div>
+          <div style={{display:"flex",gap:12,flexWrap:"wrap",justifyContent:"center"}}>
+            {(topCompanies.length > 0 ? topCompanies : companies).map(c=>(
+              <div key={c} onClick={()=>{onSearch(c);onNav("jobs");}}
+                style={{padding:"8px 18px",borderRadius:10,background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",fontSize:13,fontWeight:700,color:"rgba(255,255,255,.6)",cursor:"pointer"}}>
+                {c}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Featured Jobs */}
+      {featuredJobs.length > 0 && (
+        <div style={{padding:"40px 16px",maxWidth:1200,margin:"0 auto"}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20,flexWrap:"wrap",gap:8}}>
+            <div style={{fontFamily:"Syne,sans-serif",fontSize:24,fontWeight:900,color:"#fff"}}>🔥 Featured Jobs</div>
+            <div onClick={()=>onNav("jobs")} style={{fontSize:13,color:C2.sky,cursor:"pointer",fontWeight:700}}>View all jobs →</div>
+          </div>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))",gap:14}}>
+            {featuredJobs.map(job=>(
+              <div key={job.id} onClick={()=>onNav("jobs")}
+                style={{background:C2.card,borderRadius:16,padding:18,border:"1px solid rgba(255,255,255,0.08)",cursor:"pointer"}}>
+                <div style={{display:"flex",gap:12,alignItems:"center",marginBottom:10}}>
+                  <div style={{width:44,height:44,borderRadius:12,background:"linear-gradient(135deg,#7C3AED,#00E5FF)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,flexShrink:0}}>💼</div>
+                  <div>
+                    <div style={{fontWeight:800,color:"#fff",fontSize:14}}>{job.title}</div>
+                    <div style={{fontSize:12,color:C2.muted}}>{job.company_name}</div>
+                  </div>
+                </div>
+                <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+                  <span style={{fontSize:11,padding:"3px 8px",borderRadius:6,background:"rgba(170,255,0,0.08)",color:"#AAFF00",fontWeight:700}}>{job.location}</span>
+                  <span style={{fontSize:11,padding:"3px 8px",borderRadius:6,background:"rgba(0,229,255,0.08)",color:"#00E5FF",fontWeight:700}}>{job.work_type||"Full Time"}</span>
+                  {job.salary_range && <span style={{fontSize:11,padding:"3px 8px",borderRadius:6,background:"rgba(255,183,0,0.08)",color:"#FFB700",fontWeight:700}}>{job.salary_range}</span>}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Why UdyamPath */}
+      <div style={{padding:"40px 16px",background:"rgba(255,255,255,0.02)",borderTop:"1px solid rgba(255,255,255,0.06)"}}>
+        <div style={{maxWidth:1000,margin:"0 auto"}}>
+          <div style={{textAlign:"center",marginBottom:28}}>
+            <div style={{fontFamily:"Syne,sans-serif",fontSize:28,fontWeight:900,color:"#fff"}}>Why Choose UdyamPath?</div>
+          </div>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(220px,1fr))",gap:16}}>
+            {[
+              {icon:"⚡",title:"Real-Time Jobs",desc:"Jobs update live from Adzuna API - auto-removed when filled"},
+              {icon:"🤖",title:"AI-Powered",desc:"AI recommendations, mock interviews, salary insights"},
+              {icon:"📄",title:"Free Resume Builder",desc:"ATS-optimised templates with score checker"},
+              {icon:"🔔",title:"Instant Alerts",desc:"Get emailed instantly when matching jobs appear"},
+              {icon:"🏢",title:"21,000+ Jobs",desc:"Real jobs from top companies across India and globally"},
+              {icon:"💰",title:"100% Free",desc:"All core features free forever - no hidden charges"},
+            ].map(f=>(
+              <div key={f.title} style={{background:C2.card,borderRadius:16,padding:20,border:"1px solid rgba(255,255,255,0.07)"}}>
+                <div style={{fontSize:32,marginBottom:10}}>{f.icon}</div>
+                <div style={{fontWeight:800,color:"#fff",fontSize:14,marginBottom:6}}>{f.title}</div>
+                <div style={{fontSize:12,color:C2.muted,lineHeight:1.6}}>{f.desc}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Testimonials */}
+      <div style={{padding:"40px 16px",maxWidth:1000,margin:"0 auto"}}>
+        <div style={{textAlign:"center",marginBottom:28}}>
+          <div style={{fontFamily:"Syne,sans-serif",fontSize:28,fontWeight:900,color:"#fff"}}>Success Stories</div>
+          <div style={{color:C2.muted,fontSize:14,marginTop:6}}>Real people, real jobs found on UdyamPath</div>
+        </div>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))",gap:16}}>
+          {testimonials.map(t=>(
+            <div key={t.name} style={{background:C2.card,borderRadius:16,padding:20,border:"1px solid rgba(255,255,255,0.08)"}}>
+              <div style={{color:"#FFB700",fontSize:16,marginBottom:10}}>★★★★★</div>
+              <div style={{fontSize:13,color:"rgba(255,255,255,.7)",lineHeight:1.7,marginBottom:14}}>{t.text}</div>
+              <div style={{display:"flex",alignItems:"center",gap:10}}>
+                <div style={{width:36,height:36,borderRadius:"50%",background:"linear-gradient(135deg,#AAFF00,#00E5FF)",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900,color:"#000",fontSize:14}}>{t.avatar}</div>
+                <div>
+                  <div style={{fontWeight:800,color:"#fff",fontSize:13}}>{t.name}</div>
+                  <div style={{fontSize:11,color:C2.muted}}>{t.role}</div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Email Alert CTA */}
+      <div style={{padding:"40px 16px",background:"linear-gradient(135deg,rgba(170,255,0,0.06),rgba(0,229,255,0.06))",borderTop:"1px solid rgba(170,255,0,0.1)",borderBottom:"1px solid rgba(170,255,0,0.1)"}}>
+        <div style={{maxWidth:600,margin:"0 auto",textAlign:"center"}}>
+          <div style={{fontFamily:"Syne,sans-serif",fontSize:26,fontWeight:900,color:"#fff",marginBottom:8}}>Never Miss a Job</div>
+          <div style={{color:C2.muted,fontSize:14,marginBottom:20}}>Get instant email alerts when new jobs match your profile</div>
+          {!subscribed ? (
+            <div style={{display:"flex",gap:8,maxWidth:480,margin:"0 auto",flexWrap:"wrap"}}>
+              <input value={email} onChange={e=>setEmail(e.target.value)} placeholder="Enter your email..."
+                style={{flex:1,minWidth:200,padding:"12px 16px",borderRadius:12,border:"1px solid rgba(255,255,255,0.1)",background:"rgba(255,255,255,0.05)",color:"#fff",fontSize:14,fontFamily:"inherit",outline:"none"}}/>
+              <button onClick={subscribe} style={{padding:"12px 24px",borderRadius:12,background:"linear-gradient(135deg,#AAFF00,#00E5FF)",color:"#000",border:"none",fontWeight:900,fontSize:14,cursor:"pointer"}}>Get Alerts</button>
+            </div>
+          ) : (
+            <div style={{color:"#AAFF00",fontWeight:800,fontSize:16}}>🎉 You are subscribed! Check your inbox.</div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* ══════════════════════════════════════════════════════
+   JOB DETAILS PAGE
+══════════════════════════════════════════════════════ */
+const JobDetailsPage = ({ job, jobs, onBack, user, onAuthRequired }) => {
+  const [applied, setApplied] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const C2 = {card:"rgba(255,255,255,0.03)",border:"rgba(255,255,255,0.08)",muted:"rgba(255,255,255,.4)",lime:"#AAFF00",sky:"#00E5FF"};
+
+  const similar = jobs.filter(j=>j.id!==job.id && (j.category===job.category||j.company_name===job.company_name)).slice(0,4);
+
+  const apply = () => {
+    if(job.apply_url) window.open(job.apply_url,"_blank");
+    setApplied(true);
+  };
+
+  return (
+    <div style={{maxWidth:1000,margin:"0 auto",padding:"24px 16px"}}>
+      <div onClick={onBack} style={{color:C2.sky,fontSize:13,cursor:"pointer",marginBottom:20,display:"inline-flex",alignItems:"center",gap:6}}>
+        ← Back to Jobs
+      </div>
+
+      <div style={{display:"grid",gridTemplateColumns:"1fr",gap:16}}>
+        {/* Main */}
+        <div style={{background:C2.card,borderRadius:20,padding:24,border:"1px solid rgba(255,255,255,0.08)"}}>
+          <div style={{display:"flex",gap:16,alignItems:"flex-start",marginBottom:20,flexWrap:"wrap"}}>
+            <div style={{width:64,height:64,borderRadius:18,background:`linear-gradient(135deg,${job.logo_color_1||"#7C3AED"},${job.logo_color_2||"#00E5FF"})`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:28,flexShrink:0}}>💼</div>
+            <div style={{flex:1}}>
+              <h1 style={{fontFamily:"Syne,sans-serif",fontSize:24,color:"#fff",fontWeight:900,margin:"0 0 4px"}}>{job.title}</h1>
+              <div style={{fontSize:15,color:C2.sky,fontWeight:700,marginBottom:8}}>{job.company_name}</div>
+              <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+                {[job.location,"💰 "+(job.salary_range||"Competitive"),job.work_type||"Full Time",job.experience_level||"Any"].map((tag,i)=>(
+                  <span key={i} style={{fontSize:12,padding:"4px 10px",borderRadius:8,background:"rgba(255,255,255,0.06)",color:"rgba(255,255,255,.6)",fontWeight:600}}>{tag}</span>
+                ))}
+              </div>
+            </div>
+            <div style={{display:"flex",gap:8}}>
+              <button onClick={()=>setSaved(s=>!s)} style={{padding:"10px 16px",borderRadius:12,background:saved?"rgba(255,183,0,0.1)":"rgba(255,255,255,0.05)",color:saved?"#FFB700":"rgba(255,255,255,.5)",border:"1px solid "+(saved?"rgba(255,183,0,0.3)":"rgba(255,255,255,0.08)"),fontWeight:700,fontSize:13,cursor:"pointer"}}>
+                {saved?"🔖 Saved":"🔖 Save"}
+              </button>
+              <button onClick={apply} style={{padding:"10px 24px",borderRadius:12,background:"linear-gradient(135deg,#AAFF00,#00E5FF)",color:"#000",border:"none",fontWeight:900,fontSize:14,cursor:"pointer"}}>
+                {applied?"Applied ✓":"Apply Now ↗"}
+              </button>
+            </div>
+          </div>
+
+          {/* Description */}
+          <div style={{marginBottom:20}}>
+            <div style={{fontFamily:"Syne,sans-serif",fontSize:16,color:"#fff",fontWeight:800,marginBottom:10}}>Job Description</div>
+            <div style={{fontSize:13,color:"rgba(255,255,255,.65)",lineHeight:1.8,whiteSpace:"pre-line"}}>{job.description||"Full job description not available. Click Apply Now to view on company website."}</div>
+          </div>
+
+          {/* Skills */}
+          {job.skills_tags && job.skills_tags.length > 0 && (
+            <div style={{marginBottom:20}}>
+              <div style={{fontFamily:"Syne,sans-serif",fontSize:16,color:"#fff",fontWeight:800,marginBottom:10}}>Required Skills</div>
+              <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+                {job.skills_tags.map((s,i)=>(
+                  <span key={i} style={{padding:"6px 14px",borderRadius:8,background:"rgba(170,255,0,0.08)",border:"1px solid rgba(170,255,0,0.15)",color:"#AAFF00",fontSize:12,fontWeight:700}}>{s}</span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Company Info */}
+          <div style={{background:"rgba(255,255,255,0.02)",borderRadius:14,padding:16,border:"1px solid rgba(255,255,255,0.06)"}}>
+            <div style={{fontFamily:"Syne,sans-serif",fontSize:14,color:"#fff",fontWeight:800,marginBottom:10}}>About {job.company_name}</div>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(160px,1fr))",gap:10}}>
+              {[["📍 Location",job.location],["🏢 Work Type",job.work_type||"Not specified"],["📊 Category",job.category||"General"],["⏰ Posted",job.posted_ago||"Recently"]].map(([k,v])=>(
+                <div key={k}>
+                  <div style={{fontSize:10,color:C2.muted,marginBottom:2}}>{k}</div>
+                  <div style={{fontSize:13,color:"#fff",fontWeight:600}}>{v}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Similar Jobs */}
+        {similar.length > 0 && (
+          <div>
+            <div style={{fontFamily:"Syne,sans-serif",fontSize:18,color:"#fff",fontWeight:800,marginBottom:12}}>Similar Jobs</div>
+            <div style={{display:"grid",gap:10}}>
+              {similar.map(j=>(
+                <div key={j.id} style={{background:C2.card,borderRadius:14,padding:14,border:"1px solid rgba(255,255,255,0.08)",display:"flex",justifyContent:"space-between",alignItems:"center",gap:10,flexWrap:"wrap"}}>
+                  <div>
+                    <div style={{fontWeight:800,color:"#fff",fontSize:14}}>{j.title}</div>
+                    <div style={{fontSize:12,color:C2.muted}}>{j.company_name} - {j.location}</div>
+                  </div>
+                  <button onClick={()=>j.apply_url&&window.open(j.apply_url,"_blank")} style={{padding:"7px 16px",borderRadius:10,background:"linear-gradient(135deg,#AAFF00,#00E5FF)",color:"#000",border:"none",fontWeight:900,fontSize:12,cursor:"pointer"}}>Apply</button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+/* ══════════════════════════════════════════════════════
+   BLOG PAGE
+══════════════════════════════════════════════════════ */
+const BlogPage = () => {
+  const [selected, setSelected] = useState(null);
+  const C2 = {card:"rgba(255,255,255,0.03)",border:"rgba(255,255,255,0.08)",muted:"rgba(255,255,255,.4)",lime:"#AAFF00",sky:"#00E5FF"};
+
+  const posts = [
+    {id:1,icon:"📄",tag:"Resume Tips",title:"10 ATS Resume Tips to Get More Interviews in 2025",date:"Mar 5, 2025",read:"5 min read",
+      content:"1. Use standard section headings like Experience, Education, Skills.\n2. Avoid tables, images, or columns - ATS cannot parse them.\n3. Include keywords from the job description naturally.\n4. Quantify achievements: increased revenue by 30%, reduced load time by 2s.\n5. Use a clean, single-column layout.\n6. Save as PDF unless otherwise specified.\n7. Keep it to 1-2 pages maximum.\n8. Use common fonts like Arial, Calibri, Times New Roman.\n9. Include your LinkedIn URL and GitHub for tech roles.\n10. Tailor your resume for each job application."},
+    {id:2,icon:"🎤",tag:"Interview Prep",title:"Top 20 Interview Questions for Software Engineers in India",date:"Mar 3, 2025",read:"8 min read",
+      content:"1. Tell me about yourself - Prepare a 2-minute structured answer.\n2. Why do you want to work here? - Research the company thoroughly.\n3. What is your greatest strength? - Give a specific, work-relevant example.\n4. Explain OOP concepts - Cover encapsulation, inheritance, polymorphism, abstraction.\n5. What is the difference between SQL and NoSQL?\n6. How do you handle a tight deadline?\n7. Describe your most challenging project.\n8. What is your experience with agile methodologies?\n9. Where do you see yourself in 5 years?\n10. Do you have any questions for us? - Always ask 2-3 thoughtful questions."},
+    {id:3,icon:"💰",tag:"Career Guide",title:"Average Software Engineer Salaries in India 2025 - City Wise",date:"Mar 1, 2025",read:"4 min read",
+      content:"Bangalore: 8-25 LPA (Senior: 25-60 LPA)\nMumbai: 7-22 LPA (Senior: 22-55 LPA)\nPune: 6-18 LPA (Senior: 18-45 LPA)\nHyderabad: 6-20 LPA (Senior: 20-50 LPA)\nDelhi NCR: 7-22 LPA (Senior: 22-55 LPA)\nChennai: 5-16 LPA (Senior: 16-40 LPA)\n\nTop Paying Skills in 2025:\n- AI/ML: 15-50 LPA\n- Cloud (AWS/GCP/Azure): 12-40 LPA\n- React/Node.js: 8-30 LPA\n- DevOps/Kubernetes: 12-35 LPA\n- Data Science: 10-40 LPA"},
+    {id:4,icon:"🚀",tag:"Career Guide",title:"How to Get Your First Tech Job in India as a Fresher",date:"Feb 28, 2025",read:"6 min read",
+      content:"Step 1: Build a portfolio with 3-5 real projects on GitHub.\nStep 2: Learn DSA (Data Structures and Algorithms) - LeetCode 150 problems.\nStep 3: Get certified - AWS, Google, Microsoft certifications add value.\nStep 4: Apply broadly - target 20-30 companies per week.\nStep 5: Network on LinkedIn - connect with engineers at target companies.\nStep 6: Prepare for system design basics for product companies.\nStep 7: Use UdyamPath AI Mock Interview to practice before real interviews.\nStep 8: Do not give up - average fresher takes 3-6 months to get first offer."},
+    {id:5,icon:"🤖",tag:"AI & Tech",title:"Top 10 AI/ML Skills Hiring Managers Want in 2025",date:"Feb 25, 2025",read:"5 min read",
+      content:"1. Python - Still the dominant language for AI/ML.\n2. Machine Learning Fundamentals - Scikit-learn, regression, classification.\n3. Deep Learning - PyTorch or TensorFlow, neural networks.\n4. LLMs and Prompt Engineering - Working with GPT, Claude, Gemini APIs.\n5. MLOps - Deploying and monitoring models in production.\n6. Data Engineering - SQL, Spark, data pipelines.\n7. Computer Vision - OpenCV, image classification, object detection.\n8. NLP - Text processing, transformers, BERT.\n9. Cloud ML Platforms - AWS SageMaker, Google Vertex AI.\n10. Statistics and Math - Linear algebra, probability, calculus fundamentals."},
+    {id:6,icon:"🌍",tag:"Remote Work",title:"Best Remote Job Platforms for Indians in 2025",date:"Feb 22, 2025",read:"4 min read",
+      content:"1. UdyamPath - 4,500+ remote jobs updated in real-time.\n2. Toptal - Top 3% of freelancers, premium pay.\n3. Turing - Remote jobs at US companies from India.\n4. Upwork - Freelance platform for all skill levels.\n5. Remote.co - Curated remote job listings.\n6. We Work Remotely - Popular for tech and design roles.\n7. LinkedIn Jobs - Filter by Remote in location.\n8. AngelList - Startup remote jobs.\nTip: For US remote jobs, aim for 15-40 USD per hour as an Indian developer."},
+  ];
+
+  if(selected) {
+    const post = posts.find(p=>p.id===selected);
+    return (
+      <div style={{maxWidth:800,margin:"0 auto",padding:"24px 16px"}}>
+        <div onClick={()=>setSelected(null)} style={{color:C2.sky,fontSize:13,cursor:"pointer",marginBottom:20}}>← Back to Blog</div>
+        <div style={{background:C2.card,borderRadius:20,padding:28,border:"1px solid rgba(255,255,255,0.08)"}}>
+          <div style={{fontSize:11,fontWeight:800,color:C2.lime,textTransform:"uppercase",letterSpacing:1,marginBottom:8}}>{post.tag}</div>
+          <h1 style={{fontFamily:"Syne,sans-serif",fontSize:24,color:"#fff",fontWeight:900,lineHeight:1.3,marginBottom:12}}>{post.title}</h1>
+          <div style={{fontSize:12,color:C2.muted,marginBottom:24}}>{post.date} - {post.read}</div>
+          <div style={{fontSize:14,color:"rgba(255,255,255,.7)",lineHeight:2,whiteSpace:"pre-line"}}>{post.content}</div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{maxWidth:1000,margin:"0 auto",padding:"24px 16px"}}>
+      <div style={{fontFamily:"Syne,sans-serif",fontSize:28,fontWeight:900,color:"#fff",marginBottom:4}}>Career Resources</div>
+      <div style={{color:C2.muted,fontSize:13,marginBottom:24}}>Resume tips, interview guides, salary insights and more</div>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))",gap:16}}>
+        {posts.map(post=>(
+          <div key={post.id} onClick={()=>setSelected(post.id)}
+            style={{background:C2.card,borderRadius:16,padding:20,border:"1px solid rgba(255,255,255,0.08)",cursor:"pointer"}}>
+            <div style={{fontSize:36,marginBottom:10}}>{post.icon}</div>
+            <div style={{fontSize:10,fontWeight:800,color:C2.lime,textTransform:"uppercase",letterSpacing:1,marginBottom:6}}>{post.tag}</div>
+            <div style={{fontWeight:800,color:"#fff",fontSize:14,lineHeight:1.4,marginBottom:8}}>{post.title}</div>
+            <div style={{fontSize:11,color:C2.muted}}>{post.date} - {post.read}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+/* ══════════════════════════════════════════════════════
+   ABOUT US PAGE
+══════════════════════════════════════════════════════ */
+const AboutPage = () => {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [msg, setMsg] = useState("");
+  const [sent, setSent] = useState(false);
+  const C2 = {card:"rgba(255,255,255,0.03)",border:"rgba(255,255,255,0.08)",muted:"rgba(255,255,255,.4)",lime:"#AAFF00",sky:"#00E5FF"};
+  const inp = {width:"100%",padding:"12px 14px",borderRadius:12,border:"1px solid rgba(255,255,255,0.08)",background:"rgba(255,255,255,0.03)",color:"#fff",fontSize:13,fontFamily:"inherit",outline:"none",boxSizing:"border-box"};
+
+  return (
+    <div style={{maxWidth:900,margin:"0 auto",padding:"24px 16px"}}>
+      {/* Hero */}
+      <div style={{textAlign:"center",padding:"40px 16px 32px",background:"linear-gradient(135deg,rgba(170,255,0,0.04),rgba(0,229,255,0.04))",borderRadius:24,border:"1px solid rgba(255,255,255,0.06)",marginBottom:24}}>
+        <div style={{fontSize:48,marginBottom:12}}>🚀</div>
+        <div style={{fontFamily:"Syne,sans-serif",fontSize:32,fontWeight:900,color:"#fff",marginBottom:8}}>About UdyamPath</div>
+        <div style={{color:C2.muted,fontSize:15,maxWidth:600,margin:"0 auto",lineHeight:1.7}}>
+          UdyamPath is a real-time AI-powered career platform built for India. We connect job seekers with real opportunities using the latest technology.
+        </div>
+      </div>
+
+      {/* Mission */}
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(260px,1fr))",gap:14,marginBottom:24}}>
+        {[
+          {icon:"🎯",title:"Our Mission",text:"To make job hunting faster, smarter, and more transparent for every Indian professional."},
+          {icon:"👥",title:"Our Team",text:"Built by Sanjeev and Vedha Nikitha - two passionate developers from India who wanted to solve real job search problems."},
+          {icon:"💡",title:"Our Vision",text:"To become India's most trusted real-time career platform, helping millions find meaningful work."},
+        ].map(item=>(
+          <div key={item.title} style={{background:C2.card,borderRadius:16,padding:20,border:"1px solid rgba(255,255,255,0.08)"}}>
+            <div style={{fontSize:32,marginBottom:10}}>{item.icon}</div>
+            <div style={{fontWeight:800,color:"#fff",fontSize:15,marginBottom:6}}>{item.title}</div>
+            <div style={{fontSize:13,color:C2.muted,lineHeight:1.7}}>{item.text}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Stats */}
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(140px,1fr))",gap:12,marginBottom:24}}>
+        {[["21,000+","Live Jobs"],["500+","Companies"],["100%","Free"],["5+","AI Features"]].map(([val,label])=>(
+          <div key={label} style={{background:C2.card,borderRadius:14,padding:16,border:"1px solid rgba(255,255,255,0.08)",textAlign:"center"}}>
+            <div style={{fontFamily:"Syne,sans-serif",fontSize:24,fontWeight:900,color:"#AAFF00"}}>{val}</div>
+            <div style={{fontSize:12,color:C2.muted,marginTop:4}}>{label}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Contact */}
+      <div style={{background:C2.card,borderRadius:20,padding:24,border:"1px solid rgba(255,255,255,0.08)"}}>
+        <div style={{fontFamily:"Syne,sans-serif",fontSize:22,color:"#fff",fontWeight:900,marginBottom:4}}>Contact Us</div>
+        <div style={{color:C2.muted,fontSize:13,marginBottom:20}}>Have feedback or questions? We would love to hear from you!</div>
+        {!sent ? (
+          <div>
+            <input value={name} onChange={e=>setName(e.target.value)} placeholder="Your name" style={{...inp,marginBottom:10}}/>
+            <input value={email} onChange={e=>setEmail(e.target.value)} placeholder="Your email" style={{...inp,marginBottom:10}}/>
+            <textarea value={msg} onChange={e=>setMsg(e.target.value)} placeholder="Your message..." rows={4} style={{...inp,resize:"none",marginBottom:14}}/>
+            <button onClick={()=>{if(name&&email&&msg)setSent(true);}}
+              style={{width:"100%",padding:12,borderRadius:12,background:"linear-gradient(135deg,#AAFF00,#00E5FF)",color:"#000",border:"none",fontWeight:900,fontSize:15,cursor:"pointer"}}>
+              Send Message
+            </button>
+          </div>
+        ) : (
+          <div style={{textAlign:"center",padding:32}}>
+            <div style={{fontSize:40,marginBottom:8}}>🎉</div>
+            <div style={{color:"#AAFF00",fontWeight:800,fontSize:16}}>Message sent! We will get back to you soon.</div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
 export default function App() {
   const [nav, setNav] = useState("jobs");
+  const [selectedJob, setSelectedJob] = useState(null);
   const [user, setUser] = useState(null);
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedJob, setSelectedJob] = useState(null);
   const [saved, setSaved] = useState(new Set());
   const [search, setSearch] = useState("");
   const [region, setRegion] = useState("All");
@@ -2151,6 +2553,8 @@ export default function App() {
     {id:"companies",icon:"🏛️",label:"Reviews"},
     {id:"companyPages",icon:"🏢",label:"Companies"},
     {id:"foryou",icon:"⭐",label:"For You"},
+    {id:"blog",icon:"📝",label:"Blog"},
+    {id:"about",icon:"ℹ️",label:"About"},
     {id:"resume",icon:"📄",label:"Resume"},
     {id:"tracker",icon:"📊",label:"Tracker"},
     {id:"salary",icon:"📊",label:"Salary"},
@@ -2316,6 +2720,8 @@ export default function App() {
                 </div>
               </div>
 
+              {/* Landing Extras - show when no search active */}
+              {!search&&!region&&workType==="All"&&category==="All"&&<LandingExtras jobs={jobs} onSearch={s=>{setSearch(s);fetchJobs();}} onNav={setNav}/>}
               {/* Skill Filter */}
             <div style={{padding:"0 16px 8px"}}>
               <input value={skillFilter} onChange={e=>setSkillFilter(e.target.value)} placeholder="Filter by skill e.g. React, Python, SQL..."
@@ -2451,6 +2857,9 @@ export default function App() {
         {nav==="resume"&&<ResumeBuilderPage user={user} onAuthRequired={()=>setShowAuth(true)}/>}
         {nav==="tracker"&&<ApplicationTracker user={user} onAuthRequired={()=>setShowAuth(true)}/>}
         {nav==="companies"&&<CompanyReviews user={user} onAuthRequired={()=>setShowAuth(true)} jobs={jobs}/>}
+        {nav==="blog"&&<BlogPage/>}
+        {nav==="about"&&<AboutPage/>}
+        {nav==="jobdetails"&&selectedJob&&<JobDetailsPage job={selectedJob} jobs={jobs} onBack={()=>{setSelectedJob(null);setNav("jobs");}} user={user} onAuthRequired={()=>setShowAuth(true)}/>}
         {nav==="companyPages"&&<CompanyPages jobs={jobs} user={user} onAuthRequired={()=>setShowAuth(true)}/>}
         {nav==="foryou"&&<JobRecommendations user={user} onAuthRequired={()=>setShowAuth(true)} jobs={jobs}/>}
         {nav==="salary"&&<SalaryInsights jobs={jobs}/>}
