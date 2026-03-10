@@ -16,6 +16,10 @@ const ADZUNA_APP_ID  = process.env.ADZUNA_APP_ID;
 const ADZUNA_APP_KEY = process.env.ADZUNA_APP_KEY;
 
 export default async function handler(req, res) {
+
+  const {rateLimit,getIp} = await import("./_rateLimit.js");
+  const {allowed} = rateLimit(getIp(req));
+  if(!allowed) return res.status(429).json({error:"Too many requests"});
   // CORS headers
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET");

@@ -1,5 +1,9 @@
 // api/create-order.js — Create Razorpay order
 export default async function handler(req, res) {
+
+  const {rateLimit,getIp} = await import("./_rateLimit.js");
+  const {allowed} = rateLimit(getIp(req));
+  if(!allowed) return res.status(429).json({error:"Too many requests"});
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
