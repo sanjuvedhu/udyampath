@@ -1366,7 +1366,7 @@ const ApplicationTracker = ({ user, onAuthRequired }) => {
   if(!user) return (
     <div style={{textAlign:"center",padding:"60px 16px"}}>
       <div style={{fontSize:48,marginBottom:12}}>📊</div>
-      <div style={{fontFamily:"Syne,sans-serif",fontSize:22,color:"#fff",marginBottom:8}}>Track Your Applications</div>
+      <div id="job-list-top" style={{fontFamily:"Syne,sans-serif",fontSize:22,color:"#fff",marginBottom:8}}>Track Your Applications</div>
       <div style={{color:"rgba(255,255,255,.4)",marginBottom:20}}>Sign in to see all your job applications</div>
       <button onClick={onAuthRequired} style={{padding:"12px 32px",borderRadius:12,background:"linear-gradient(135deg,#AAFF00,#00E5FF)",color:"#000",fontWeight:900,fontSize:15,border:"none",cursor:"pointer"}}>Sign In</button>
     </div>
@@ -1383,7 +1383,7 @@ const ApplicationTracker = ({ user, onAuthRequired }) => {
       <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(90px,1fr))",gap:8,marginBottom:16}}>
         {[["Total",counts.all,"#fff"],["Pending",counts.pending,"#FFB700"],["Viewed",counts.viewed,"#00E5FF"],["Shortlisted",counts.shortlisted,"#AAFF00"],["Hired",counts.hired,"#AAFF00"],["Rejected",counts.rejected,"#FF6B6B"]].map(([l,v,c])=>(
           <div key={l} style={{background:C2.card,borderRadius:12,padding:"12px 8px",border:"1px solid rgba(255,255,255,0.08)",textAlign:"center"}}>
-            <div style={{fontFamily:"Syne,sans-serif",fontSize:22,fontWeight:900,color:c}}>{v}</div>
+            <div id="job-list-top" style={{fontFamily:"Syne,sans-serif",fontSize:22,fontWeight:900,color:c}}>{v}</div>
             <div style={{fontSize:10,color:C2.muted,textTransform:"uppercase"}}>{l}</div>
           </div>
         ))}
@@ -1699,7 +1699,7 @@ const CompanyReviews = ({ user, onAuthRequired, jobs }) => {
         <div>
           <div onClick={()=>setSelected(null)} style={{color:C2.sky,fontSize:13,cursor:"pointer",marginBottom:16}}>Back to companies</div>
           <div style={{background:C2.card,borderRadius:16,padding:20,border:"1px solid rgba(255,255,255,0.08)",marginBottom:20}}>
-            <div style={{fontFamily:"Syne,sans-serif",fontSize:22,color:"#fff",fontWeight:900}}>{selected}</div>
+            <div id="job-list-top" style={{fontFamily:"Syne,sans-serif",fontSize:22,color:"#fff",fontWeight:900}}>{selected}</div>
             {avgRating && <div style={{color:"#FFB700",fontSize:15,fontWeight:700,marginTop:4}}>{"★".repeat(Math.round(avgRating))} {avgRating}/5 ({reviews.length} reviews)</div>}
           </div>
           {!submitted ? (
@@ -1768,7 +1768,7 @@ const JobRecommendations = ({ user, onAuthRequired, jobs }) => {
   if(!user) return (
     <div style={{textAlign:"center",padding:"60px 16px"}}>
       <div style={{fontSize:48,marginBottom:12}}>⭐</div>
-      <div style={{fontFamily:"Syne,sans-serif",fontSize:22,color:"#fff",marginBottom:8}}>Jobs For You</div>
+      <div id="job-list-top" style={{fontFamily:"Syne,sans-serif",fontSize:22,color:"#fff",marginBottom:8}}>Jobs For You</div>
       <div style={{color:"rgba(255,255,255,.4)",marginBottom:20}}>Sign in to get personalised job recommendations</div>
       <button onClick={onAuthRequired} style={{padding:"12px 32px",borderRadius:12,background:"linear-gradient(135deg,#AAFF00,#00E5FF)",color:"#000",fontWeight:900,fontSize:15,border:"none",cursor:"pointer"}}>Sign In</button>
     </div>
@@ -1779,7 +1779,7 @@ const JobRecommendations = ({ user, onAuthRequired, jobs }) => {
   if(!profile?.skills) return (
     <div style={{textAlign:"center",padding:"60px 16px"}}>
       <div style={{fontSize:48,marginBottom:12}}>👤</div>
-      <div style={{fontFamily:"Syne,sans-serif",fontSize:22,color:"#fff",marginBottom:8}}>Add your skills first</div>
+      <div id="job-list-top" style={{fontFamily:"Syne,sans-serif",fontSize:22,color:"#fff",marginBottom:8}}>Add your skills first</div>
       <div style={{color:"rgba(255,255,255,.4)",marginBottom:20}}>Go to Profile tab and add your skills to get personalised job recommendations</div>
     </div>
   );
@@ -1938,7 +1938,7 @@ const CompanyPages = ({ jobs, onAuthRequired, user }) => {
 /* ══════════════════════════════════════════════════════
    LANDING PAGE SECTIONS
 ══════════════════════════════════════════════════════ */
-const LandingExtras = ({ jobs, onSearch, onNav }) => {
+const LandingExtras = ({ jobs, onSearch, onNav, onJobClick }) => {
   const [email, setEmail] = useState("");
   const [subscribed, setSubscribed] = useState(false);
   const C2 = {card:"rgba(255,255,255,0.03)",border:"rgba(255,255,255,0.08)",muted:"rgba(255,255,255,.4)",lime:"#AAFF00",sky:"#00E5FF",gold:"#FFB700"};
@@ -2017,11 +2017,11 @@ const LandingExtras = ({ jobs, onSearch, onNav }) => {
         <div style={{padding:"40px 16px",maxWidth:1200,margin:"0 auto"}}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20,flexWrap:"wrap",gap:8}}>
             <div style={{fontFamily:"Syne,sans-serif",fontSize:24,fontWeight:900,color:"#fff"}}>🔥 Featured Jobs</div>
-            <div onClick={()=>window.scrollTo({top:0,behavior:"smooth"})} style={{fontSize:13,color:C2.sky,cursor:"pointer",fontWeight:700}}>View all jobs →</div>
+            <div onClick={()=>document.getElementById("job-list-top")?.scrollIntoView({behavior:"smooth"})} style={{fontSize:13,color:C2.sky,cursor:"pointer",fontWeight:700}}>View all jobs →</div>
           </div>
           <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))",gap:14}}>
             {featuredJobs.map(job=>(
-              <div key={job.id} onClick={()=>{onNav("jobs");window.scrollTo({top:0,behavior:"smooth"});}}
+              <div key={job.id} onClick={()=>onJobClick(job)}
                 style={{background:C2.card,borderRadius:16,padding:18,border:"1px solid rgba(255,255,255,0.08)",cursor:"pointer"}}>
                 <div style={{display:"flex",gap:12,alignItems:"center",marginBottom:10}}>
                   <div style={{width:44,height:44,borderRadius:12,background:"linear-gradient(135deg,#7C3AED,#00E5FF)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,flexShrink:0}}>💼</div>
@@ -2313,7 +2313,7 @@ const AboutPage = () => {
 
       {/* Contact */}
       <div style={{background:C2.card,borderRadius:20,padding:24,border:"1px solid rgba(255,255,255,0.08)"}}>
-        <div style={{fontFamily:"Syne,sans-serif",fontSize:22,color:"#fff",fontWeight:900,marginBottom:4}}>Contact Us</div>
+        <div id="job-list-top" style={{fontFamily:"Syne,sans-serif",fontSize:22,color:"#fff",fontWeight:900,marginBottom:4}}>Contact Us</div>
         <div style={{color:C2.muted,fontSize:13,marginBottom:20}}>Have feedback or questions? We would love to hear from you!</div>
         {!sent ? (
           <div>
@@ -2683,14 +2683,14 @@ export default function App() {
               <div style={{maxWidth:1400,margin:"0 auto",display:"flex",gap:16,justifyContent:"center",flexWrap:"wrap"}}>
                 {[["💼",liveJobs.length,"Live Jobs",C.lime],["📫",filledJobs.length,"Filled Today",C.coral],["🔖",saved.size,"Saved",C.gold],["⚡","Live","WebSocket",C.sky]].map(([ic,val,lb,c])=>(
                   <div key={lb} style={{textAlign:"center"}}>
-                    <div style={{fontFamily:"Syne,sans-serif",fontSize:22,color:c,letterSpacing:.5}}>{ic} {val}</div>
+                    <div id="job-list-top" style={{fontFamily:"Syne,sans-serif",fontSize:22,color:c,letterSpacing:.5}}>{ic} {val}</div>
                     <div style={{fontSize:10,color:"rgba(255,255,255,.25)",textTransform:"uppercase",letterSpacing:.6}}>{lb}</div>
                   </div>
                 ))}
               </div>
             </div>
 
-            {!search&&region==="All"&&workType==="All"&&category==="All"&&<LandingExtras jobs={jobs} onSearch={s=>{setSearch(s);fetchJobs();}} onNav={setNav}/>}
+            {!search&&region==="All"&&workType==="All"&&category==="All"&&<LandingExtras jobs={jobs} onSearch={s=>{setSearch(s);fetchJobs();}} onNav={setNav} onJobClick={job=>{setSelectedJob(job);setNav("jobdetails");}}/>}
             <div className="main-content" style={{maxWidth:1400,margin:"0 auto",padding:"24px 20px"}}>
               {/* Filters */}
               <div style={{background:"rgba(255,255,255,0.03)",borderRadius:20,padding:18,border:"1px solid rgba(255,255,255,0.07)",backdropFilter:"blur(20px)",WebkitBackdropFilter:"blur(20px)",marginBottom:24}}>
@@ -2749,7 +2749,7 @@ export default function App() {
               ) : (
                 <div style={{padding:"60px 20px",textAlign:"center",background:C.card,borderRadius:20,border:`1px solid ${C.border}`,marginBottom:24}}>
                   <div style={{fontSize:48,marginBottom:12}}>🔍</div>
-                  <div style={{fontFamily:"Syne,sans-serif",fontSize:22,color:"#fff",marginBottom:12}}>No Jobs Found</div>
+                  <div id="job-list-top" style={{fontFamily:"Syne,sans-serif",fontSize:22,color:"#fff",marginBottom:12}}>No Jobs Found</div>
                   <div onClick={()=>{setSearch("");setRegion("All");setWorkType("All");setCategory("All");setExpLevel("All");fetchJobs();}} className="btn" style={{display:"inline-block",padding:"12px 28px",borderRadius:14,background:`linear-gradient(135deg,${C.lime},#00C8E0)`,color:C.bg,fontWeight:900,fontSize:14,cursor:"pointer"}}>Clear Filters & Reload</div>
                 </div>
               )}
@@ -2795,7 +2795,7 @@ export default function App() {
               <div style={{background:`linear-gradient(135deg,rgba(170,255,0,.06),rgba(56,189,248,.04))`,border:`1px solid ${C.lime}20`,borderRadius:24,padding:"28px 32px",display:"flex",gap:24,alignItems:"center",flexWrap:"wrap"}}>
                 <div style={{fontSize:44}} className="float">🔔</div>
                 <div style={{flex:1,minWidth:220}}>
-                  <div style={{fontFamily:"Syne,sans-serif",fontSize:22,color:"#fff",letterSpacing:.5}}>REAL EMAIL ALERTS - FREE</div>
+                  <div id="job-list-top" style={{fontFamily:"Syne,sans-serif",fontSize:22,color:"#fff",letterSpacing:.5}}>REAL EMAIL ALERTS - FREE</div>
                   <div style={{fontSize:13,color:C.muted,marginTop:4}}>Get emailed the instant a matching job is posted. Powered by Resend.</div>
                 </div>
                 <div onClick={()=>setNav("alerts")} className="btn glow-pulse" style={{padding:"14px 28px",borderRadius:14,background:`linear-gradient(135deg,${C.lime},#00C8E0)`,color:C.bg,fontWeight:900,fontSize:14,cursor:"pointer"}}>Set Alert Free →</div>
@@ -2876,13 +2876,13 @@ export default function App() {
             {!user ? (
               <div style={{padding:"60px 20px",textAlign:"center",background:C.card,borderRadius:20,border:`1px solid ${C.border}`}}>
                 <div style={{fontSize:48,marginBottom:12}}>🔐</div>
-                <div style={{fontFamily:"Syne,sans-serif",fontSize:22,color:"#fff",marginBottom:12}}>Sign In to Save Jobs</div>
+                <div id="job-list-top" style={{fontFamily:"Syne,sans-serif",fontSize:22,color:"#fff",marginBottom:12}}>Sign In to Save Jobs</div>
                 <div onClick={()=>setShowAuth(true)} className="btn" style={{display:"inline-block",padding:"14px 32px",borderRadius:16,background:`linear-gradient(135deg,${C.lime},#00C8E0)`,color:C.bg,fontWeight:900,fontSize:15,cursor:"pointer"}}>Sign In / Create Account →</div>
               </div>
             ) : savedJobs.length===0 ? (
               <div style={{padding:"60px 20px",textAlign:"center",background:C.card,borderRadius:20,border:`1px solid ${C.border}`}}>
                 <div style={{fontSize:48,marginBottom:12}}>🏷️</div>
-                <div style={{fontFamily:"Syne,sans-serif",fontSize:22,color:"#fff",marginBottom:12}}>NO SAVED JOBS</div>
+                <div id="job-list-top" style={{fontFamily:"Syne,sans-serif",fontSize:22,color:"#fff",marginBottom:12}}>NO SAVED JOBS</div>
                 <div onClick={()=>setNav("jobs")} className="btn" style={{display:"inline-block",padding:"14px 32px",borderRadius:16,background:`linear-gradient(135deg,${C.lime},#00C8E0)`,color:C.bg,fontWeight:900,fontSize:15,cursor:"pointer"}}>Browse Jobs →</div>
               </div>
             ) : (
@@ -2900,7 +2900,7 @@ export default function App() {
             <div style={{position:"relative",background:C.surface,borderRadius:28,maxWidth:560,width:"100%",overflow:"hidden",maxHeight:"90vh",display:"flex",flexDirection:"column",border:`1px solid ${C.border}`}}>
               <div style={{background:C.card,padding:"22px 24px",borderBottom:`1px solid ${C.border}`,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
                 <div>
-                  <div style={{fontFamily:"Syne,sans-serif",fontSize:22,color:"#fff",letterSpacing:.5}}>POST A JOB - FREE</div>
+                  <div id="job-list-top" style={{fontFamily:"Syne,sans-serif",fontSize:22,color:"#fff",letterSpacing:.5}}>POST A JOB - FREE</div>
                   <div style={{fontSize:11,color:"#00E5FF",marginTop:2}}>✅ Candidates apply DIRECTLY to your HR email!</div>
                 </div>
                 <div onClick={()=>{setShowPost(false);setPostDone(false);}} className="btn" style={{width:36,height:36,borderRadius:12,background:C.surface,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",border:`1px solid ${C.border}`,color:C.muted,fontSize:18}}>✕</div>
@@ -3488,7 +3488,7 @@ const AnalyticsDashboard = ({ user }) => {
   if (!user || user.email !== ADMIN_EMAIL) return (
     <div style={{maxWidth:500,margin:"80px auto",textAlign:"center",padding:24}}>
       <div style={{fontSize:56,marginBottom:16}}>🔒</div>
-      <div style={{fontFamily:"Syne,sans-serif",fontSize:22,color:"#fff"}}>Admin Only</div>
+      <div id="job-list-top" style={{fontFamily:"Syne,sans-serif",fontSize:22,color:"#fff"}}>Admin Only</div>
       <div style={{color:C2.muted,fontSize:13,marginTop:8}}>Analytics dashboard is only accessible to admins.</div>
     </div>
   );
