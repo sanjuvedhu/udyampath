@@ -2690,7 +2690,7 @@ export default function App() {
               </div>
             </div>
 
-            {!search&&region==="All"&&workType==="All"&&category==="All"&&<LandingExtras jobs={jobs} onSearch={s=>{setSearch(s);fetchJobs();}} onNav={setNav} onJobClick={job=>{setSelectedJob(job);setNav("jobdetails");}}/>}
+            {!search&&region==="All"&&workType==="All"&&category==="All"&&<LandingExtras jobs={jobs} onSearch={s=>{setSearch(s);fetchJobs();}} onNav={setNav} onJobClick={job=>setSelectedJob(job)}/>}
             <div className="main-content" style={{maxWidth:1400,margin:"0 auto",padding:"24px 20px"}}>
               {/* Filters */}
               <div style={{background:"rgba(255,255,255,0.03)",borderRadius:20,padding:18,border:"1px solid rgba(255,255,255,0.07)",backdropFilter:"blur(20px)",WebkitBackdropFilter:"blur(20px)",marginBottom:24}}>
@@ -2956,7 +2956,7 @@ export default function App() {
         )}
 
         {/* JOB DETAIL */}
-        {selectedJob&&<JobDetail job={selectedJob} onClose={()=>setSelectedJob(null)} user={user} onAuthRequired={()=>setShowAuth(true)}/>}
+        {selectedJob&&nav!=="jobdetails"&&<JobDetail job={selectedJob} onClose={()=>setSelectedJob(null)} user={user} onAuthRequired={()=>setShowAuth(true)}/>}
         {showPricing&&<PricingModal onClose={()=>setShowPricing(false)} user={user} onAuthRequired={()=>setShowAuth(true)} jobId={pricingJobId}/>}
 
         {/* AUTH MODAL */}
