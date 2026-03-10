@@ -1985,7 +1985,7 @@ const LandingExtras = ({ jobs, onSearch, onNav }) => {
         </div>
         <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(160px,1fr))",gap:12}}>
           {categories.map(cat=>(
-            <div key={cat.label} onClick={()=>{onSearch(cat.label.split(" /")[0].split(" /")[0]);onNav("jobs");}}
+            <div key={cat.label} onClick={()=>{onSearch(cat.label.split(" /")[0]);onNav("jobs");setTimeout(()=>window.scrollTo({top:0,behavior:"smooth"}),100);}}
               style={{background:C2.card,borderRadius:16,padding:"16px 12px",border:"1px solid rgba(255,255,255,0.07)",cursor:"pointer",textAlign:"center",transition:"all .2s"}}>
               <div style={{fontSize:28,marginBottom:8}}>{cat.icon}</div>
               <div style={{fontSize:12,fontWeight:800,color:"#fff",marginBottom:4}}>{cat.label}</div>
@@ -2003,7 +2003,7 @@ const LandingExtras = ({ jobs, onSearch, onNav }) => {
           </div>
           <div style={{display:"flex",gap:12,flexWrap:"wrap",justifyContent:"center"}}>
             {(topCompanies.length > 0 ? topCompanies : companies).map(c=>(
-              <div key={c} onClick={()=>{onSearch(c);onNav("jobs");}}
+              <div key={c} onClick={()=>{onSearch(c);onNav("jobs");setTimeout(()=>window.scrollTo({top:0,behavior:"smooth"}),100);}}
                 style={{padding:"8px 18px",borderRadius:10,background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",fontSize:13,fontWeight:700,color:"rgba(255,255,255,.6)",cursor:"pointer"}}>
                 {c}
               </div>
@@ -2017,11 +2017,11 @@ const LandingExtras = ({ jobs, onSearch, onNav }) => {
         <div style={{padding:"40px 16px",maxWidth:1200,margin:"0 auto"}}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20,flexWrap:"wrap",gap:8}}>
             <div style={{fontFamily:"Syne,sans-serif",fontSize:24,fontWeight:900,color:"#fff"}}>🔥 Featured Jobs</div>
-            <div onClick={()=>onNav("jobs")} style={{fontSize:13,color:C2.sky,cursor:"pointer",fontWeight:700}}>View all jobs →</div>
+            <div onClick={()=>{onNav("jobs");window.scrollTo({top:0,behavior:"smooth"});}} style={{fontSize:13,color:C2.sky,cursor:"pointer",fontWeight:700}}>View all jobs →</div>
           </div>
           <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))",gap:14}}>
             {featuredJobs.map(job=>(
-              <div key={job.id} onClick={()=>onNav("jobs")}
+              <div key={job.id} onClick={()=>{onNav("jobs");window.scrollTo({top:0,behavior:"smooth"});}}
                 style={{background:C2.card,borderRadius:16,padding:18,border:"1px solid rgba(255,255,255,0.08)",cursor:"pointer"}}>
                 <div style={{display:"flex",gap:12,alignItems:"center",marginBottom:10}}>
                   <div style={{width:44,height:44,borderRadius:12,background:"linear-gradient(135deg,#7C3AED,#00E5FF)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,flexShrink:0}}>💼</div>
