@@ -2727,7 +2727,7 @@ export default function App() {
                 style={{width:"100%",padding:"10px 14px",borderRadius:12,border:"1px solid rgba(255,255,255,0.08)",background:"rgba(255,255,255,0.03)",color:"#fff",fontSize:13,fontFamily:"inherit",outline:"none",boxSizing:"border-box"}}/>
             </div>
             {/* Job Grid */}
-              <div style={{fontFamily:"Syne,sans-serif",fontSize:24,color:"#fff",letterSpacing:.5,marginBottom:16}}>
+              <div id="jobs-grid" style={{fontFamily:"Syne,sans-serif",fontSize:24,color:"#fff",letterSpacing:.5,marginBottom:16}}>
                 {loading?"LOADING LIVE JOBS...":`${liveJobs.length} LIVE JOBS`}
                 <span style={{fontSize:11,fontFamily:"Plus Jakarta Sans,sans-serif",fontWeight:600,letterSpacing:0,color:"rgba(255,255,255,.25)",marginLeft:12}}>
                   {loading?"Fetching from Adzuna API + Database...":"From Adzuna API + Database - Auto-updates via WebSocket"}
