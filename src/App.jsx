@@ -2291,7 +2291,7 @@ const AboutPage = () => {
       <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(260px,1fr))",gap:14,marginBottom:24}}>
         {[
           {icon:"🎯",title:"Our Mission",text:"To make job hunting faster, smarter, and more transparent for every Indian professional."},
-          {icon:"👥",title:"Our Team",text:"Built by Sanjeev and Vedha Nikitha - two passionate developers from India who wanted to solve real job search problems."},
+          {icon:"👥",title:"Our Team",text:"Built by Sanjeev - a passionate developer from India who wanted to solve real job search problems."},
           {icon:"💡",title:"Our Vision",text:"To become India's most trusted real-time career platform, helping millions find meaningful work."},
         ].map(item=>(
           <div key={item.title} style={{background:C2.card,borderRadius:16,padding:20,border:"1px solid rgba(255,255,255,0.08)"}}>
@@ -3095,7 +3095,7 @@ export default function App() {
             <div style={{fontSize:11,color:"rgba(255,255,255,.2)",textAlign:"center"}}>
               Real-time via Supabase WebSocket - Jobs via Adzuna API - Emails via Resend - Hosted on Vercel
               <div style={{marginTop:6,fontSize:13,color:"rgba(255,255,255,.5)"}}>
-                Made with ❤️ by <span style={{color:"#00E5FF",fontWeight:900}}>Sanjeev & Vedha Nikitha</span>
+                Made with ❤️ by <span style={{color:"#00E5FF",fontWeight:900}}>Sanjeev</span>
               </div>
             </div>
             <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
